@@ -4,6 +4,12 @@ sudo: false
 d:
     - dmd-2.071.2
 
+addons:
+  apt:
+    packages:
+    - libevent-dev
+    - libssl-dev
+
 script:
     - git submodule update --init
     - make all test

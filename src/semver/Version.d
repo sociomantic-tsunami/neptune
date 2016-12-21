@@ -27,14 +27,23 @@ struct Version
     /// patch version number
     int patch;
 
+    /// optional pre-release string
+    string prerelease;
+
+    /// optional metadata string
+    string metadata;
+
     /**
         Constructor to require setting all fields explicitly
      **/
-    this (int major, int minor, int patch)
+    this (int major, int minor, int patch, string prerelease = "",
+        string metadata = "")
     {
         this.major = major;
         this.minor = minor;
         this.patch = patch;
+        this.prerelease = prerelease;
+        this.metadata = metadata;
     }
 
     /**
@@ -44,7 +53,11 @@ struct Version
     string toString ( ) const pure
     {
         import std.format;
-        return format("v%s.%s.%s", this.major, this.minor, this.patch);
+        return format(
+            "v%s.%s.%s%s%s", this.major, this.minor, this.patch,
+            this.prerelease.length ? "-" ~ this.prerelease : "",
+            this.metadata.length ? "+" ~ this.metadata : ""
+        );
     }
 
     /**
@@ -65,7 +78,7 @@ struct Version
         import std.conv;
         import std.regex;
 
-        static verRegex = regex(r"^v?(\d+)\.(\d+)\.(\d+)$", "g");
+        static verRegex = regex(r"^v?(\d+)\.(\d+)\.(\d+)(-[^+]+)?(\+.+)?$", "g");
 
         auto hit = ver.matchFirst(verRegex);
         enforce(!hit.empty);
@@ -74,6 +87,10 @@ struct Version
         result.major = to!int(hit[1]);
         result.minor = to!int(hit[2]);
         result.patch = to!int(hit[3]);
+        if (hit[4].length)
+            result.prerelease = hit[4][1 .. $];
+        if (hit[5].length)
+            result.metadata   = hit[5][1 .. $];
         return result;
     }
 
@@ -90,6 +107,14 @@ struct Version
         assert(ver.minor == 1);
         assert(ver.patch == 2);
         assert(ver.toString() == "v0.1.2");
+
+        ver = Version.parse("v1.1.1-alpha+breaking");
+        assert(ver.major == 1);
+        assert(ver.minor == 1);
+        assert(ver.patch == 1);
+        assert(ver.prerelease == "alpha", ver.prerelease);
+        assert(ver.metadata == "breaking");
+        assert(ver.toString() == "v1.1.1-alpha+breaking");
 
         import std.exception : assertThrown;
         assertThrown(Version.parse("gibberish"));
@@ -145,7 +170,7 @@ struct Version
      **/
     equals_t opEquals ( const Version rhs ) const pure
     {
-        return this.opCmp(rhs) == 0;
+        return this.tupleof[] == rhs.tupleof[];
     }
 
     unittest

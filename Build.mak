@@ -13,6 +13,6 @@ $O/libvibed.a: $(shell find $C/submodules/vibed/source -type f -name '*.d')
 
 $B/overview: $O/libvibed.a
 $B/overview: $C/src/overview/main.d
-$B/overview: override LDFLAGS += -L$O -lvibed -levent -lssl -lcrypt
+$B/overview: override LDFLAGS += -L$O -lvibed -levent -lssl -lcrypto
 
 all += $B/overview

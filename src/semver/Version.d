@@ -81,7 +81,7 @@ struct Version
         static verRegex = regex(r"^v?(\d+)\.(\d+)\.(\d+)(-[^+]+)?(\+.+)?$", "g");
 
         auto hit = ver.matchFirst(verRegex);
-        enforce(!hit.empty);
+        enforce(!hit.empty, ver);
 
         auto result = Version.init;
         result.major = to!int(hit[1]);

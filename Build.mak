@@ -20,3 +20,7 @@ $O/libdyaml.a: $(shell find $C/submodules/d-yaml/source -type f -name '*.d') \
 ################################################################################
 
 $O/%unittests: override LDFLAGS += -L$O -lvibed -ldyaml -levent -lssl -lcrypto
+
+$B/overview: $O/libvibed.a $O/libdyaml.a
+$B/overview: $C/src/overview/main.d
+$B/overview: override LDFLAGS += -L$O -lvibed -ldyaml -levent -lssl -lcrypto

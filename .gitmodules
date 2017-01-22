@@ -13,3 +13,9 @@
 [submodule "openssl"]
 	path = submodules/openssl
 	url = https://github.com/D-Programming-Deimos/openssl.git
+[submodule "d-yaml"]
+	path = submodules/d-yaml
+	url = https://github.com/sociomantic-tsunami/d-yaml
+[submodule "tinyendian"]
+	path = submodules/tinyendian
+	url = https://github.com/kiith-sa/tinyendian

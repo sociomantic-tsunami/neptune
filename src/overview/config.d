@@ -37,7 +37,7 @@ Configuration readConfigFile (string path)
     auto yml = Loader(path).load();
 
     OctodConfiguration octod;
-    octod.dryRun = yml["dry_run"].get!bool.ifThrown(true);
+    octod.dryRun = false;
     octod.oauthToken = yml["oauthtoken"].get!string;
 
     return typeof(return)(

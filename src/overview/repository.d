@@ -26,7 +26,7 @@ struct Repository
 {
     /// project name
     string          name;
-    /// versions tagged in the project (key is git SHA)
+    /// versions tagged in the project (key is git SHA), libraries only
     Version[string] tags;
     /// current versions of dependencies (key is dependency name)
     Version[string] dependencies;
@@ -59,11 +59,6 @@ Repository fetchRepositoryMetadata ( HTTPConnection client, string full_name )
     Repository result;
 
     result.name = full_name;
-    result.tags = repo
-        .releasedTags()
-        .map!(tag => tuple(tag.sha, Version.parse(tag.name).ifThrown(Version.init)))
-        .filter!(pair => pair[1] != Version.init)
-        .assocArray();
 
     Node yml = repo
         .download(".neptune.yml")
@@ -77,6 +72,18 @@ Repository fetchRepositoryMetadata ( HTTPConnection client, string full_name )
             return true;
         return false;
     } ().ifThrown(false);
+
+    // right now there is no usage for non-library releases in generated report
+    // thus the tool doesn't query it to minimize GitHub API request count:
+
+    if (result.library)
+    {
+        result.tags = repo
+            .releasedTags()
+            .map!(tag => tuple(tag.sha, Version.parse(tag.name).ifThrown(Version.init)))
+            .filter!(pair => pair[1] != Version.init)
+            .assocArray();
+    }
 
     // will be set later in `updateRepositoryDependencies`
     result.dependencies = null;

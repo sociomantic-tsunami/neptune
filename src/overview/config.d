@@ -33,6 +33,7 @@ Configuration readConfigFile (string path)
     import std.exception : ifThrown;
     import dyaml.loader;
     import dyaml.node;
+    import vibe.core.log : logWarn;
 
     auto yml = Loader(path).load();
 
@@ -40,7 +41,7 @@ Configuration readConfigFile (string path)
     octod.dryRun = false;
     octod.oauthToken = yml["oauthtoken"].get!string;
 
-    return typeof(return)(
+    auto conf = typeof(return)(
         octod,
         yml["organization"].get!string,
         yml["exclude"].get!(Node[])
@@ -48,4 +49,11 @@ Configuration readConfigFile (string path)
         yml["include"].get!(Node[])
             .map!(node => node.get!string).array().ifThrown(null),
     );
+
+    if (conf.organization.length == 0)
+        logWarn("Empty organization name, likely misconfiguration");
+    if (conf.octod.oauthToken.length != 40)
+        logWarn("OAuth Token doesn't look valid");
+
+    return conf;
 }

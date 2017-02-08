@@ -4,7 +4,7 @@ Status](https://travis-ci.org/sociomantic-tsunami/neptune.svg?branch=master)](ht
 Introduction
 ============
 
-Neptune is a set of guidelines and tool to help developers and users to
+Neptune is a set of guidelines and tools to help developers and users to
 implement a versioning scheme based on [SemVer](http://semver.org/).
 
 

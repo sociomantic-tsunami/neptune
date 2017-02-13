@@ -136,7 +136,7 @@ void updateRepositoryDependencies ( ref Repository project, HTTPConnection clien
 
             // extract organization/name
             static rgxSubmoduleURL = regex(
-                r"(https:\/\/)|(git@)github\.com\/|:([^\/]+)\/([^.]+)\.git");
+                r"((https:\/\/)|(git@))github\.com(\/|:)(?P<org>[^\/]+)\/(?P<name>[^.]+)\.git");
 
             auto match = info.url.matchFirst(rgxSubmoduleURL);
             enforce(
@@ -144,7 +144,7 @@ void updateRepositoryDependencies ( ref Repository project, HTTPConnection clien
                 format("Unexpected submodule URL (%s) format", info.url)
             );
 
-            return tuple(match[3] ~ "/" ~ match[4], *p_version);
+            return tuple(match["org"] ~ "/" ~ match["name"], *p_version);
         }
         catch (Exception e)
         {

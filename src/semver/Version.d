@@ -53,6 +53,10 @@ struct Version
     string toString ( ) const pure
     {
         import std.format;
+
+        if (!this.valid())
+            return "<invalid>";
+
         return format(
             "v%s.%s.%s%s%s", this.major, this.minor, this.patch,
             this.prerelease.length ? "-" ~ this.prerelease : "",
@@ -176,5 +180,22 @@ struct Version
     unittest
     {
         assert(Version.parse("0.1.2") == Version(0, 1, 2));
+    }
+
+    /**
+        Returns:
+            `true` if this instance represents valid SemVer version
+     **/
+    bool valid ( ) const pure
+    {
+        return this !is Version.init;
+    }
+
+    unittest
+    {
+        assert(!Version.init.valid());
+        assert(Version.parse("0.1.2").valid());
+
+        assert(Version.init.toString() == "<invalid>");
     }
 }

@@ -136,7 +136,7 @@ void updateRepositoryDependencies ( ref Repository project, HTTPConnection clien
 
             // extract organization/name
             static rgxSubmoduleURL = regex(
-                r"((https:\/\/)|(git@))github\.com(\/|:)(?P<org>[^\/]+)\/(?P<name>[^.]+)\.git");
+                r"((https:\/\/)|(git@))github\.com(\/|:)(?P<org>[^\/]+)\/(?P<name>[^.]+)(\.git)?");
 
             auto match = info.url.matchFirst(rgxSubmoduleURL);
             enforce(

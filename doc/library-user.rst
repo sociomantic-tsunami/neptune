@@ -4,7 +4,7 @@ Using Neptune-Versioned Libraries
 
 This is a guide for users of libraries which are using a strict, Neptune-based
 versioning scheme. Maintainers of Neptune-versioned libraries should also read
-`Maintaining Neptune Libraries <neptune-maintainer.rst>`_.
+`Maintaining Neptune Libraries <library-maintainer.rst>`_.
 
 .. contents::
 

@@ -7,7 +7,7 @@ based versioning scheme. After some discussion, it provides a set of simple,
 step-by-step guides describing the common procedures for various actions that
 you'll need to perform as a maintainer of a Neptune-versioned library.
 
-You should first read `Using Neptune-Versioned Libraries <neptune-user.rst>`_ to
+You should first read `Using Neptune-Versioned Libraries <library-user.rst>`_ to
 get a grounding in the principles and theory of Neptune from the point-of-view
 of a user of a library.
 

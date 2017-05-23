@@ -26,4 +26,10 @@ $B/overview: $O/libvibed.a $O/libdyaml.a
 $B/overview: $C/src/overview/main.d
 $B/overview: override LDFLAGS += -L$O -lvibed -ldyaml -levent -lssl -lcrypto
 
-all += $B/overview
+$B/neptune: override LDFLAGS += -L$O -lvibed -levent -lssl -lcrypto
+$B/neptune: $O/libvibed.a
+$B/neptune: $C/src/neptune/main.d
+
+neptune: $B/neptune
+
+all += $B/overview $B/neptune

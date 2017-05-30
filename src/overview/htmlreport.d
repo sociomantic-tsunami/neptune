@@ -14,6 +14,9 @@
 module overview.htmlreport;
 
 import overview.repository;
+import semver.Version;
+
+import std.variant;
 
 /**
     Generates HTML table with rows being all projects and columns
@@ -55,9 +58,14 @@ void generateHTMLReport ( const Repository[] projects, string path )
         string getDependencyVersion ( ref const Repository dependency )
         {
             auto ver = dependency.name in proj.dependencies;
-            if (ver !is null)
-                return ver.toString();
-            return "";
+
+            if (ver is null)
+                return "";
+
+            return visit!(
+                (Version v)   => v.toString(),
+                (SHANotFound v) => v.sha[0..8]
+            )(*ver);
         }
 
         import std.algorithm : map, filter;

@@ -118,6 +118,7 @@ void updateRepositoryDependencies ( ref Repository project, HTTPConnection clien
     import std.algorithm.iteration : map, filter;
     import std.array : assocArray, array;
     import std.typecons : tuple, Tuple;
+    import std.exception : ifThrown;
     import vibe.core.log : logInfo;
 
     logInfo(".. %s", project.name);
@@ -166,12 +167,16 @@ void updateRepositoryDependencies ( ref Repository project, HTTPConnection clien
         }
     }
 
+    Submodule[] submodules = repo
+        .listSubmodules
+        .ifThrown(null);
+
+    if (submodules is null)
+        return;
+
     try
     {
-        // eagerly allocate plain array first to workaround double calls to
-        // map.front (which is assumed to be pure)
-        auto arr = repo
-            .listSubmodules
+        auto arr = submodules
             .map!resolveSubmoduleVersion
             .array();
 

@@ -19,6 +19,8 @@ import octod.api.repos;
 import overview.submodules;
 import semver.Version;
 
+import std.variant : Algebraic;
+
 /**
     Describes single repository metadata
  **/
@@ -29,10 +31,18 @@ struct Repository
     /// versions tagged in the project (key is git SHA), libraries only
     Version[string] tags;
     /// current versions of dependencies (key is dependency name)
-    Version[string] dependencies;
+    SubmoduleVersion[string] dependencies;
     /// is a library project?
     bool            library;
 }
+
+/// used as a marker type for SubmoduleVersion
+struct SHANotFound { string sha; }
+
+/**
+    Encapsulates version and possible error conditions
+ **/
+alias SubmoduleVersion = Algebraic!(Version, SHANotFound);
 
 /**
     Fetches repository metadata using GitHub API
@@ -118,7 +128,7 @@ void updateRepositoryDependencies ( ref Repository project, HTTPConnection clien
     // under what version string it is tagged in original repository, returning
     // tuple of name and version
 
-    Tuple!(string, Version) resolveSubmoduleVersion ( Submodule info )
+    Tuple!(string, SubmoduleVersion) resolveSubmoduleVersion ( Submodule info )
     {
         import std.format;
         import std.regex;
@@ -126,14 +136,6 @@ void updateRepositoryDependencies ( ref Repository project, HTTPConnection clien
 
         try
         {
-            auto sha = repo.download(info.path).expectSubmodule().sha;
-            auto p_version = sha in mapping;
-
-            enforce(
-                p_version !is null,
-                format("SHA '%s' for '%s' not found in mapping", sha, info.url)
-            );
-
             // extract organization/name
             static rgxSubmoduleURL = regex(
                 r"((https:\/\/)|(git@))github\.com(\/|:)(?P<org>[^\/]+)\/(?P<name>[^.]+)(\.git)?");
@@ -143,13 +145,24 @@ void updateRepositoryDependencies ( ref Repository project, HTTPConnection clien
                 !match.empty,
                 format("Unexpected submodule URL (%s) format", info.url)
             );
+            auto name = match["org"] ~ "/" ~ match["name"];
 
-            return tuple(match["org"] ~ "/" ~ match["name"], *p_version);
+            auto sha = repo.download(info.path).expectSubmodule().sha;
+            auto p_version = sha in mapping;
+
+            if (p_version is null)
+            {
+                logInfo("SHA '%s' for '%s' not found in mapping",
+                    sha, info.url);
+                return tuple(name, SubmoduleVersion(SHANotFound(sha)));
+            }
+
+            return tuple(name, SubmoduleVersion(*p_version));
         }
         catch (Exception e)
         {
             logInfo(".. %s", e.msg);
-            return tuple("", Version.init);
+            throw e;
         }
     }
 
@@ -163,7 +176,6 @@ void updateRepositoryDependencies ( ref Repository project, HTTPConnection clien
             .array();
 
         project.dependencies = arr
-            .filter!(pair => pair[0].length != 0)
             .assocArray();
     }
     catch (Exception e)

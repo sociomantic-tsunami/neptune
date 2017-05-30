@@ -57,14 +57,16 @@ void generateHTMLReport ( const Repository[] projects, string path )
 
         string getDependencyVersion ( ref const Repository dependency )
         {
+            import std.format;
+
             auto ver = dependency.name in proj.dependencies;
 
             if (ver is null)
-                return "";
+                return "<td></td>";
 
             return visit!(
-                (Version v)   => v.toString(),
-                (SHANotFound v) => v.sha[0..8]
+                (Version v)   => format("<td>%s</td>", v.toString()),
+                (SHANotFound v) => format("<td class='bad_sha'>%s</td>", v.sha[0..8])
             )(*ver);
         }
 
@@ -78,7 +80,6 @@ void generateHTMLReport ( const Repository[] projects, string path )
             projects
                 .filter!(proj => proj.library)
                 .map!getDependencyVersion
-                .map!(ver => format("<td>%s</td>", ver))
                 .join()
         );
     }
@@ -107,9 +108,21 @@ static immutable reportTemplate = `
 <html>
 <head>
 <style>
+table#dependencies {
+    border-collapse: collapse;
+}
+
 table#dependencies td {
     min-width: 10em;
     border: 1px solid gray;
+}
+
+table#dependencies tr:hover td {
+    border: 2px solid black;
+}
+
+table#dependencies td.bad_sha {
+    background-color: yellow;
 }
 </style>
 <script>

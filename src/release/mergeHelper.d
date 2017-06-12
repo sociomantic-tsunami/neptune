@@ -261,7 +261,7 @@ class PatchMerger
 
     Version findCorrespondingBranch ( int major, in Version ver )
     {
-        import release.cmd;
+        import release.gitHelper;
 
         import std.algorithm;
         import std.range;

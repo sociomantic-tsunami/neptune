@@ -41,26 +41,15 @@ public ref HTTPConnection api ( )
 
 /*******************************************************************************
 
-    Returns:
-        neptune configuration. If it doesn't exists, will prompt the user for
-        the required infomation
+    Checks whether the oauth config is setup and starts the setup process if not
 
 *******************************************************************************/
 
-public Configuration getConf ( )
+public void checkOAuthSetup ( )
 {
-    import release.cmd;
+    import std.exception;
 
-    Configuration cfg;
-    cfg.dryRun = false;
-
-    try cfg.oauthToken = cmd("git config neptune.oauthtoken");
-    catch (ExitCodeException) {}
-
-    if (cfg.oauthToken.length == 0)
-        return githubSetup();
-
-    return cfg;
+    getConf().ifThrown(githubSetup());
 }
 
 
@@ -75,92 +64,89 @@ public Configuration getConf ( )
 
 private Configuration githubSetup ( )
 {
-    import release.cmd;
+    import release.shellHelper;
+    import release.gitHelper;
 
     import std.stdio;
     import std.string;
+    import std.exception;
 
-    string hub_oauth;
 
     Configuration cfg;
     cfg.dryRun = false;
 
-    try hub_oauth = cmd("git config hub.oauthtoken");
-    catch (ExitCodeException) {}
-
-    if (hub_oauth.length > 0)
+    static string tryHubToken ( )
     {
-        writefln("No oauth token was found under neptune.oauthtoken, however an hub.oauthtoken was found. ");
+        auto hub_oauth = getConfig("hub.oauthtoken");
+
+        enforce(hub_oauth.length > 0);
+
+        writefln("No oauth token was found under neptune.oauthtoken, "~
+                 "however an hub.oauthtoken was found. ");
+
         if (readYesNoResponse("Would you like to use it as neptune.oauthtoken config?"))
-        {
-            cmd("git config --global neptune.oauthtoken " ~ hub_oauth);
-            cfg.oauthToken = hub_oauth;
-            return cfg;
-        }
+            return hub_oauth;
+
+        throw new Exception("");
     }
 
     writefln("Setting up an oauth token for github access");
-    writef("Please enter your username: ");
 
-    cfg.username = strip(readln());
-
-    while (cfg.username.length == 0)
-    {
-        writef("Empty input. Please provide your username: ");
-        cfg.username = strip(readln());
-    }
-
-    writef("Please provide your password: ");
-    {
-        import core.sys.posix.termios;
-
-        // Disable terminal echo for password entering
-        termios old, _new;
-        if (tcgetattr(stdout.fileno, &old) != 0)
-            throw new Exception("Unable to fetch termios attr");
-
-        _new = old;
-        _new.c_lflag &= ~ECHO;
-
-        if (tcsetattr (stdout.fileno, TCSAFLUSH, &_new) != 0)
-            throw new Exception("Unable to set termios attr");
-
-        // Reenable upon scope exit
-        scope(exit)
-            tcsetattr(stdout.fileno, TCSAFLUSH, &old);
-
-        cfg.password = readln()[0 .. $-1];
-
-        while (cfg.password.length == 0)
-        {
-            writef("Empty input. Please provide your password: ");
-            cfg.password = strip(readln());
-        }
-    }
-
-    import octod.core;
-    import vibe.data.json;
+    auto username = readString("Please enter your username: ");
+    auto password = readPassword("Please provide your password: ");
 
     //import vibe.core.log;
     //setLogLevel(LogLevel.trace);
 
-    auto client = HTTPConnection.connect(cfg);
-
-    Json json = Json.emptyObject;
-
-    json["scopes"] = Json.emptyArray;
-    json["scopes"] ~= "repo";
-    json["note"] = "Neptune";
-
-    auto response = client.post("/authorizations", json);
-
     cfg = cfg.init;
     cfg.dryRun = false;
-    cfg.oauthToken = response["token"].to!string;
-
-    import release.cmd;
+    cfg.oauthToken = createOAuthToken(username, password, ["repo"], "Neptune");
 
     cmd("git config --global neptune.oauthtoken " ~ cfg.oauthToken);
 
     return cfg;
+}
+
+
+/*******************************************************************************
+
+    Uses the given user/pass to create a connection which is then used to setup
+    an oauth token with the given scopes and note
+
+    Params:
+        user = github username
+        pass = github password
+        scopes = oauth permission scopes
+        note = oauth note
+
+    Returns:
+        oauth token code
+
+*******************************************************************************/
+
+public string createOAuthToken ( string user, string pass,
+                                 string[] scopes, string note )
+{
+    import vibe.data.json;
+
+    Configuration cfg;
+
+    cfg.dryRun = false;
+    cfg.username = user;
+    cfg.password = pass;
+
+    auto connection = HTTPConnection.connect(cfg);
+
+    Json json = Json.emptyObject;
+
+    json["scopes"] = Json.emptyArray;
+
+    foreach (_scope; scopes)
+        json["scopes"] ~= _scope;
+
+    json["note"] = note;
+
+    auto response = connection.post("/authorizations", json);
+
+    return response["token"].to!string;
 }

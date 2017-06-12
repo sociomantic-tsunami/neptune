@@ -15,7 +15,6 @@ module release.main;
 import release.api;
 import release.versionHelper;
 import release.mergeHelper;
-import release.cmd;
 
 import octod.api.repos;
 
@@ -27,9 +26,13 @@ import octod.api.repos;
 
 void main ( )
 {
+    import release.shellHelper;
+
     import std.stdio;
     import std.algorithm : map, sort;
     import std.range : array;
+
+    checkOAuthSetup();
 
     //import vibe.core.log;
     //setLogLevel(LogLevel.trace);
@@ -41,16 +44,16 @@ void main ( )
 
     cmd("git remote update");
 
-    auto release = autodetectVersions(tags);
+    auto myrelease = autodetectVersions(tags);
 
     ActionList list;
 
-    if (release.type == release.type.Patch)
-        list = preparePatchRelease(repo, tags, release);
+    if (myrelease.type == myrelease.type.Patch)
+        list = preparePatchRelease(repo, tags, myrelease);
     else
     {
         writefln("This seems to be %s release which is not yet supported, exiting...",
-                 release.type);
+                 myrelease.type);
         return;
     }
 
@@ -85,8 +88,10 @@ void main ( )
         return;
     }
 
+    import release.gitHelper;
     import std.format;
-    cmd(format("git push %s %(%s %)", getRemote(), list.affected_refs));
+
+    cmd(format("git push %s %(%s %)", getRemote(getUpstream()), list.affected_refs));
 }
 
 
@@ -101,9 +106,11 @@ void main ( )
 
 void createLocalBranches ( R ) ( R branches )
 {
+    import release.gitHelper;
+    import release.shellHelper;
     import std.format;
 
-    auto upstream = getRemote();
+    auto upstream = getRemote(getUpstream());
 
     foreach (branch; branches)
         cmd(format("git branch -f %s %s/%s", branch, upstream, branch));
@@ -129,6 +136,7 @@ ActionList preparePatchRelease ( ref Repository repo, Version[] tags,
                                  Version patch_version )
 {
     import release.github;
+    import release.gitHelper;
     import release.mergeHelper;
 
     import std.format;
@@ -238,7 +246,8 @@ ActionList makeRelease ( Version release_version, string target )
 
 Version autodetectVersions ( Version[] tags )
 {
-    import release.cmd;
+    import release.shellHelper;
+    import release.gitHelper;
     import release.versionHelper;
 
     import octod.api.repos;
@@ -275,4 +284,47 @@ Version autodetectVersions ( Version[] tags )
     writefln("Detected release %s", release_version);
 
     return release_version;
+}
+
+
+/*******************************************************************************
+
+    Accuires the upstream location
+
+    Returns:
+        the upstream
+
+*******************************************************************************/
+
+string getUpstream ( )
+{
+    import release.shellHelper;
+    import release.gitHelper;
+    import std.exception;
+    import std.stdio;
+
+    /// Asks the user if hub.upstream should be used
+    static string tryHubUpstream ( )
+    {
+        auto hubupstream = getConfig("hub.upstream");
+
+        writefln("However, an hub.upstream configuration was found: %s",
+                 hubupstream);
+
+        if (readYesNoResponse("Would you like to use it as neptune.upstream config?"))
+           return hubupstream;
+
+        throw new Exception("");
+    }
+
+    /// Gets the upstream location through interaction with git and the user
+    static string getUpstreamFromUser ( )
+    {
+        writefln("No neptune upstream config found.");
+
+        return tryHubUpstream().ifThrown(askUpstreamName());
+    }
+
+    return getConfig("neptune.upstream")
+              .ifThrown(configureUpstream(getUpstreamFromUser()));
 }

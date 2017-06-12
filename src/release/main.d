@@ -17,6 +17,7 @@ import release.versionHelper;
 import release.mergeHelper;
 
 import octod.api.repos;
+import octod.core;
 
 /*******************************************************************************
 
@@ -37,7 +38,9 @@ void main ( )
     //import vibe.core.log;
     //setLogLevel(LogLevel.trace);
 
-    auto repo = api.repository(getUpstream());
+    auto con = HTTPConnection.connect(getConf());
+
+    auto repo = con.repository(getUpstream());
     auto tags = repo.releasedTags().map!(a=>Version(a.name)).array;
 
     sort(tags);
@@ -49,7 +52,7 @@ void main ( )
     ActionList list;
 
     if (myrelease.type == myrelease.type.Patch)
-        list = preparePatchRelease(repo, tags, myrelease);
+        list = preparePatchRelease(con, repo, tags, myrelease);
     else
     {
         writefln("This seems to be %s release which is not yet supported, exiting...",
@@ -122,6 +125,7 @@ void createLocalBranches ( R ) ( R branches )
     Prepares the actions for a patch release
 
     Params:
+        con = connection object
         repo = repo object
         tags = array of tags for this repo
         patch_version = version to release
@@ -132,8 +136,8 @@ void createLocalBranches ( R ) ( R branches )
 
 *******************************************************************************/
 
-ActionList preparePatchRelease ( ref Repository repo, Version[] tags,
-                                 Version patch_version )
+ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
+                                 Version[] tags, Version patch_version )
 {
     import release.github;
     import release.gitHelper;
@@ -162,7 +166,7 @@ ActionList preparePatchRelease ( ref Repository repo, Version[] tags,
     }
 
     // Get version tracking branches
-    auto branches = getBranches(repo)
+    auto branches = con.getBranches(repo)
                       .map!(a=>Version(a.name))
                       .filter!(a=>!thisVersion(a) &&
                                   (newerVersion(a) ||

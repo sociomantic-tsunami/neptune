@@ -10,12 +10,12 @@
 
 *******************************************************************************/
 
-module neptune.main;
+module release.main;
 
-import neptune.api;
-import neptune.versionHelper;
-import neptune.mergeHelper;
-import neptune.cmd;
+import release.api;
+import release.versionHelper;
+import release.mergeHelper;
+import release.cmd;
 
 import octod.api.repos;
 
@@ -128,8 +128,8 @@ void createLocalBranches ( R ) ( R branches )
 ActionList preparePatchRelease ( ref Repository repo, Version[] tags,
                                  Version patch_version )
 {
-    import neptune.github;
-    import neptune.mergeHelper;
+    import release.github;
+    import release.mergeHelper;
 
     import std.format;
     import std.algorithm;
@@ -238,8 +238,8 @@ ActionList makeRelease ( Version release_version, string target )
 
 Version autodetectVersions ( Version[] tags )
 {
-    import neptune.cmd;
-    import neptune.versionHelper;
+    import release.cmd;
+    import release.versionHelper;
 
     import octod.api.repos;
 

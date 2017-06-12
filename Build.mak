@@ -26,10 +26,9 @@ $B/overview: $O/libvibed.a $O/libdyaml.a
 $B/overview: $C/src/overview/main.d
 $B/overview: override LDFLAGS += -L$O -lvibed -ldyaml -levent -lssl -lcrypto
 
-$B/neptune: override LDFLAGS += -L$O -lvibed -levent -lssl -lcrypto
-$B/neptune: $O/libvibed.a
-$B/neptune: $C/src/neptune/main.d
+$B/neptune-release: override LDFLAGS += -L$O -lvibed -levent -lssl -lcrypto
+$B/neptune-release: $C/src/release/main.d $O/libvibed.a
 
-neptune: $B/neptune
+release: $B/neptune-release
 
-all += $B/overview $B/neptune
+all += release $B/overview

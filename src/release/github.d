@@ -10,9 +10,9 @@
 
 *******************************************************************************/
 
-module neptune.github;
+module release.github;
 
-import neptune.api;
+import release.api;
 import octod.api.repos;
 
 /// Structure defining a name-tag association

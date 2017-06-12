@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module neptune.api;
+module release.api;
 
 import octod.core;
 import octod.api.repos;
@@ -49,7 +49,7 @@ public ref HTTPConnection api ( )
 
 public Configuration getConf ( )
 {
-    import neptune.cmd;
+    import release.cmd;
 
     Configuration cfg;
     cfg.dryRun = false;
@@ -75,7 +75,7 @@ public Configuration getConf ( )
 
 private Configuration githubSetup ( )
 {
-    import neptune.cmd;
+    import release.cmd;
 
     import std.stdio;
     import std.string;
@@ -158,7 +158,7 @@ private Configuration githubSetup ( )
     cfg.dryRun = false;
     cfg.oauthToken = response["token"].to!string;
 
-    import neptune.cmd;
+    import release.cmd;
 
     cmd("git config --global neptune.oauthtoken " ~ cfg.oauthToken);
 

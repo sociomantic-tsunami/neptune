@@ -15,9 +15,10 @@ module neptune.cmd;
 /// Exception to be thrown when the exit code is unexpected
 class ExitCodeException : Exception
 {
-    this ( string msg, string file = __FILE__, int line = __LINE__ )
+    this ( string msg, int status, string file = __FILE__, int line = __LINE__ )
     {
-        super(msg, file, line);
+        import std.format;
+        super(format("Cmd Failed: %s (status %s)", msg, status), file, line);
     }
 }
 
@@ -41,7 +42,7 @@ string cmd ( string command )
     auto c = executeShell(command);
 
     if (c.status != 0)
-        throw new ExitCodeException(c.output);
+        throw new ExitCodeException(c.output, c.status);
 
     return strip(c.output);
 }

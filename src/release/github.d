@@ -14,6 +14,7 @@ module release.github;
 
 import release.api;
 import octod.api.repos;
+import octod.core;
 
 /// Structure defining a name-tag association
 struct Head
@@ -25,6 +26,7 @@ struct Head
 /*******************************************************************************
 
     Params:
+        connection = connection to use
         repo = repository object
 
     Returns:
@@ -32,7 +34,7 @@ struct Head
 
 *******************************************************************************/
 
-public Head[] getBranches ( ref Repository repo )
+public Head[] getBranches ( ref HTTPConnection connection, ref Repository repo )
 {
     import std.format;
     import std.algorithm;
@@ -44,7 +46,7 @@ public Head[] getBranches ( ref Repository repo )
     auto name = repo.name();
 
     auto url = format("/repos/%s/%s/branches", owner, name);
-    auto json_branches = api.get(url).get!(Json[]);
+    auto json_branches = connection.get(url).get!(Json[]);
 
     Head toHead ( Json branch )
     {

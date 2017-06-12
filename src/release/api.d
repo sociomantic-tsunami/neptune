@@ -19,23 +19,24 @@ import octod.api.repos;
 /*******************************************************************************
 
     Returns:
-        global api object to interact with github
+        neptune configuration. If it doesn't exists, will prompt the user for
+        the required infomation
 
 *******************************************************************************/
 
-public ref HTTPConnection api ( )
+public Configuration getConf ( )
 {
+    import release.gitHelper;
+    import std.exception;
 
-    static HTTPConnection _api;
-    static bool connected = false;
+    Configuration cfg;
+    cfg.dryRun = false;
 
-    if (!connected)
-    {
-        _api = HTTPConnection.connect(getConf());
-        connected = true;
-    }
+    cfg.oauthToken = getConfig("neptune.oauthtoken");
 
-    return _api;
+    enforce(cfg.oauthToken.length > 0);
+
+    return cfg;
 }
 
 

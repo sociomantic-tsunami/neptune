@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module neptune.cmd;
+module release.cmd;
 
 /// Exception to be thrown when the exit code is unexpected
 class ExitCodeException : Exception
@@ -87,7 +87,7 @@ bool isAncestor ( string ref1, string ref2 )
 
 string getCurrentBranch ( )
 {
-    import neptune.cmd;
+    import release.cmd;
     return cmd("git symbolic-ref --short HEAD");
 }
 

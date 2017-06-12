@@ -10,9 +10,9 @@
 
 *******************************************************************************/
 
-module neptune.mergeHelper;
+module release.mergeHelper;
 
-import neptune.versionHelper;
+import release.versionHelper;
 
 /*******************************************************************************
 
@@ -261,7 +261,7 @@ class PatchMerger
 
     Version findCorrespondingBranch ( int major, in Version ver )
     {
-        import neptune.cmd;
+        import release.cmd;
 
         import std.algorithm;
         import std.range;

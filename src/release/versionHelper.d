@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module neptune.versionHelper;
+module release.versionHelper;
 
 import std.algorithm.iteration : splitter;
 import octod.api.repos : Tag;

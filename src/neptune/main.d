@@ -41,7 +41,7 @@ void main ( )
 
     cmd("git remote update");
 
-    auto release = autodetect(tags);
+    auto release = autodetectVersions(tags);
 
     ActionList list;
 
@@ -236,7 +236,7 @@ ActionList makeRelease ( Version release_version, string target )
 
 *******************************************************************************/
 
-Version autodetect ( Version[] tags )
+Version autodetectVersions ( Version[] tags )
 {
     import neptune.cmd;
     import neptune.versionHelper;

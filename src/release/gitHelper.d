@@ -35,6 +35,8 @@ bool isAncestor ( string ref1, string ref2 )
     auto c = executeShell(format("git merge-base --is-ancestor %s %s",
                                  ref1, ref2));
 
+    // Status 0 => is ancestor
+    // Status 1 => is not
     if (c.status != 0 && c.status != 1)
         throw new Exception(c.output);
 

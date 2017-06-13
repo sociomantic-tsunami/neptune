@@ -12,63 +12,52 @@
 
 module release.versionHelper;
 
-import std.algorithm.iteration : splitter;
+import semver.Version;
+
 import octod.api.repos : Tag;
 
-/// Structure to easily deal with version strings
-struct Version
+import std.algorithm.iteration : splitter;
+
+/// Type of the version / branches
+enum Type { Major, Minor, Patch };
+
+/// Structure to easily deal with semver branches
+struct SemVerBranch
 {
     import std.typecons : Nullable;
 
-    /// Type of the version
-    enum Type { Major, Minor, Patch, Invalid };
+    /// major version number
+    int major;
 
-    /// Type of this version
-    Type type;
-
-    /// Major, minor and patch version numbers
-    Nullable!int major, minor, patch;
-
-    /// Any extra letters to the version (e.g. -preview, -breaking)
-    string extra;
+    /// Minor version mumber
+    Nullable!int minor;
 
 
     /***************************************************************************
 
-        Constructor to make a version struct from the major, minor and patch
-        values
+        Constructor to make a branch struct from the major and minor values
 
         Params:
-            type = type of the version
             major = major version
             minor = minor version, optional
-            patch = patch version, optional
-            extra = any extra string following the version
 
     ***************************************************************************/
 
-    this ( Type type, int major, int minor = -1, int patch = -1,
-           string extra = "" )
+    this ( int major, int minor = -1 )
     {
-        this.type = type;
         this.major = major;
 
         if (minor >= 0)
             this.minor = minor;
-
-        if (patch >= 0)
-            this.patch = patch;
-
-        this.extra = extra;
     }
 
 
     /***************************************************************************
 
-        Constructor to make a version struct from a string
+        Constructor to make a semver branch struct from a string
 
         Params:
-            ver = version string (e.g. "v1.4.2" or "v1.x.x")
+            ver = semver branch name (e.g. "v1.4.x" or "v1.x.x")
 
     ***************************************************************************/
 
@@ -82,7 +71,6 @@ struct Version
             return;
 
         this.major = splitted.front["v".length..$].to!int;
-        this.type = Type.Major;
 
         splitted.popFront;
 
@@ -90,11 +78,7 @@ struct Version
             return;
 
         if (splitted.front != "x")
-        {
             this.minor = splitted.front.to!int;
-
-            this.type = Type.Minor;
-        }
         else
             return;
 
@@ -103,20 +87,8 @@ struct Version
         if (splitted.empty)
             return;
 
-        if (splitted.front != "x")
-        {
-            import std.algorithm.searching : findSplit;
-            auto res = splitted.front.findSplit("-");
-
-            this.patch = res[0].to!int;
-            this.extra = res[2];
-
-            if (this.patch > 0)
-                this.type = Type.Patch;
-        }
-
-        if (this.minor == 0 && this.patch == 0)
-            this.type = Type.Major;
+        import std.exception : enforce;
+        enforce(splitted.front == "x");
     }
 
 
@@ -132,21 +104,60 @@ struct Version
 
     ***************************************************************************/
 
-    int opCmp ( ref const Version v ) const
+    int opCmp ( ref const typeof(this) v ) const
     {
-        int nullAs0 ( Nullable!int num )
+        static int nullAs0 ( Nullable!int num )
         {
             return num.isNull ? 0 : num;
         }
 
         if (this.major != v.major)
-            return nullAs0(this.major) - nullAs0(v.major);
+            return this.major - v.major;
 
-        if (this.minor != v.minor)
-            return nullAs0(this.minor) - nullAs0(v.minor);
+        // Consider x > number
+        if (this.minor.isNull && !v.minor.isNull)
+            return 1;
 
-        return nullAs0(this.patch) - nullAs0(v.patch);
+        if (!this.minor.isNull && v.minor.isNull)
+            return -1;
+
+        return nullAs0(this.minor) - nullAs0(v.minor);
     }
+
+
+    /***************************************************************************
+
+        Compares against a version
+
+        Params:
+            v = version to compare against
+
+    ***************************************************************************/
+
+    int opCmp ( ref const Version v ) const
+    {
+        if (this.major != v.major)
+            return this.major - v.major;
+
+        // Consider x > number
+        if (this.minor.isNull)
+            return 1;
+
+        return this.minor - v.minor;
+    }
+
+
+    /***************************************************************************
+
+        Equal comparison
+
+    ***************************************************************************/
+
+    equals_t opEquals ( ref const typeof(this) rhs ) const
+    {
+        return this.opCmp(rhs) == 0;
+    }
+
 
     /***************************************************************************
 
@@ -160,11 +171,25 @@ struct Version
         import std.format;
         import std.conv;
 
-        return format("v%s.%s.%s%s",
+        return format("v%s.%s.x",
                       this.major,
-                      this.minor.isNull ? "x" : this.minor.to!string,
-                      this.patch.isNull ? "x" : this.patch.to!string,
-                      this.extra.length > 0 ? "-" ~ this.extra : "");
+                      this.minor.isNull ? "x" : this.minor.to!string);
+    }
+
+
+    /***************************************************************************
+
+        Returns:
+            Type of this semver branch
+
+    ***************************************************************************/
+
+    Type type ( ) const
+    {
+        if (this.minor.isNull)
+            return Type.Major;
+
+        return Type.Minor;
     }
 }
 
@@ -172,25 +197,26 @@ struct Version
 /// Tests extracting of version information from strings
 unittest
 {
-    alias V = Version;
-    alias T = Version.Type;
+    alias SMB = SemVerBranch;
+    alias T = Type;
+
+    struct V
+    {
+        T test_type;
+
+        SMB ver;
+        alias ver this;
+    }
 
     enum V[string] versions = [
-        "v1.5.3" : V(V.Type.Patch, 1, 5, 3),
-        "v1.5.x" : V(V.Type.Minor, 1, 5),
-        "v3.0.x" : V(V.Type.Minor, 3, 0),
-        "v1.x.x" : V(V.Type.Major, 1),
-        "v1.5.0" : V(V.Type.Minor, 1, 5, 0),
-        "v1.0.0" : V(V.Type.Major, 1, 0, 0),
-        "v1.0.1" : V(V.Type.Patch, 1, 0, 1),
-        "v1.1.0" : V(V.Type.Minor, 1, 1, 0),
-        "v1.5.3" : V(V.Type.Patch, 1, 5, 3),
-        "v1.5.3-preview" : V(V.Type.Patch, 1, 5, 3, "preview"),
+        "v1.5.x" : V(T.Minor, SMB(1, 5)),
+        "v3.0.x" : V(T.Minor, SMB(3, 0)),
+        "v1.x.x" : V(T.Major, SMB(1)),
         ];
 
     foreach (name, ver; versions)
     {
-        auto v = Version(name);
+        auto v = SemVerBranch(name);
 
         scope(failure)
         {
@@ -199,6 +225,7 @@ unittest
         }
 
         assert(v == ver);
+        assert(v.type == ver.test_type);
     }
 }
 
@@ -206,13 +233,13 @@ unittest
 /// Tests sorting of versions
 unittest
 {
-    alias V = Version;
+    alias V = SemVerBranch;
 
-    enum list = [V("v1.1.0"), V("v1.0.1"), V("v3.0.1"), V("v1.0.0"),
-                 V("v3.0"),   V("v1.1.1"), V("v2.0.1"), V("v2.0.0")];
+    enum list = [V("v1.1.x"), V("v1.x.x"), V("v3.0.x"), V("v1.0.x"),
+                 V("v3.x.x"),   V("v1.2.x"), V("v2.1.x"), V("v2.0.x")];
     enum list_sorted  =
-                [V("v1.0.0"), V("v1.0.1"), V("v1.1.0"), V("v1.1.1"),
-                 V("v2.0.0"), V("v2.0.1"), V("v3.0"),   V("v3.0.1")];
+                [V("v1.0.x"), V("v1.1.x"), V("v1.2.x"), V("v1.x.x"),
+                 V("v2.0.x"), V("v2.1.x"), V("v3.0.x"),   V("v3.x.x")];
 
     import std.range;
     import std.algorithm;
@@ -235,29 +262,30 @@ unittest
         matching_major = result of a search for a matching major version
         matching_minor = result of a search for a matching minor version
         current = currently checked out branch
+        new_version = out param, contains the patch version to be released
 
     Returns:
-        a version with type set to Invalid if we guess it will not be a patch
-        release
+        true if a patch release was detected
 
 *******************************************************************************/
 
-public Version needPatchRelease ( A, B ) ( A matching_major, B matching_minor,
-                                           Version current )
+public bool needPatchRelease ( A, B ) ( A matching_major, B matching_minor,
+                                           SemVerBranch current,
+                                           out Version new_version)
 {
-    auto invalid = Version(Version.Type.Invalid, 0);
-
     if (current.type != current.type.Minor)
-        return invalid;
+        return false;
 
     if (matching_major.empty)
-        return invalid;
+        return false;
 
     if (matching_minor.empty)
-        return invalid;
+        return false;
 
-    return Version(Version.Type.Patch, current.major, current.minor,
-                   matching_minor.front.patch+1);
+    new_version = Version(current.major, current.minor,
+                          matching_minor.front.patch+1);
+
+    return true;
 }
 
 
@@ -273,15 +301,16 @@ public Version needPatchRelease ( A, B ) ( A matching_major, B matching_minor,
         matching_major = result of a search for a matching major version
         matching_minor = result of a search for a matching minor version
         current = currently checked out branch
+        new_version = out param, contains the minor version to be released
 
     Returns:
-        a version with type set to Invalid if we guess it will not be a minor
-        release
+        true if a minor release was detected
 
 *******************************************************************************/
 
-public Version needMinorRelease ( A, B ) ( A matching_major, B matching_minor,
-                                           Version current )
+public bool needMinorRelease ( A, B ) ( A matching_major, B matching_minor,
+                                        SemVerBranch current,
+                                        out Version new_version )
 {
     import std.algorithm;
     import std.range;
@@ -290,10 +319,11 @@ public Version needMinorRelease ( A, B ) ( A matching_major, B matching_minor,
     if (!matching_major.empty && matching_minor.empty)
         with (matching_major.front)
         {
-            return Version(Version.Type.Minor, major, minor+1, 0);
+            new_version = Version(major, minor+1, 0);
+            return true;
         }
 
-    return Version(Version.Type.Invalid, 0);
+    return false;
 }
 
 
@@ -309,26 +339,50 @@ public Version needMinorRelease ( A, B ) ( A matching_major, B matching_minor,
         matching_major = result of a search for a matching major version
         matching_minor = result of a search for a matching minor version
         current = currently checked out branch
+        new_version = out param, contains the major version to be released
 
     Returns:
-        a version with type set to Invalid if we guess it will not be a major
-        release
+        true if a major release was detected
 
 *******************************************************************************/
 
-public Version needMajorRelease ( A, B ) ( A matching_major, B matching_minor,
-                                           Version current )
+public bool needMajorRelease ( A, B ) ( A matching_major, B matching_minor,
+                                        SemVerBranch current,
+                                        out Version new_version )
 {
-    auto invalid = Version(Version.Type.Invalid, 0);
-
     if (current.type != current.type.Major)
-        return invalid;
+        return false;
 
     if (!matching_major.empty)
-        return invalid;
+        return false;
 
     if (!matching_minor.empty)
-        return invalid;
+        return false;
 
-    return Version(Version.Type.Major, current.major, 0, 0);
+    new_version = Version(current.major, 0, 0);
+    return true;
+}
+
+
+/*******************************************************************************
+
+    Deducts the type of a Version
+
+    Params:
+        ver = version to deduct type for
+
+    Returns:
+        deducted type
+
+*******************************************************************************/
+
+public Type type ( const ref Version ver )
+{
+    if (ver.patch == 0 && ver.minor == 0)
+        return Type.Major;
+
+    if (ver.patch == 0)
+        return Type.Minor;
+
+    return Type.Patch;
 }

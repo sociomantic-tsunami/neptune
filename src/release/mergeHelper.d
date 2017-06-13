@@ -13,6 +13,7 @@
 module release.mergeHelper;
 
 import release.versionHelper;
+import semver.Version;
 
 /*******************************************************************************
 
@@ -73,10 +74,10 @@ class PatchMerger
     ActionList actions;
 
     /// Branches that received merges and will need to be released
-    Version[] pending_branches;
+    SemVerBranch[] pending_branches;
 
     /// All branches of this repo
-    const(Version[]) branches;
+    const(SemVerBranch[]) branches;
 
     /// All versions/tags of this repo
     const(Version[]) versions;
@@ -91,7 +92,7 @@ class PatchMerger
 
     ***************************************************************************/
 
-    this ( in Version[] branches, in Version[] versions )
+    this ( in SemVerBranch[] branches, in Version[] versions )
     {
         this.branches = branches;
         this.versions = versions;
@@ -123,7 +124,7 @@ class PatchMerger
 
     ***************************************************************************/
 
-    ActionList release ( Version ver_branch )
+    ActionList release ( SemVerBranch ver_branch )
     {
         this.actions.reset();
 
@@ -174,8 +175,10 @@ class PatchMerger
 
     ***************************************************************************/
 
-    void tagAndMerge ( Version ver_branch )
+    void tagAndMerge ( SemVerBranch ver_branch )
     {
+        import release.versionHelper;
+
         import std.algorithm;
         import std.range;
         import std.stdio;
@@ -189,13 +192,14 @@ class PatchMerger
         // Find next minor branch on current major branch
         auto subsq_minor_rslt = this.branches
                                     .find!(a=>a > next_ver &&
-                                              a.major == next_ver.major);
+                                              a.major == next_ver.major &&
+                                              a.type == Type.Minor);
 
         if (!subsq_minor_rslt.empty)
         {
             auto subsq_minor = subsq_minor_rslt.front;
 
-            assert(subsq_minor.type == Version.Type.Minor);
+            assert(subsq_minor.type == Type.Minor);
 
             this.actions.affected_refs ~= subsq_minor.toString();
 
@@ -209,7 +213,7 @@ class PatchMerger
             // This was the latest patch release on this major version, merge it
             // back into the major version branch
             this.actions ~= checkoutMerge(next_ver,
-                                          Version(Version.Type.Major, next_ver.major));
+                                          SemVerBranch(next_ver.major));
         }
 
         // Find next major branch
@@ -222,13 +226,11 @@ class PatchMerger
             return;
         }
 
+        SemVerBranch next_minor_branch;
         // Find next minor branch within that major branch that corresponds to
         // our current branch
-        auto next_minor_branch = this.findCorrespondingBranch(
-                                                      next_major_rslt.front.major,
-                                                      next_ver);
-
-        if (next_minor_branch == Version())
+        if (!this.findCorrespondingBranch(next_major_rslt.front.major, next_ver,
+                                         next_minor_branch))
         {
             return;
         }
@@ -253,13 +255,15 @@ class PatchMerger
         Params:
             major = major version to check for
             ver   = current minor branch
+            branch = out param, corresponding minor branch in next major version
 
         Returns:
-            corresponding minor branch in next major version
+            true if a branch was found
 
     ***************************************************************************/
 
-    Version findCorrespondingBranch ( int major, in Version ver )
+    bool findCorrespondingBranch ( int major, in Version ver,
+                                   out SemVerBranch branch )
     {
         import release.gitHelper;
 
@@ -279,7 +283,7 @@ class PatchMerger
         import std.stdio;
 
         if (rslt.empty)
-            return Version();
+            return false;
 
         // Check for false positives: Our next higher feature/minor release must
         // NOT be an ancestor to the one we found
@@ -288,13 +292,17 @@ class PatchMerger
 
         // There is no next minor/feature release, return our result
         if (next_rls_rslt.empty)
-            return rslt.front;
+        {
+            branch = rslt.front;
+            return true;
+        }
 
         // The next release IS an ancestor, false positive, return
         if (isAncestor(next_rls_rslt.front.toString, rslt.front.toString))
-            return Version();
+            return false;
 
-        return rslt.front;
+        branch = rslt.front;
+        return true;
     }
 
     /***************************************************************************
@@ -309,7 +317,7 @@ class PatchMerger
 
     ***************************************************************************/
 
-    Version findNewPatchRelease ( Version br )
+    Version findNewPatchRelease ( SemVerBranch br )
     {
         import std.algorithm;
         import std.range;
@@ -341,7 +349,7 @@ class PatchMerger
 
     ***************************************************************************/
 
-    ActionList checkoutMerge ( in Version merge, in Version checkout )
+    ActionList checkoutMerge ( in Version merge, in SemVerBranch checkout )
     {
         import std.format;
 
@@ -375,10 +383,6 @@ class PatchMerger
 
 ActionList makeRelease ( Version release_version, string target )
 {
-    assert(!release_version.major.isNull &&
-           !release_version.minor.isNull &&
-           !release_version.patch.isNull);
-
     import std.format;
     auto v = release_version.toString();
 

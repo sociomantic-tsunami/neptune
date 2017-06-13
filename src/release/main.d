@@ -15,6 +15,7 @@ module release.main;
 import release.api;
 import release.versionHelper;
 import release.mergeHelper;
+import semver.Version;
 
 import octod.api.repos;
 import octod.core;
@@ -41,7 +42,7 @@ void main ( )
     auto con = HTTPConnection.connect(getConf());
 
     auto repo = con.repository(getUpstream());
-    auto tags = repo.releasedTags().map!(a=>Version(a.name)).array;
+    auto tags = repo.releasedTags().map!(a=>Version.parse(a.name)).array;
 
     sort(tags);
 
@@ -148,26 +149,26 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
     import std.range;
     import std.stdio;
 
-    bool thisVersion ( Version v )
+    bool thisVersion ( SemVerBranch v )
     {
         return v.major == patch_version.major &&
                v.minor == patch_version.minor;
     }
 
-    bool newerVersion ( Version v )
+    bool newerVersion ( SemVerBranch v )
     {
         return v > patch_version;
     }
 
-    bool ourMajorRelease ( Version v )
+    bool ourMajorRelease ( SemVerBranch v )
     {
         return v.major == patch_version.major &&
-               v.minor.isNull && v.patch.isNull;
+               v.minor.isNull;
     }
 
     // Get version tracking branches
     auto branches = con.getBranches(repo)
-                      .map!(a=>Version(a.name))
+                      .map!(a=>SemVerBranch(a.name))
                       .filter!(a=>!thisVersion(a) &&
                                   (newerVersion(a) ||
                                   ourMajorRelease(a)))
@@ -188,7 +189,7 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
 
     scope releaser = new PatchMerger(branches, tags);
 
-    list ~= releaser.release(Version(current_branch));
+    list ~= releaser.release(SemVerBranch(current_branch));
 
     return list;
 }
@@ -208,10 +209,6 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
 
 ActionList makeRelease ( Version release_version, string target )
 {
-    assert(!release_version.major.isNull &&
-           !release_version.minor.isNull &&
-           !release_version.patch.isNull);
-
     import std.format;
     auto v = release_version.toString();
 
@@ -259,35 +256,28 @@ Version autodetectVersions ( Version[] tags )
     import std.stdio;
     import std.range;
     import std.algorithm;
+    import std.exception : enforce;
 
-    auto current = Version(getCurrentBranch());
-
-    if (current.major.isNull)
-    {
-        throw new Exception("This does not seem to be a version branch!");
-    }
+    auto current = SemVerBranch(getCurrentBranch());
 
     assert(tags.length > 0, "No tags found?!");
 
     auto matching_major = tags.retro.find!(a=>a.major == current.major);
     auto matching_minor = tags.retro.find!(a=>a.major == current.major &&
                                               a.minor == current.minor);
+    Version rel_ver;
 
-    auto release_version = needPatchRelease(matching_major,
-                                            matching_minor, current);
+    bool detected =
+        needPatchRelease(matching_major, matching_minor, current, rel_ver) ||
+        needMinorRelease(matching_major, matching_minor, current, rel_ver) ||
+        needMajorRelease(matching_major, matching_minor, current, rel_ver);
 
-    if (release_version.type == Version.Type.Invalid)
-        release_version = needMinorRelease(matching_major,
-                                           matching_minor, current);
-
-    if (release_version.type == Version.Type.Invalid)
-        release_version = needMajorRelease(matching_major,
-                                           matching_minor, current);
+    enforce(detected);
 
     writefln("We are on branch %s", current);
-    writefln("Detected release %s", release_version);
+    writefln("Detected release %s", rel_ver);
 
-    return release_version;
+    return rel_ver;
 }
 
 

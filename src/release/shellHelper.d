@@ -15,9 +15,16 @@ module release.shellHelper;
 /// Exception to be thrown when the exit code is unexpected
 class ExitCodeException : Exception
 {
+    int status;
+    string raw_msg;
+
     this ( string msg, int status, string file = __FILE__, int line = __LINE__ )
     {
         import std.format;
+
+        this.status = status;
+        this.raw_msg = msg;
+
         super(format("Cmd Failed: %s (status %s)", msg, status), file, line);
     }
 }

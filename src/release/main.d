@@ -87,12 +87,19 @@ void main ( string[] params )
     writefln("");
     foreach (action; list.local_actions)
     {
-        import std.string : strip;
+        import std.string : strip, startsWith;
 
         writefln("%s ...\n\t%s",
                  action.description,
                  action.command);
-        writefln("\t%s", strip(cmd(action.command)));
+        try writefln("\t%s", strip(cmd(action.command)));
+        catch (ExitCodeException exc)
+        {
+            if (!action.command.startsWith("git merge"))
+                throw exc;
+
+            letUserResolveConflicts(exc.raw_msg);
+        }
     }
 
     writefln("Done! Some references should be pushed: %s", list.affected_refs);
@@ -107,6 +114,35 @@ void main ( string[] params )
     import std.format;
 
     cmd(format("git push %s %(%s %)", getRemote(getUpstream()), list.affected_refs));
+}
+
+
+/*******************************************************************************
+
+    Drops the user to a shell where they can resolve any merge conflict that
+    might have happened
+
+    Params:
+        msg = message to show the user before dropping the shell
+
+*******************************************************************************/
+
+void letUserResolveConflicts ( string msg )
+{
+    import std.process;
+    import std.exception;
+    import std.stdio;
+
+    writefln(msg);
+    writefln("Exit the shell when you are done.(CTRL+D or 'exit')");
+
+    auto shell_cmd = environment["SHELL"].ifThrown("bash");
+
+    if (shell_cmd.length == 0)
+        shell_cmd = "bash";
+
+    auto shell = spawnShell(shell_cmd);
+    shell.wait;
 }
 
 

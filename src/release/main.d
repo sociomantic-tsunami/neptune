@@ -179,24 +179,6 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
 
 /*******************************************************************************
 
-    Params:
-        release_version = release version to make
-        target = target reference for the release
-
-    Returns:
-        an actionlist element containing all the actions/refs required to do the
-        requested release
-
-*******************************************************************************/
-
-ActionList makeRelease ( Version release_version, string target )
-{
-    import std.format;
-    auto v = release_version.toString();
-
-
-/*******************************************************************************
-
     Gathers the branches in this repo, filtered and sorted so that
 
     - sorted by ascending order

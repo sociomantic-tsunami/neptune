@@ -58,13 +58,18 @@ void main ( string[] params )
 
     ActionList list;
 
-    if (myrelease.type == myrelease.type.Patch)
-        list = preparePatchRelease(con, repo, tags, myrelease);
-    else
+    with (Type) final switch (myrelease.type)
     {
-        writefln("This seems to be %s release which is not yet supported, exiting...",
-                 myrelease.type);
-        return;
+        case Patch:
+            list = preparePatchRelease(con, repo, tags, myrelease);
+            break;
+        case Minor:
+            list = prepareMinorRelease(con, repo, tags, myrelease);
+            break;
+        case Major:
+            writefln("This seems to be a %s release which is not yet supported, exiting...",
+                     myrelease.type);
+            return;
     }
 
     writefln("Actions to be done:");
@@ -172,6 +177,119 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
     scope releaser = new PatchMerger(branches, tags);
 
     list ~= releaser.release(SemVerBranch(current_branch));
+
+    return list;
+}
+
+
+/*******************************************************************************
+
+    Prepares the actions for a minor release
+
+    Params:
+        con = connection object
+        repo = repo object
+        tags = array of tags for this repo
+        minor_version = version to release
+
+    Returns:
+        prepared ActionList object with all refs/actions required for this
+        release
+
+*******************************************************************************/
+
+ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
+                                 Version[] tags, Version minor_version,
+                                 bool follow = true )
+{
+    import release.gitHelper;
+
+    import std.format;
+    import std.algorithm;
+    import std.range;
+    import std.stdio;
+
+    ActionList list;
+
+    auto current_branch = SemVerBranch(getCurrentBranch());
+
+    // Get version tracking branches
+    auto branches = getBranches(con, repo, minor_version, false);
+    auto major_branches = branches.filter!(a=>a.type == Type.Major &&
+                                              a != current_branch);
+
+    auto current_release = minor_version;
+
+    do
+    {
+        // Make sure we are on the branch we're operating on
+        if (SemVerBranch(getCurrentBranch()) != current_branch)
+            list.local_actions ~= LocalAction(
+                                     format("git checkout %s", current_branch),
+                                     format("Checkout next branch %s",
+                                            current_branch));
+        // Make the release
+        list ~= makeRelease(current_release, current_branch.toString);
+
+        // Mark branch as modified (before the actual modification as we're
+        // about to overwrite "current_branch" with the next one)
+        list.affected_refs ~= current_branch.toString;
+
+        // Merge release in subequent majors
+        if (!major_branches.empty)
+        {
+            // find latest release on that branch
+            auto latest_rel = tags.retro.find!(a=>a.major ==
+                                                  major_branches.front.major);
+
+            // No release? Stop then, this is an unreleased major branch
+            if (latest_rel.empty)
+                follow = false;
+            else
+            {
+                // merge
+                list ~= checkoutMerge(current_release, major_branches.front);
+
+                // Checkout previous branch so we can remove the rel notes
+                list.local_actions ~= LocalAction(
+                                         format("git checkout %s", current_branch),
+                                         format("Checkout previous branch %s",
+                                                current_branch));
+
+                // If we don't iterate again, add this branch as modified
+                // right here
+                if (!follow)
+                    list.affected_refs ~= major_branches.front.toString;
+            }
+
+            // Should we release on the next major branch too?
+            if (follow)
+            {
+                current_branch = major_branches.front;
+
+                major_branches.popFront;
+
+                current_release = Version(current_branch.major,
+                                          latest_rel.front.minor+1, 0);
+            }
+        }
+        else
+            follow = false;
+
+        list.local_actions ~= LocalAction("git rm relnotes/*.md",
+                                          "Removing release notes");
+        list.local_actions ~= LocalAction(`git commit -m "Clear release notes after release"`,
+                                          "Commiting removal of release notes");
+    }
+    while (follow);
+
+    scope(exit)
+    {
+        current_branch = SemVerBranch(getCurrentBranch());
+        list.local_actions ~= LocalAction(format("git checkout %s", current_branch),
+                                          format("Checkout original branch %s",
+                                             current_branch));
+    }
 
     return list;
 }

@@ -26,21 +26,27 @@ import octod.core;
 
 *******************************************************************************/
 
-void main ( )
+void main ( string[] params )
 {
     import release.shellHelper;
+    import release.options;
+
+    import vibe.core.log;
 
     import std.stdio;
     import std.algorithm : map, sort;
     import std.range : array;
 
+    auto opts = parseOpts(params);
+
+    if (opts.help_triggered)
+        return;
+
+    setLogLevel(opts.logging);
+
     checkOAuthSetup();
 
-    //import vibe.core.log;
-    //setLogLevel(LogLevel.trace);
-
     auto con = HTTPConnection.connect(getConf());
-
     auto repo = con.repository(getUpstream());
     auto tags = repo.releasedTags().map!(a=>Version.parse(a.name)).array;
 

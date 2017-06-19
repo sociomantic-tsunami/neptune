@@ -155,32 +155,8 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
     import std.range;
     import std.stdio;
 
-    bool thisVersion ( SemVerBranch v )
-    {
-        return v.major == patch_version.major &&
-               v.minor == patch_version.minor;
-    }
-
-    bool newerVersion ( SemVerBranch v )
-    {
-        return v > patch_version;
-    }
-
-    bool ourMajorRelease ( SemVerBranch v )
-    {
-        return v.major == patch_version.major &&
-               v.minor.isNull;
-    }
-
     // Get version tracking branches
-    auto branches = con.getBranches(repo)
-                      .map!(a=>SemVerBranch(a.name))
-                      .filter!(a=>!thisVersion(a) &&
-                                  (newerVersion(a) ||
-                                  ourMajorRelease(a)))
-                      .array();
-
-    branches.sort();
+    auto branches = getBranches(con, repo, patch_version);
 
     createLocalBranches(branches);
 
@@ -218,10 +194,62 @@ ActionList makeRelease ( Version release_version, string target )
     import std.format;
     auto v = release_version.toString();
 
-    return ActionList([LocalAction(format("git tag -m %s %s %s", v, v, target),
-                                  format("Create annotated tag %s", v))],
-                      [v],
-                      [v]);
+
+/*******************************************************************************
+
+    Gathers the branches in this repo, filtered and sorted so that
+
+    - sorted by ascending order
+    - the branch matching major/minor with the given version is excluded
+    - the branches are newer than the given version
+    - except for the matching major branch if "same_major" is set
+
+    Params:
+        con = connection to be used
+        repo = repo to be operated on
+        ver  = version to base filters on
+        same_major = if set, include the major branch matching the given version
+
+    Returns:
+        array of branches, sorted and filtered as described
+
+*******************************************************************************/
+
+SemVerBranch[] getBranches ( ref HTTPConnection con, ref Repository repo,
+                             Version ver, bool same_major = true )
+{
+    static import release.github;
+
+    import std.algorithm;
+    import std.range;
+
+    bool thisVersion ( SemVerBranch v )
+    {
+        return v.major == ver.major &&
+               v.minor == ver.minor;
+    }
+
+    bool newerVersion ( SemVerBranch v )
+    {
+        return v > ver;
+    }
+
+    bool ourMajorRelease ( SemVerBranch v )
+    {
+        return v.major == ver.major &&
+               v.minor.isNull;
+    }
+
+    auto branches = release.github.getBranches(con, repo)
+                      .map!(a=>SemVerBranch(a.name))
+                      .filter!(a=>!thisVersion(a) &&
+                                  (newerVersion(a) ||
+                                  (same_major && ourMajorRelease(a))))
+                      .array();
+
+    branches.sort();
+
+    return branches;
 }
 
 

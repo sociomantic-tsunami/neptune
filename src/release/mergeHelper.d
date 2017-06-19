@@ -114,7 +114,7 @@ class PatchMerger
 
         After that, all the subsequent minor releases on the same major version
         will be taken care of in a second iteration. In this case that would be
-        releasing of v1.2.x, merging itt into v2.2.x and releasing that.
+        releasing of v1.2.x, merging it into v2.2.x and releasing that.
 
         Params:
             ver_branch = branch to release

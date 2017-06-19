@@ -335,37 +335,37 @@ class PatchMerger
 
         return next_ver;
     }
+}
 
-    /***************************************************************************
+/*******************************************************************************
 
-        Checksout & merges two refs
+    Checksout & merges two refs
 
-        Params:
-            merge = ref to merge
-            checkout = ref to merge into
+    Params:
+        merge = ref to merge
+        checkout = ref to merge into
 
-        Returns:
-            list of actions to do the checkout / merge
+    Returns:
+        list of actions to do the checkout / merge
 
-    ***************************************************************************/
+*******************************************************************************/
 
-    ActionList checkoutMerge ( in Version merge, in SemVerBranch checkout )
-    {
-        import std.format;
+ActionList checkoutMerge ( in Version merge, in SemVerBranch checkout )
+{
+    import std.format;
 
-        ActionList list;
+    ActionList list;
 
-        list.local_actions ~=
-            LocalAction(format("git checkout %s",
-                               checkout),
-                        format("Checkout %s locally", checkout));
-        list.local_actions ~=
-            LocalAction(format(`git merge -m "Merge tag %s into %s" %s`,
-                               merge, checkout, merge),
-                        format("Merge %s into %s", merge, checkout));
+    list.local_actions ~=
+        LocalAction(format("git checkout %s",
+                           checkout),
+                    format("Checkout %s locally", checkout));
+    list.local_actions ~=
+        LocalAction(format(`git merge -m "Merge tag %s into %s" %s`,
+                           merge, checkout, merge),
+                    format("Merge %s into %s", merge, checkout));
 
-        return list;
-    }
+    return list;
 }
 
 

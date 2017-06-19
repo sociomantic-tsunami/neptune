@@ -212,6 +212,7 @@ unittest
         "v1.5.x" : V(T.Minor, SMB(1, 5)),
         "v3.0.x" : V(T.Minor, SMB(3, 0)),
         "v1.x.x" : V(T.Major, SMB(1)),
+        "v3.x.x" : V(T.Major, SMB(3)),
         ];
 
     foreach (name, ver; versions)
@@ -226,6 +227,7 @@ unittest
 
         assert(v == ver);
         assert(v.type == ver.test_type);
+        assert(v.toString == name);
     }
 }
 

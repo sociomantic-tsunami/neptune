@@ -54,7 +54,14 @@ bool isAncestor ( string ref1, string ref2 )
 string getCurrentBranch ( )
 {
     import release.shellHelper;
-    return cmd("git symbolic-ref --short HEAD");
+    import std.string;
+
+    auto branch = cmd("git symbolic-ref --short HEAD");
+
+    if (branch.startsWith("heads/"))
+        return branch["heads/".length .. $];
+
+    return branch;
 }
 
 

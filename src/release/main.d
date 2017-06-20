@@ -64,7 +64,8 @@ void main ( string[] params )
             list = preparePatchRelease(con, repo, tags, myrelease);
             break;
         case Minor:
-            list = prepareMinorRelease(con, repo, tags, myrelease);
+            list = prepareMinorRelease(con, repo, tags, myrelease,
+                                       opts.release_subsequent);
             break;
         case Major:
             writefln("This seems to be a %s release which is not yet supported, exiting...",
@@ -227,6 +228,7 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
         repo = repo object
         tags = array of tags for this repo
         minor_version = version to release
+        follow = is set, will also release merged branches
 
     Returns:
         prepared ActionList object with all refs/actions required for this

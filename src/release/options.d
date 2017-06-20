@@ -19,6 +19,9 @@ struct Options
     /// Level of desired logging
     LogLevel logging;
 
+    /// Whether we should release subsequent branches that were merged
+    bool release_subsequent = true;
+
     bool help_triggered;
 }
 
@@ -52,8 +55,11 @@ Options parseOpts ( string[] opts )
     auto help_info = getopt(opts,
            "log|l", format("Set the logging level, one of %s",
                            iota(LogLevel.min, LogLevel.max).map!LogLevel), &options.logging,
-           "verbose|v", "Set logging to verbose", &verbose);
+           "verbose|v", "Set logging to verbose", &verbose,
 
+           "release-all|a",
+           "If set, branches that were merged due to a minor release will also be released (default: true)",
+           &options.release_subsequent);
 
     if (verbose)
         options.logging = options.logging.trace;

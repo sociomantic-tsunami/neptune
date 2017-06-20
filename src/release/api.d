@@ -91,17 +91,22 @@ private Configuration githubSetup ( )
         throw new Exception("");
     }
 
-    writefln("Setting up an oauth token for github access");
+    static string askUserAndCreate ( )
+    {
+        auto username = readString("Please enter your username: ");
+        auto password = readPassword("Please provide your password: ");
 
-    auto username = readString("Please enter your username: ");
-    auto password = readPassword("Please provide your password: ");
+        return createOAuthToken(username, password, ["repo"], "Neptune");
+    }
 
     //import vibe.core.log;
     //setLogLevel(LogLevel.trace);
 
+    writefln("Setting up an oauth token for github access");
+
     cfg = cfg.init;
     cfg.dryRun = false;
-    cfg.oauthToken = createOAuthToken(username, password, ["repo"], "Neptune");
+    cfg.oauthToken = tryHubToken().ifThrown(askUserAndCreate());
 
     cmd("git config --global neptune.oauthtoken " ~ cfg.oauthToken);
 

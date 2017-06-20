@@ -314,10 +314,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
         else
             follow = false;
 
-        list.local_actions ~= LocalAction("git rm relnotes/*.md",
-                                          "Removing release notes");
-        list.local_actions ~= LocalAction(`git commit -m "Clear release notes after release"`,
-                                          "Commiting removal of release notes");
+        list ~= clearReleaseNotes();
     }
     while (follow);
 
@@ -328,6 +325,28 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
                                           format("Checkout original branch %s",
                                              current_branch));
     }
+
+    return list;
+}
+
+
+/*******************************************************************************
+
+    Prepares the actions to clar the release notes
+
+    Returns:
+        actions required to clear the release notes
+
+*******************************************************************************/
+
+ActionList clearReleaseNotes ( )
+{
+    ActionList list;
+
+    list.local_actions ~= LocalAction("git rm relnotes/*.md",
+                                      "Removing release notes");
+    list.local_actions ~= LocalAction(`git commit -m "Clear release notes after release"`,
+                                      "Commiting removal of release notes");
 
     return list;
 }

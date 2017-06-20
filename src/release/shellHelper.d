@@ -135,6 +135,8 @@ public string readString ( string question, bool do_strip = true )
     import std.string;
     import std.stdio;
 
+    writef(question);
+
     auto str = strip(readln());
 
     while (str.length == 0)

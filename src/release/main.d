@@ -34,7 +34,7 @@ void main ( string[] params )
     import vibe.core.log;
 
     import std.stdio;
-    import std.algorithm : map, sort;
+    import std.algorithm : map, sort, uniq;
     import std.range : array;
 
     auto opts = parseOpts(params);
@@ -101,6 +101,10 @@ void main ( string[] params )
             letUserResolveConflicts(exc.raw_msg);
         }
     }
+
+    // Make sure we mention each ref only once or git push will complain
+    list.affected_refs.sort();
+    list.affected_refs.uniq();
 
     writefln("Done! Some references should be pushed: %s", list.affected_refs);
 

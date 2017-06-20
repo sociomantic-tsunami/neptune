@@ -68,9 +68,8 @@ void main ( string[] params )
                                        opts.release_subsequent);
             break;
         case Major:
-            writefln("This seems to be a %s release which is not yet supported, exiting...",
-                     myrelease.type);
-            return;
+            list = prepareMajorRelease(con, repo, tags, myrelease);
+            break;
     }
 
     writefln("Actions to be done:");
@@ -141,6 +140,7 @@ void letUserResolveConflicts ( string msg )
 
     if (shell_cmd.length == 0)
         shell_cmd = "bash";
+
 
     auto shell = spawnShell(shell_cmd);
     shell.wait;
@@ -348,6 +348,64 @@ ActionList clearReleaseNotes ( )
     list.local_actions ~= LocalAction(`git commit -m "Clear release notes after release"`,
                                       "Commiting removal of release notes");
 
+    return list;
+}
+
+
+/*******************************************************************************
+
+    Prepares the actions for a major release
+
+    Params:
+        con = connection object
+        repo = repo object
+        tags = array of tags for this repo
+        major_version = version to release
+
+    Returns:
+        prepared ActionList object with all refs/actions required for this
+        release
+
+*******************************************************************************/
+
+ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
+                                 Version[] tags, Version major_version )
+{
+    import release.gitHelper;
+
+    import std.algorithm : find;
+    import std.range : empty;
+    import std.format : format;
+
+    auto current_branch = SemVerBranch(getCurrentBranch());
+
+    auto list = makeRelease(major_version, current_branch.toString);
+
+    auto next_major = current_branch;
+    next_major.major++;
+
+    auto branches = getBranches(con, repo, major_version, false);
+
+    auto next_major_rslt = branches.find(next_major);
+
+    if (next_major_rslt.empty)
+    {
+        list.local_actions ~= LocalAction(format("git branch %s", next_major),
+                                          format("Create next major branch %s",
+                                                 next_major));
+    }
+
+    list.local_actions ~= LocalAction(format("git checkout %s", next_major),
+                                      format("Checkout next major branch %s",
+                                             next_major));
+
+    list ~= clearReleaseNotes();
+
+    list.affected_refs ~= next_major.toString;
+
+    list.local_actions ~= LocalAction(format("git checkout %s", current_branch),
+                                      format("Checkout original branch %s",
+                                             current_branch));
     return list;
 }
 

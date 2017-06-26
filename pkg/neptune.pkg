@@ -1,0 +1,19 @@
+bins = ['neptune-overview', 'neptune-release']
+
+OPTS = dict(
+    name = VAR.fullname,
+    description = '''\
+Neptune helper binaries
+This package includes the two neptune tools 'overview' and 'release'.
+
+Overview is used to generate an overview of all projects.
+
+Release is used to do neptune-semver conforming releases in an automated manner.
+''',
+    url = 'https://github.com/sociomantic/neptune',
+    vendor = 'Sociomantic Labs GmbH',
+    maintainer = 'Core Team <core-team@sociomantic.com>',
+    provides = 'app',
+)
+
+ARGS = FUN.mapfiles(VAR.bindir, '/usr/bin', bins)

@@ -72,6 +72,10 @@ void main ( string[] params )
             break;
     }
 
+    // No actions? Stop.
+    if (list == ActionList())
+        return;
+
     writefln("Actions to be done:");
 
     foreach (action; list.local_actions)
@@ -382,6 +386,37 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
     import std.format : format;
 
     auto current_branch = SemVerBranch(getCurrentBranch());
+
+    // Make sure no merges are between the last major and this
+    if (current_branch.major > 1)
+    {
+        import release.shellHelper;
+
+        auto previous_major_branch = current_branch;
+        previous_major_branch.major--;
+
+        auto merges = cmd(format("git log --oneline --merges %s..%s",
+                                 previous_major_branch, current_branch));
+
+        if (merges.length > 0)
+        {
+            import std.stdio;
+            writefln("Found merges between this and the last major "~
+                     "branch:\n-----\n%s\n-----\nPlease rebase the current branch and "~
+                     "retry.\n", merges);
+            return ActionList();
+        }
+
+        // Make sure the last major is an ancestor of this major
+        if (!isAncestor(previous_major_branch.toString, current_branch.toString))
+        {
+            import std.stdio;
+            writefln("%s is not decending from %s! Aborting!",
+                     current_branch.toString, previous_major_branch.toString);
+            return ActionList();
+        }
+
+    }
 
     auto list = makeRelease(major_version, current_branch.toString);
 

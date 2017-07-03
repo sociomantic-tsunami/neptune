@@ -133,19 +133,19 @@ class PatchMerger
         do
         {
             import std.algorithm;
+            import std.array;
 
             this.pending_branches.sort();
-            this.pending_branches.uniq();
 
             // Make sure that the array we're actively iterating over is not
             // changed
-            auto local_pending_branches = this.pending_branches.dup;
+            auto local_pending_branches = this.pending_branches.uniq().array;
 
             foreach (pending; local_pending_branches)
                 this.tagAndMerge(pending);
 
             this.pending_branches.sort();
-            this.pending_branches.uniq();
+            this.pending_branches = this.pending_branches.uniq().array;
 
             // Process the newly added branches in the next iteration
             this.pending_branches =

@@ -480,7 +480,7 @@ SemVerBranch[] getBranches ( ref HTTPConnection con, ref Repository repo,
     bool thisVersion ( SemVerBranch v )
     {
         return v.major == ver.major &&
-               v.minor == ver.minor;
+               !v.minor.isNull && v.minor == ver.minor;
     }
 
     bool newerVersion ( SemVerBranch v )

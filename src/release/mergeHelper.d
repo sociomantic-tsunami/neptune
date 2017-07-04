@@ -386,8 +386,27 @@ ActionList makeRelease ( Version release_version, string target )
     import std.format;
     auto v = release_version.toString();
 
-    return ActionList([LocalAction(format("git tag -m %s %s %s", v, v, target),
-                                  format("Create annotated tag %s", v))],
-                      [v],
-                      [v]);
+    ActionList list;
+
+    with (list)
+    {
+        local_actions ~= LocalAction(format("git tag -m %s %s %s", v, v, target),
+                                     format("Create annotated tag %s", v));
+        affected_refs ~= v;
+        github_releases ~= v;
+    }
+
+    // Is this a major or minor release?
+    with (release_version) if (patch == 0)
+    {
+        auto branch = SemVerBranch(major, minor);
+
+        // Create the appropriate branch
+        list.local_actions ~= LocalAction(format("git branch %s %s", branch, v),
+                                          format("Create tracking branch %s",
+                                                 branch));
+
+    }
+
+    return list;
 }

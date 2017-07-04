@@ -551,7 +551,8 @@ Version autodetectVersions ( Version[] tags )
     assert(tags.length > 0, "No tags found?!");
 
     auto matching_major = tags.retro.find!(a=>a.major == current.major);
-    auto matching_minor = tags.retro.find!(a=>a.major == current.major &&
+    auto matching_minor = tags.retro.find!(a=>!current.minor.isNull &&
+                                              a.major == current.major &&
                                               a.minor == current.minor);
     Version rel_ver;
 

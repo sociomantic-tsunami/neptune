@@ -13,6 +13,7 @@
 module release.main;
 
 import release.api;
+import release.actions;
 import release.versionHelper;
 import release.mergeHelper;
 import semver.Version;
@@ -78,7 +79,7 @@ void main ( string[] params )
 
     writefln("Actions to be done:");
 
-    foreach (action; list.local_actions)
+    foreach (action; list.actions)
         writefln(" * %s (%s)", action.description, action.command);
 
     if (!readYesNoResponse("\nWould you like to continue?"))
@@ -89,14 +90,14 @@ void main ( string[] params )
 
 
     writefln("");
-    foreach (action; list.local_actions)
+    foreach (action; list.actions)
     {
         import std.string : strip, startsWith;
 
         writefln("%s ...\n\t%s",
                  action.description,
                  action.command);
-        try writefln("\t%s", strip(cmd(action.command)));
+        try writefln("\t%s", action.execute());
         catch (ExitCodeException exc)
         {
             if (!action.command.startsWith("git merge"))
@@ -215,9 +216,9 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
     ActionList list;
 
     scope(exit)
-        list.local_actions ~= LocalAction(format("git checkout %s", current_branch),
-                                          format("Checkout original branch %s",
-                                             current_branch));
+        list.actions ~= new LocalAction(format("git checkout %s", current_branch),
+                                        format("Checkout original branch %s",
+                                               current_branch));
 
     scope releaser = new PatchMerger(branches, tags);
 
@@ -270,7 +271,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
     {
         // Make sure we are on the branch we're operating on
         if (SemVerBranch(getCurrentBranch()) != current_branch)
-            list.local_actions ~= LocalAction(
+            list.actions ~= new LocalAction(
                                      format("git checkout %s", current_branch),
                                      format("Checkout next branch %s",
                                             current_branch));
@@ -297,7 +298,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
                 list ~= checkoutMerge(current_release, major_branches.front);
 
                 // Checkout previous branch so we can remove the rel notes
-                list.local_actions ~= LocalAction(
+                list.actions ~= new LocalAction(
                                          format("git checkout %s", current_branch),
                                          format("Checkout previous branch %s",
                                                 current_branch));
@@ -329,9 +330,9 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
     scope(exit)
     {
         current_branch = SemVerBranch(getCurrentBranch());
-        list.local_actions ~= LocalAction(format("git checkout %s", current_branch),
-                                          format("Checkout original branch %s",
-                                             current_branch));
+        list.actions ~= new LocalAction(format("git checkout %s", current_branch),
+                                        format("Checkout original branch %s",
+                                               current_branch));
     }
 
     return list;
@@ -351,9 +352,9 @@ ActionList clearReleaseNotes ( )
 {
     ActionList list;
 
-    list.local_actions ~= LocalAction("git rm relnotes/*.md",
+    list.actions ~= new LocalAction("git rm relnotes/*.md",
                                       "Removing release notes");
-    list.local_actions ~= LocalAction(`git commit -m "Clear release notes after release"`,
+    list.actions ~= new LocalAction(`git commit -m "Clear release notes after release"`,
                                       "Commiting removal of release notes");
 
     return list;
@@ -429,22 +430,22 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
 
     if (next_major_rslt.empty)
     {
-        list.local_actions ~= LocalAction(format("git branch %s", next_major),
-                                          format("Create next major branch %s",
-                                                 next_major));
+        list.actions ~= new LocalAction(format("git branch %s", next_major),
+                                        format("Create next major branch %s",
+                                               next_major));
     }
 
-    list.local_actions ~= LocalAction(format("git checkout %s", next_major),
-                                      format("Checkout next major branch %s",
-                                             next_major));
+    list.actions ~= new LocalAction(format("git checkout %s", next_major),
+                                    format("Checkout next major branch %s",
+                                           next_major));
 
     list ~= clearReleaseNotes();
 
     list.affected_refs ~= next_major.toString;
 
-    list.local_actions ~= LocalAction(format("git checkout %s", current_branch),
-                                      format("Checkout original branch %s",
-                                             current_branch));
+    list.actions ~= new LocalAction(format("git checkout %s", current_branch),
+                                    format("Checkout original branch %s",
+                                           current_branch));
     return list;
 }
 

@@ -46,6 +46,22 @@ bool isAncestor ( string ref1, string ref2 )
 
 /*******************************************************************************
 
+    Params:
+        file = file to get last commit for
+
+    Returns:
+        last commit for the given file
+
+*******************************************************************************/
+
+string getLastCommitOf ( string file )
+{
+    return cmd(`git log -n 1 --pretty="%H" ` ~ file);
+}
+
+
+/*******************************************************************************
+
     Returns:
         the currently checked out branch
 
@@ -93,6 +109,25 @@ string getRemote ( string upstream )
                             upstream);
 
     return remotes.front.array.to!string;
+}
+
+
+/*******************************************************************************
+
+    Extracts the annotated message of a tag
+
+    Params:
+        tag = tag to extract message from
+
+    Returns:
+        extracted message
+
+*******************************************************************************/
+
+string getTagMessage ( string tag )
+{
+    import std.format;
+    return cmd(format("git cat-file %s -p | tail -n+6", tag));
 }
 
 

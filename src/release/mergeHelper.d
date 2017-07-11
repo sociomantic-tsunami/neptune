@@ -209,6 +209,7 @@ class PatchMerger
     void tagAndMerge ( SemVerBranch ver_branch )
     {
         import release.versionHelper;
+        import release.releaseHelper;
 
         import std.algorithm;
         import std.range;
@@ -218,7 +219,7 @@ class PatchMerger
         auto next_ver = this.findNewPatchRelease(ver_branch);
 
         // Release it
-        this.actions ~= makeRelease(next_ver, ver_branch.toString);
+        this.actions ~= makeRelease(next_ver, ver_branch.toString, "");
 
         // Find next minor branch on current major branch
         auto subsq_minor_rslt = this.branches
@@ -391,48 +392,6 @@ ActionList checkoutMerge ( in Version merge, in SemVerBranch checkout )
                                            checkout),
                                     format("Checkout %s locally", checkout));
     list.actions ~= new MergeAction(checkout.toString, merge.toString);
-
-    return list;
-}
-
-
-/*******************************************************************************
-
-    Params:
-        release_version = release version to make
-        target = target reference for the release
-
-    Returns:
-        an actionlist element containing all the actions/refs required to do the
-        requested release
-
-*******************************************************************************/
-
-ActionList makeRelease ( Version release_version, string target )
-{
-    import std.format;
-    auto v = release_version.toString();
-
-    ActionList list;
-
-    with (list)
-    {
-        actions ~= new LocalAction(format("git tag -m %s %s %s", v, v, target),
-                                   format("Create annotated tag %s", v));
-        affected_refs ~= v;
-    }
-
-    // Is this a major or minor release?
-    with (release_version) if (patch == 0)
-    {
-        auto branch = SemVerBranch(major, minor);
-
-        // Create the appropriate branch
-        list.actions ~= new LocalAction(format("git branch %s %s", branch, v),
-                                        format("Create tracking branch %s",
-                                               branch));
-
-    }
 
     return list;
 }

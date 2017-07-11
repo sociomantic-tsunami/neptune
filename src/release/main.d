@@ -15,6 +15,7 @@ module release.main;
 import release.api;
 import release.actions;
 import release.versionHelper;
+import release.releaseHelper;
 import release.mergeHelper;
 import semver.Version;
 
@@ -161,6 +162,7 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
     import release.github;
     import release.gitHelper;
     import release.mergeHelper;
+    import release.versionHelper;
 
     import std.format;
     import std.algorithm;
@@ -227,6 +229,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
                                               a != current_branch);
 
     auto current_release = minor_version;
+    string last_release;
 
     do
     {
@@ -237,7 +240,10 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
                                      format("Checkout next branch %s",
                                             current_branch));
         // Make the release
-        list ~= makeRelease(current_release, current_branch.toString);
+        list ~= makeRelease(current_release, current_branch.toString,
+                            last_release);
+
+        last_release = current_release.toString;
 
         // Mark branch as modified (before the actual modification as we're
         // about to overwrite "current_branch" with the next one)
@@ -380,7 +386,7 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
 
     }
 
-    auto list = makeRelease(major_version, current_branch.toString);
+    auto list = makeRelease(major_version, current_branch.toString, "");
 
     auto next_major = current_branch;
     next_major.major++;

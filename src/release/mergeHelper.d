@@ -13,54 +13,8 @@
 module release.mergeHelper;
 
 import release.versionHelper;
+import release.actions;
 import semver.Version;
-
-/*******************************************************************************
-
-    Structure to define a command to be run locally along with a description of
-    it
-
-*******************************************************************************/
-
-struct LocalAction
-{
-    string command;
-    string description;
-}
-
-/*******************************************************************************
-
-    Structure to collect actions and metatadata about those actions
-
-*******************************************************************************/
-
-struct ActionList
-{
-    /// List of actions to execute, local only
-    LocalAction[] local_actions;
-
-    /// tags/branches that were locally modified and will be pushed
-    string[] affected_refs;
-
-    /// Releases to do on github
-    string[] github_releases;
-
-    ref ActionList opOpAssign ( string op ) ( const ActionList list )
-    {
-        this.local_actions ~= list.local_actions;
-        this.affected_refs ~= list.affected_refs;
-        this.github_releases ~= list.github_releases;
-
-        return this;
-    }
-
-    void reset ( )
-    {
-        this.local_actions.length = 0;
-        this.affected_refs.length = 0;
-        this.github_releases.length = 0;
-    }
-}
 
 /*******************************************************************************
 
@@ -356,14 +310,12 @@ ActionList checkoutMerge ( in Version merge, in SemVerBranch checkout )
 
     ActionList list;
 
-    list.local_actions ~=
-        LocalAction(format("git checkout %s",
-                           checkout),
-                    format("Checkout %s locally", checkout));
-    list.local_actions ~=
-        LocalAction(format(`git merge -m "Merge tag %s into %s" %s`,
-                           merge, checkout, merge),
-                    format("Merge %s into %s", merge, checkout));
+    list.actions ~= new LocalAction(format("git checkout %s",
+                                           checkout),
+                                    format("Checkout %s locally", checkout));
+    list.actions ~= new LocalAction(format(`git merge -m %s "Merge tag %s into %s" %s`,
+                                           merge, checkout, merge),
+                                    format("Merge %s into %s", merge, checkout));
 
     return list;
 }
@@ -390,10 +342,9 @@ ActionList makeRelease ( Version release_version, string target )
 
     with (list)
     {
-        local_actions ~= LocalAction(format("git tag -m %s %s %s", v, v, target),
-                                     format("Create annotated tag %s", v));
+        actions ~= new LocalAction(format("git tag -m %s %s %s", v, v, target),
+                                   format("Create annotated tag %s", v));
         affected_refs ~= v;
-        github_releases ~= v;
     }
 
     // Is this a major or minor release?
@@ -402,9 +353,9 @@ ActionList makeRelease ( Version release_version, string target )
         auto branch = SemVerBranch(major, minor);
 
         // Create the appropriate branch
-        list.local_actions ~= LocalAction(format("git branch %s %s", branch, v),
-                                          format("Create tracking branch %s",
-                                                 branch));
+        list.actions ~= new LocalAction(format("git branch %s %s", branch, v),
+                                        format("Create tracking branch %s",
+                                               branch));
 
     }
 

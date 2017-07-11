@@ -16,6 +16,83 @@ import release.versionHelper;
 import release.actions;
 import semver.Version;
 
+/// Specialized merge action. Falls back to the user to solve conflicts
+class MergeAction : LocalAction
+{
+    /***************************************************************************
+
+        C'tor
+
+        Params:
+            target = branch to merge into
+            tag = tag to merge
+
+    ***************************************************************************/
+
+    this ( string target, string tag )
+    {
+        import std.format;
+
+        super(format(`git merge -m "Merge tag %s into %s" %s`,
+                     tag, target, tag),
+              format("Merge %s into %s", tag, target));
+    }
+
+    /***************************************************************************
+
+        Executes the merge action.
+
+        If an ExitCodeException is thrown it means there were conflicts.
+        In that case, a shell is dropped to the user to resolve those conflicts.
+
+        Returns:
+            output of merge command
+
+    ***************************************************************************/
+
+    override string execute ( )
+    {
+        import release.shellHelper;
+
+        try return super.execute();
+        catch (ExitCodeException exc)
+            letUserResolveConflicts(exc.raw_msg);
+
+        return "";
+    }
+}
+
+
+/*******************************************************************************
+
+    Drops the user to a shell where they can resolve any merge conflict that
+    might have happened
+
+    Params:
+        msg = message to show the user before dropping the shell
+
+*******************************************************************************/
+
+void letUserResolveConflicts ( string msg )
+{
+    import std.process;
+    import std.exception;
+    import std.stdio;
+
+    writefln(msg);
+    writefln("Exit the shell when you are done.(CTRL+D or 'exit')");
+
+    auto shell_cmd = environment["SHELL"].ifThrown("bash");
+
+    if (shell_cmd.length == 0)
+        shell_cmd = "bash";
+
+
+    auto shell = spawnShell(shell_cmd);
+    shell.wait;
+}
+
+
 /*******************************************************************************
 
     Class to build the list of actions required to make a patch release
@@ -313,9 +390,7 @@ ActionList checkoutMerge ( in Version merge, in SemVerBranch checkout )
     list.actions ~= new LocalAction(format("git checkout %s",
                                            checkout),
                                     format("Checkout %s locally", checkout));
-    list.actions ~= new LocalAction(format(`git merge -m %s "Merge tag %s into %s" %s`,
-                                           merge, checkout, merge),
-                                    format("Merge %s into %s", merge, checkout));
+    list.actions ~= new MergeAction(checkout.toString, merge.toString);
 
     return list;
 }

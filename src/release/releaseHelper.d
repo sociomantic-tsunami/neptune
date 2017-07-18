@@ -215,6 +215,7 @@ ActionList makeRelease ( Version release_version, string target, string previous
     {
         actions ~= new ReleaseAction(previous, release_version, target);
         affected_refs ~= v;
+        releases ~= v;
     }
 
     // Is this a major or minor release?

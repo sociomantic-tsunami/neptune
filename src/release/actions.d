@@ -57,6 +57,8 @@ struct ActionList
     /// tags/branches that were locally modified and will be pushed
     string[] affected_refs;
 
+    /// List of releases done
+    string[] releases;
 
     /***************************************************************************
 
@@ -76,6 +78,7 @@ struct ActionList
     {
         this.actions ~= list.actions;
         this.affected_refs ~= list.affected_refs;
+        this.releases ~= list.releases;
 
         return this;
     }
@@ -85,6 +88,7 @@ struct ActionList
     {
         this.actions.length = 0;
         this.affected_refs.length = 0;
+        this.releases.length = 0;
     }
 }
 

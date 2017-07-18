@@ -125,6 +125,25 @@ void main ( string[] params )
     import std.format;
 
     cmd(format("git push %s %(%s %)", getRemote(getUpstream()), unique_refs));
+
+    writefln("Some tags on github should be released: %s",
+             list.releases);
+
+    if (!readYesNoResponse("Would you like to release those tags now?"))
+    {
+        writefln("Aborting...");
+        return;
+    }
+
+    foreach (ver; list.releases)
+    {
+        import release.github;
+
+        writefln("Creating %s ...", ver);
+        con.createRelease(repo, ver, ver, getTagMessage(ver));
+    }
+
+    writefln("All done.");
 }
 
 

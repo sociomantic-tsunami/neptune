@@ -56,3 +56,36 @@ public Head[] getBranches ( ref HTTPConnection connection, ref Repository repo )
 
     return json_branches.map!toHead.array;
 }
+
+/*******************************************************************************
+
+    Creates a new release on github
+
+    Params:
+        connection = connection to use
+        repo = repository object
+        tag  = tag used for the release
+        title = title for the release
+        content = content of the release
+
+*******************************************************************************/
+
+public void createRelease ( ref HTTPConnection connection, ref Repository repo,
+                            string tag, string title, string content )
+{
+    import std.format;
+    import vibe.data.json;
+
+    auto owner = repo.json["owner"]["login"].get!string();
+    auto name = repo.name();
+
+    Json json = Json.emptyObject;
+    json["tag_name"] = tag;
+    json["name"] = title;
+    json["body"] = content;
+    json["target_committish"] = tag;
+
+    auto url = format("/repos/%s/%s/releases", owner, name);
+
+    connection.post(url, json);
+}

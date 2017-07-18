@@ -99,8 +99,8 @@ string getRemote ( string upstream )
     import std.conv;
 
     auto remotes = cmd("git remote -v")
-                      .uniq()
                       .splitter!(a=>a == '\n')
+                      .uniq()
                       .filter!(a=>a.canFind("github.com:" ~ upstream))
                       .map!(a=>a.splitter!(a=>a == ' ' || a == '\t').front);
 

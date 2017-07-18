@@ -227,7 +227,7 @@ ActionList makeRelease ( Version release_version, string target, string previous
                                         format("Create tracking branch %s",
                                                  branch));
 
-
+        list.affected_refs ~= branch.toString;
     }
 
     return list;

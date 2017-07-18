@@ -398,6 +398,8 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
 
     auto list = makeRelease(major_version, current_branch.toString, "");
 
+    list.affected_refs ~= current_branch.toString;
+
     auto next_major = current_branch;
     next_major.major++;
 

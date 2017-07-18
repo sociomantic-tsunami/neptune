@@ -97,6 +97,7 @@ string getRemote ( string upstream )
     import std.algorithm.searching: canFind;
     import std.range;
     import std.conv;
+    import std.format;
 
     auto remotes = cmd("git remote -v")
                       .splitter!(a=>a == '\n')
@@ -105,8 +106,8 @@ string getRemote ( string upstream )
                       .map!(a=>a.splitter!(a=>a == ' ' || a == '\t').front);
 
     if (remotes.empty)
-        throw new Exception("Can't find your upstream remote for %s",
-                            upstream);
+        throw new Exception(format("Can't find your upstream remote for %s",
+                            upstream));
 
     return remotes.front.array.to!string;
 }

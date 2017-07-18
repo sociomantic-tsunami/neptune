@@ -528,7 +528,9 @@ Version autodetectVersions ( Version[] tags )
 
     auto current = SemVerBranch(getCurrentBranch());
 
-    assert(tags.length > 0, "No tags found?!");
+    if (tags.length == 0)
+        writefln("Warning: No previous releases found. "~
+                 "This should only be the case for your very first release!");
 
     auto matching_major = tags.retro.find!(a=>a.major == current.major);
     auto matching_minor = tags.retro.find!(a=>!current.minor.isNull &&

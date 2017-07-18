@@ -48,6 +48,16 @@ void main ( string[] params )
 
     checkOAuthSetup();
 
+    try
+    {
+        import release.gitHelper;
+        getRemote(getUpstream());
+    }
+    catch (Exception exc)
+    {
+        writefln("Warning: %s", exc.msg);
+    }
+
     auto con = HTTPConnection.connect(getConf());
     auto repo = con.repository(getUpstream());
     auto tags = repo.releasedTags().map!(a=>Version.parse(a.name)).array;

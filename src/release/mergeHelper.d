@@ -233,8 +233,6 @@ class PatchMerger
 
             assert(subsq_minor.type == Type.Minor);
 
-            this.actions.affected_refs ~= subsq_minor.toString();
-
             // Merge our release into the minor branch
             this.actions ~= checkoutMerge(next_ver, subsq_minor);
 
@@ -266,8 +264,6 @@ class PatchMerger
         {
             return;
         }
-
-        this.actions.affected_refs ~= next_minor_branch.toString();
 
         // Merge into that minor branch
         this.actions ~= checkoutMerge(next_ver, next_minor_branch);
@@ -392,6 +388,8 @@ ActionList checkoutMerge ( in Version merge, in SemVerBranch checkout )
                                            checkout),
                                     format("Checkout %s locally", checkout));
     list.actions ~= new MergeAction(checkout.toString, merge.toString);
+
+    list.affected_refs ~= checkout.toString;
 
     return list;
 }

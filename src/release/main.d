@@ -68,6 +68,8 @@ void main ( string[] params )
 
     auto myrelease = autodetectVersions(tags);
 
+    sanityCheckMilestone(con, repo, myrelease.toString);
+
     ActionList list;
 
     with (Type) final switch (myrelease.type)
@@ -608,4 +610,41 @@ string getUpstream ( )
 
     return getConfig("neptune.upstream")
               .ifThrown(configureUpstream(getUpstreamFromUser()));
+}
+
+
+/*******************************************************************************
+
+    Checks if the corresponding milestone exists and has no open issues.
+    Warns the user on stdout if either condition is fulfilled
+
+    Params:
+        con = connection to use
+        repo = repo to operate on
+        name = name of the milestone
+
+*******************************************************************************/
+
+void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo, string name )
+{
+    import release.github;
+    import std.algorithm;
+    import std.stdio;
+    import std.range;
+
+    auto mstone_list = listMilestones(con, repo).find!(a=>a.title == name);
+
+    if (mstone_list.empty)
+    {
+        writefln("Warning: No corresponding milestone found for %s", name);
+        return;
+    }
+
+    auto mstone = mstone_list.front;
+
+    if (mstone.open_issues > 0)
+    {
+        writefln("Warning: Corresponding milestone still has %s open issues!",
+                 mstone.open_issues);
+    }
 }

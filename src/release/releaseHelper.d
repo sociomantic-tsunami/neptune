@@ -169,10 +169,10 @@ string buildReleaseNotes ( string previous_version, string previous_notes  )
     if (!migrations.empty)
         migrations = MigrationHeader ~ migrations;
 
-    if (!deprecations.empty > 0)
+    if (!deprecations.empty)
         deprecations = DeprecationsHeader ~ deprecations;
 
-    if (!features.empty > 0)
+    if (!features.empty)
         features = FeaturesHeader ~ features;
 
     if (previous_notes.length > 0 && previous_version.length > 0)

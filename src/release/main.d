@@ -137,7 +137,7 @@ void main ( string[] params )
 
     foreach (ver; list.releases)
     {
-        import release.github;
+        import octod.api.releases;
 
         writefln("Creating %s ...", ver);
         con.createRelease(repo, ver, ver, getTagMessage(ver));
@@ -188,7 +188,6 @@ void createLocalBranches ( R ) ( R branches )
 ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
                                  Version[] tags, Version patch_version )
 {
-    import release.github;
     import release.gitHelper;
     import release.mergeHelper;
     import release.versionHelper;
@@ -471,8 +470,6 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
 SemVerBranch[] getBranches ( ref HTTPConnection con, ref Repository repo,
                              Version ver, bool same_major = true )
 {
-    static import release.github;
-
     import std.algorithm;
     import std.range;
 
@@ -493,7 +490,7 @@ SemVerBranch[] getBranches ( ref HTTPConnection con, ref Repository repo,
                v.minor.isNull;
     }
 
-    auto branches = release.github.getBranches(con, repo)
+    auto branches = repo.branches()
                       .map!(a=>SemVerBranch(a.name))
                       .filter!(a=>!thisVersion(a) &&
                                   (newerVersion(a) ||

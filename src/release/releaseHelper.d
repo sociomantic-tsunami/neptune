@@ -164,7 +164,7 @@ string buildReleaseNotes ( string previous_version, string previous_notes  )
 
     auto migrations = getNotes("migration.md");
     auto deprecations = getNotes("deprecation.md");
-    auto features = getNotes("features.md");
+    auto features = getNotes("feature.md");
 
     if (!migrations.empty)
         migrations = MigrationHeader ~ migrations;

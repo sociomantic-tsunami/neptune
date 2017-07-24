@@ -14,8 +14,6 @@ module release.versionHelper;
 
 import semver.Version;
 
-import octod.api.repos : Tag;
-
 import std.algorithm.iteration : splitter;
 
 /// Type of the version / branches

@@ -145,6 +145,29 @@ void main ( string[] params )
         con.createRelease(repo, ver, ver, getTagMessage(ver));
     }
 
+    import release.github;
+    import std.algorithm : filter, canFind;
+
+    auto open_milestones = listMilestones(con, repo)
+        .filter!(a=>list.releases.canFind(a.title));
+
+    if (!open_milestones.empty)
+    {
+        writefln("Some milestones on github should be closed: %s",
+                 open_milestones.map!(a=>a.title));
+
+        if (readYesNoResponse("Would you like to close them now?"))
+        {
+            foreach (milestone; open_milestones)
+            {
+                writefln("Closing %s .. (%s open issues)",
+                         milestone.title, milestone.open_issues);
+
+                updateMilestoneState(con, repo, milestone.number, State.closed);
+            }
+        }
+    }
+
     writefln("All done.");
 }
 

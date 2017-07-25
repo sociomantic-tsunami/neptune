@@ -138,12 +138,12 @@ void main ( string[] params )
     }
 
     foreach (ver; list.releases)
-    {
-        import octod.api.releases;
-
-        writefln("Creating %s ...", ver);
-        con.createRelease(repo, ver, ver, getTagMessage(ver));
-    }
+        keepTrying(
+        {
+            import octod.api.releases;
+            writef("Creating %s ... ", ver);
+            con.createRelease(repo, ver, ver, getTagMessage(ver));
+        });
 
     import release.github;
     import std.algorithm : filter, canFind;
@@ -159,12 +159,13 @@ void main ( string[] params )
         if (readYesNoResponse("Would you like to close them now?"))
         {
             foreach (milestone; open_milestones)
-            {
-                writefln("Closing %s .. (%s open issues)",
-                         milestone.title, milestone.open_issues);
+                keepTrying(
+                {
+                    writef("Closing %s (%s open issues) ... ",
+                        milestone.title, milestone.open_issues);
 
-                updateMilestoneState(con, repo, milestone.number, State.closed);
-            }
+                    updateMilestoneState(con, repo, milestone.number, State.closed);
+                });
         }
     }
 

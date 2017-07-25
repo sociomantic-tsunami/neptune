@@ -89,3 +89,35 @@ Milestone[] listMilestones ( ref HTTPConnection connection, ref Repository repo,
 
     return mstones;
 }
+
+
+/*******************************************************************************
+
+    Updates a milestones state
+
+    Params:
+        connection = connection to use
+        repo       = repo of the milestone
+        number     = number of the milestone
+        state      = desired state
+
+*******************************************************************************/
+
+void updateMilestoneState ( ref HTTPConnection connection, ref Repository repo,
+                            int number, State state )
+{
+    import std.format;
+    import std.conv;
+    import vibe.data.json;
+
+    auto owner = repo.json["owner"]["login"].get!string();
+    auto name = repo.name();
+
+    auto url = format("/repos/%s/%s/milestones/%s", owner, name, number);
+
+    Json json_in = Json.emptyObject;
+
+    json_in["state"] = state.to!string;
+
+    connection.patch(url, json_in);
+}

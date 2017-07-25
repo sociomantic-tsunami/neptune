@@ -12,6 +12,9 @@
 
 module release.shellHelper;
 
+import core.time;
+import std.stdio;
+
 /// Exception to be thrown when the exit code is unexpected
 class ExitCodeException : Exception
 {
@@ -201,4 +204,97 @@ public string readPassword ( string question )
     }
 
     return password;
+}
+
+
+/*******************************************************************************
+
+    Repeatetly tries to call dg() if it threw an exception, while also keeping
+    the user informed about the attempts.
+
+    Works visually best if the dg() function prints it's actions according to
+    this pattern: "doing action abc ... " (no new line)
+
+    The function will then add either "success\n" or "failure: reason\n".
+
+    Params:
+        dg = delegate to call until it succeeds
+        max_attempts = amount of attempts (defaults to 10)
+        wait_time = time to wait between attempts (defaults to 1 second)
+        printer = function to use to print output (defaults to stdout)
+
+*******************************************************************************/
+
+void keepTrying ( alias printer = writefln ) ( void delegate ( ) dg,
+    int max_attempts = 10, Duration wait_time = 1.seconds )
+{
+    import core.thread;
+
+    Exception exception;
+
+    foreach (_; 0..max_attempts) try
+    {
+        if (exception !is null)
+            printer("retrying ...");
+
+        dg();
+
+        stdout.flush();
+        exception = null;
+        break;
+    }
+    catch (Exception exc)
+    {
+        exception = exc;
+
+        printer("failed: %s", exc.msg);
+
+        Thread.sleep(wait_time);
+    }
+
+    if (exception !is null)
+    {
+        printer("Giving up after %s attempts", max_attempts);
+        throw exception;
+    }
+
+    printer("success");
+}
+
+
+unittest
+{
+    enum MaxAttempts = 10;
+
+    void fail ( int times ) ( )
+    {
+        static int failnum = times;
+
+        if (failnum-- > 0)
+            throw new Exception("planned failure");
+    }
+
+
+    void testWith ( int Attempts ) ( )
+    {
+        import std.exception : ifThrown;
+        import std.format;
+
+        try keepTrying!format(&fail!Attempts, MaxAttempts, 0.seconds);
+        catch (Exception exc)
+        {
+                assert(Attempts >= MaxAttempts,
+                    format("Function didn't repeat often enough! (%s)",
+                        Attempts));
+        }
+
+
+        static if (Attempts > 0)
+        {
+            testWith!(Attempts-1);
+        }
+    }
+
+
+    testWith!(MaxAttempts*2);
 }

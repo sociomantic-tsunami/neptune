@@ -140,9 +140,8 @@ void main ( string[] params )
     foreach (ver; list.releases)
         keepTrying(
         {
-            import octod.api.releases;
             writef("Creating %s ... ", ver);
-            con.createRelease(repo, ver, ver, getTagMessage(ver));
+            createGithubRelease(con, repo, ver, getTagMessage(ver));
         });
 
     import release.github;
@@ -170,6 +169,46 @@ void main ( string[] params )
     }
 
     writefln("All done.");
+}
+
+
+/*******************************************************************************
+
+    Creates a github release, including the associated milestone link at the top
+
+    Params:
+        con = connection to use
+        repo = repo to use
+        ver = version to release
+        notes = version notes
+
+*******************************************************************************/
+
+void createGithubRelease ( HTTPConnection con, Repository repo, string ver,
+                           string notes )
+{
+    import release.github;
+    import release.gitHelper;
+
+    import octod.api.releases;
+    import std.algorithm;
+    import std.stdio;
+    import std.range;
+    import std.exception : enforce;
+
+    auto mstone_list = listMilestones(con, repo).find!(a=>a.title == ver);
+
+    string mstone_link;
+
+    if (!mstone_list.empty)
+    {
+        enforce(mstone_list.length == 1,
+                "Found more than one matching milestone?!");
+
+        mstone_link = mstone_list.front.url ~ "\n\n";
+    }
+
+    con.createRelease(repo, ver, ver, mstone_link ~ getTagMessage(ver));
 }
 
 

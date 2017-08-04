@@ -97,12 +97,13 @@ string getRemote ( string upstream )
     import std.algorithm.searching: canFind;
     import std.range;
     import std.conv;
+    import std.regex;
     import std.format;
 
     auto remotes = cmd("git remote -v")
                       .splitter!(a=>a == '\n')
                       .uniq()
-                      .filter!(a=>a.canFind("github.com:" ~ upstream))
+                      .filter!(a=>a.matchAll(r"github\.com[:/]" ~ upstream))
                       .map!(a=>a.splitter!(a=>a == ' ' || a == '\t').front);
 
     if (remotes.empty)

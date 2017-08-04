@@ -12,7 +12,7 @@ Release is used to do neptune-semver conforming releases in an automated manner.
 ''',
     url = 'https://github.com/sociomantic/neptune',
     vendor = 'Sociomantic Labs GmbH',
-    maintainer = 'Core Team <core-team@sociomantic.com>',
+    maintainer = 'Sociomantic Labs GmbH <tsunami@sociomantic.com>',
     provides = 'app',
 )
 

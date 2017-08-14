@@ -128,7 +128,11 @@ string getRemote ( string upstream )
 string getTagMessage ( string tag )
 {
     import std.format;
-    return cmd(format("git cat-file %s -p | tail -n+6", tag));
+    import std.algorithm.searching : findSplitBefore;
+
+    auto result = cmd(format("git cat-file %s -p | tail -n+6", tag));
+
+    return result.findSplitBefore("\n-----BEGIN PGP SIGNATURE-----")[0];
 }
 
 

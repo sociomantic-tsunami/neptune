@@ -22,6 +22,14 @@ import semver.Version;
 import octod.api.repos;
 import octod.core;
 
+import std.variant;
+
+/// Invalid version marker used with GithubReleaseVersion
+struct InvalidVersion {}
+
+/// Wrap a version and an invalid-version marker
+alias GithubReleaseVersion = Algebraic!(Version, InvalidVersion);
+
 /*******************************************************************************
 
     Programs entry point
@@ -36,8 +44,9 @@ void main ( string[] params )
     import vibe.core.log;
 
     import std.stdio;
-    import std.algorithm : map, sort, uniq;
+    import std.algorithm : map, sort, uniq, filter;
     import std.range : array;
+    import std.exception : ifThrown;
 
     auto opts = parseOpts(params);
 
@@ -60,7 +69,13 @@ void main ( string[] params )
 
     auto con = HTTPConnection.connect(getConf());
     auto repo = con.repository(getUpstream());
-    auto tags = repo.releasedTags().map!(a=>Version.parse(a.name)).array;
+
+    auto tags = repo
+        .releasedTags()
+        .map!(a=>GithubReleaseVersion(Version.parse(a.name)).ifThrown(GithubReleaseVersion(InvalidVersion.init)))
+        .filter!(a=>a.peek!Version)
+        .map!(a=>a.get!Version)
+        .array;
 
     sort(tags);
 

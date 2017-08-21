@@ -29,6 +29,15 @@ class ReleaseAction : Action
 
     /***************************************************************************
 
+        Populated with the release notes after the call to execute().
+        However this does NOT contain the inherited changes
+
+    ***************************************************************************/
+
+    string rel_notes_without_inherited;
+
+    /***************************************************************************
+
         C'tor
 
         Params:
@@ -67,6 +76,10 @@ class ReleaseAction : Action
         else
         {
             tag_msg = buildReleaseNotes(prev_tag, prev_relnotes);
+
+            // For further processing later on
+            this.rel_notes_without_inherited =
+                buildReleaseNotes("", "");
         }
 
         assert(tag_msg.length > 0, "No release notes found?!");

@@ -183,6 +183,21 @@ void main ( string[] params )
         }
     }
 
+    auto email_body = craftMail(con, repo, myrelease.type,
+        list.actions
+            .map!(a=>cast(ReleaseAction) a)
+            .filter!(a=>a !is null)
+            .array);
+
+    writefln("This is the announcement email:\n-----\n%s\n-----", email_body);
+
+    auto recp = getConfig("neptune.mail-recipient");
+
+    if (readYesNoResponse("Would you like to send it to %s now?", recp))
+    {
+        sendMail(email_body, recp);
+    }
+
     writefln("All done.");
 }
 
@@ -212,7 +227,7 @@ void createGithubRelease ( HTTPConnection con, Repository repo, string ver,
 
 /*******************************************************************************
 
-    Aquires the mile stone link or and empty string if no milestone was found
+    Acquires the milestone link or and empty string if no milestone was found
 
     Params:
         con = connection to use
@@ -238,12 +253,220 @@ string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
     auto mstone_list = listMilestones(con, repo).find!(a=>a.title == ver);
 
     if (!mstone_list.empty)
-    {
-
         return mstone_list.front.url ~ "\n\n";
-    }
 
     return "";
+}
+
+
+/*******************************************************************************
+
+    Sends the announcement email
+
+    Params:
+        full_body = complete body of the email, including From & Subject line
+        recipient = recipient email
+
+*******************************************************************************/
+
+void sendMail ( string full_body, string recipient )
+{
+    import release.gitHelper;
+
+    import std.process;
+    import std.format;
+    import std.stdio;
+
+    auto proc = pipeShell(format("sendmail %s", recipient),
+                          Redirect.all);
+
+    proc.stdin.write(full_body);
+    proc.stdin.flush();
+    proc.stdin.close();
+
+    string _stdout, _stderr, errline, outline;
+
+    while (true)
+    {
+        if ((outline = proc.stdout.readln()) !is null)
+            _stdout ~= outline;
+
+        if ((errline = proc.stderr.readln()) !is null)
+            _stderr ~= errline;
+
+        if (errline is null && outline is null)
+            break;
+    }
+
+    write(_stdout);
+    write(_stderr);
+
+    wait(proc.pid);
+}
+
+
+/*******************************************************************************
+
+    Crafts a release announcement email
+
+    Params:
+        Range = range type of the releases
+        con = connection to use
+        repo = repo to use
+        rel_type = type of release this is
+        releases = all the releases that have been done
+
+    Returns:
+        complete email text with From and Subject headers
+
+*******************************************************************************/
+
+string craftMail ( Range ) ( ref HTTPConnection con, Repository repo, Type rel_type,
+    Range releases )
+{
+    import release.gitHelper;
+
+    import octod.api.issues;
+
+    import std.format;
+    import std.range;
+    import std.algorithm;
+    import std.stdio;
+
+    // Introducing paragraphs for the release notes, depending on the type
+    enum PreTexts = [
+`If your application is using a %s %-(%s, %) release, it is recommended to plan to update to this new major release in the next 2-3 months. As this is a major release, it may contain API changes, removal of deprecated code, and other semantic changes; it is possible that you will need to change your code.
+
+Release notes:`,
+`If your application is using a previous %s %-(%s, %) release, it is recommended to update it to use this new minor release. As this is a minor release, it may contain new features, deprecations, or minor internal refactorings; it is guaranteed to not contain API changes and will not require you to change your code.
+
+Release notes:`,
+`If your application is using a previous %s %-(%s, %) release, it should be updated to use this new patch release as soon as possible. As this is a patch release, it contains only bugfixes; it is guaranteed not to contain new features or API changes and will not require you to change your code.
+
+Issues fixed in this release:`];
+
+    // Formats release notes for the given version
+    string formatRelNotes ( ReleaseAction ver, Issue[] issues )
+    {
+        enum inherited_str = "\n\nThis release additionally inherits changes from ";
+
+        auto inheritance_chain = ver.prev_release
+            .recurrence!((s, n)=>s[n-1] !is null ? s[n-1].prev_release : null)
+            .until!(a=>a is null)
+            .map!(a=>a.tag_version);
+
+        auto filteredIssues ( )
+        {
+            import std.string : strip;
+
+            return format("%-(%s\n%)", issues
+                .filter!(a=>a.json["milestone"]["title"] ==
+                         ver.tag_version.toString)
+                .map!(a=>format("* %s #%s", strip(a.title()), a.number())));
+        }
+
+        /* This complex format call basically creates a string like this:
+
+           v1.2.3
+           ======
+
+           (if inherited changes)
+           [This release [..] inherits [..] from v1.2.2, v1.1.1]
+
+           (if patch)
+           * Issue five #5
+           * Another issue #45
+           * and more #222
+
+           (else)
+           [Release notes of that version]
+        */
+        return format("%s\n%s%s%-(%s, %)\n\n%s",
+            ver.tag_version, // Version
+            repeat('=', ver.tag_reference.length), // to underline the version
+            inheritance_chain.empty ? // string mentioning inherited changes
+                "" :
+                inherited_str,
+            inheritance_chain, // list of versions we inherited from, if any
+            rel_type == Type.Patch ? // if patch, use issue list, else use rel notes
+                filteredIssues() :
+                ver.rel_notes_without_inherited);
+    }
+
+    string formatRelLink ( string ver )
+    {
+        return format("http://github.com/%s/%s/releases/tag/%s",
+            repo.json["owner"]["login"].get!string,
+            repo.name(), ver);
+    }
+
+    /// Get branch for version
+    string formatBranch ( ReleaseAction rel )
+    {
+        auto ver = rel.tag_version;
+
+        /* Major releases want to have major version -1 here, e.g.
+           v2.0.0 -> v1.x.x
+         * Minor releases want the same major version
+           number, e.g. v2.1.0 -> v2.x.x
+         * Patch versions want all but the
+           last number, e.g. v2.1.5 -> v2.1.x */
+        return SemVerBranch(
+            (rel_type == Type.Major ? -1 : 0) + ver.major,
+            ver.patch == 0 ? -1 : ver.minor)
+                .toString;
+    }
+
+    Issue[] issues;
+
+    // Fetch issues only for patch releases
+    if (rel_type == Type.Patch)
+    {
+        import release.shellHelper;
+        import vibe.data.json;
+
+        static void nullOut(A...)(A args) {};
+
+        keepTrying!nullOut({
+        issues = con
+            .listIssues(format("%s/%s",
+                               repo.json["owner"]["login"].get!string(),
+                               repo.name), IssueState.Closed)
+            .filter!(a=>a.json["milestone"].type != Json.Type.undefined)
+            .array;
+        });
+    }
+
+    auto name = getConfig("user.name");
+    auto mail = getConfig("user.email");
+
+    auto subject = format("[%sRelease] %s %-(%s, %)", rel_type, repo.name(),
+                          releases.map!(a=>a.tag_version));
+
+    string pretext;
+
+    // Skip the whole pretext for v1.0.0 releases as it doesn't make sense here
+    if (rel_type != Type.Major || releases.front.tag_version.major != 1)
+        pretext = PreTexts[rel_type]
+            .format(repo.name(), releases.map!formatBranch);
+
+    auto full_mail = format(
+`From: %s <%s>
+Subject: %s
+
+%s`~ // Pretext
+`
+`/* Release notes  */~`
+%-(%s
+%)
+`/* Release links */~`
+%-(%s
+%)
+`,  name, mail, subject, pretext,
+    releases.retro.map!(a=>formatRelNotes(a, issues)),
+    releases.retro.map!(a=>formatRelLink(a.tag_version.toString)));
+
+    return full_mail;
 }
 
 

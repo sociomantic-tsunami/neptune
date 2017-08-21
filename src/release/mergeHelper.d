@@ -101,11 +101,26 @@ void letUserResolveConflicts ( string msg )
 
 class PatchMerger
 {
+    import Rel = release.releaseHelper;
+
+    /// Wraps a branch that received a merge and requires releasing
+    struct Pending
+    {
+        /// Branch that received a merge
+        SemVerBranch branch;
+
+        /// easy access of said branch
+        alias branch this;
+
+        /// Merge information about that branch
+        Rel.ReleaseAction merged;
+    }
+
     /// List of actions that will result in a release
     ActionList actions;
 
     /// Branches that received merges and will need to be released
-    SemVerBranch[] pending_branches;
+    Pending[] pending_branches;
 
     /// All branches of this repo
     const(SemVerBranch[]) branches;
@@ -159,7 +174,8 @@ class PatchMerger
     {
         this.actions.reset();
 
-        this.tagAndMerge(ver_branch);
+        Rel.ReleaseAction rel;
+        this.tagAndMerge(ver_branch, rel);
 
         do
         {
@@ -173,7 +189,9 @@ class PatchMerger
             auto local_pending_branches = this.pending_branches.uniq().array;
 
             foreach (pending; local_pending_branches)
-                this.tagAndMerge(pending);
+            {
+                this.tagAndMerge(pending.branch, pending.merged);
+            }
 
             this.pending_branches.sort();
             this.pending_branches = this.pending_branches.uniq().array;
@@ -206,7 +224,7 @@ class PatchMerger
 
     ***************************************************************************/
 
-    void tagAndMerge ( SemVerBranch ver_branch )
+    void tagAndMerge ( SemVerBranch ver_branch, Rel.ReleaseAction prev )
     {
         import release.versionHelper;
         import release.releaseHelper;
@@ -219,7 +237,7 @@ class PatchMerger
         auto next_ver = this.findNewPatchRelease(ver_branch);
 
         // Release it
-        this.actions ~= makeRelease(next_ver, ver_branch.toString, "");
+        this.actions ~= makeRelease(next_ver, ver_branch.toString, prev);
 
         // Find next minor branch on current major branch
         auto subsq_minor_rslt = this.branches
@@ -236,7 +254,7 @@ class PatchMerger
             // Merge our release into the minor branch
             this.actions ~= checkoutMerge(next_ver, subsq_minor);
 
-            this.pending_branches ~= subsq_minor;
+            this.pending_branches ~= Pending(subsq_minor, prev);
         }
         else
         {
@@ -271,7 +289,7 @@ class PatchMerger
         // Repeat all for that minor branch
         if (!this.pending_branches.canFind(next_minor_branch))
         {
-            this.tagAndMerge(next_minor_branch);
+            this.tagAndMerge(next_minor_branch, prev);
         }
     }
 

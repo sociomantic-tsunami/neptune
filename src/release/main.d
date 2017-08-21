@@ -337,7 +337,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
                                               a != current_branch);
 
     auto current_release = minor_version;
-    string last_release;
+    ReleaseAction last_release;
 
     do
     {
@@ -351,7 +351,6 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
         list ~= makeRelease(current_release, current_branch.toString,
                             last_release);
 
-        last_release = current_release.toString;
 
         // Mark branch as modified (before the actual modification as we're
         // about to overwrite "current_branch" with the next one)
@@ -494,7 +493,7 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
 
     }
 
-    auto list = makeRelease(major_version, current_branch.toString, "");
+    auto list = makeRelease(major_version, current_branch.toString);
 
     list.affected_refs ~= current_branch.toString;
 

@@ -239,8 +239,6 @@ string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
 
     if (!mstone_list.empty)
     {
-        enforce(mstone_list.length == 1,
-                "Found more than one matching milestone?!");
 
         return mstone_list.front.url ~ "\n\n";
     }

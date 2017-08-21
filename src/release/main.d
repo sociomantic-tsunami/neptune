@@ -202,6 +202,30 @@ void main ( string[] params )
 void createGithubRelease ( HTTPConnection con, Repository repo, string ver,
                            string notes )
 {
+    import octod.api.releases;
+
+    auto mstone_link = getMilestoneLink(con, repo, ver);
+
+    con.createRelease(repo, ver, ver, mstone_link ~ notes);
+}
+
+
+/*******************************************************************************
+
+    Aquires the mile stone link or and empty string if no milestone was found
+
+    Params:
+        con = connection to use
+        repo = repo to use
+        ver = version associated with the milestone
+
+    Returns:
+        mile stone link as string or empty string if no milestone found
+
+*******************************************************************************/
+
+string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
+{
     import release.github;
     import release.gitHelper;
 
@@ -213,17 +237,15 @@ void createGithubRelease ( HTTPConnection con, Repository repo, string ver,
 
     auto mstone_list = listMilestones(con, repo).find!(a=>a.title == ver);
 
-    string mstone_link;
-
     if (!mstone_list.empty)
     {
         enforce(mstone_list.length == 1,
                 "Found more than one matching milestone?!");
 
-        mstone_link = mstone_list.front.url ~ "\n\n";
+        return mstone_list.front.url ~ "\n\n";
     }
 
-    con.createRelease(repo, ver, ver, mstone_link ~ getTagMessage(ver));
+    return "";
 }
 
 

@@ -19,7 +19,7 @@ import semver.Version;
 class ReleaseAction : Action
 {
     /// Release that was merged into this release
-    string tag_prev;
+    ReleaseAction prev_release;
 
     /// Release version to do
     Version tag_version;
@@ -38,9 +38,9 @@ class ReleaseAction : Action
 
     ***************************************************************************/
 
-    this ( string prev, Version ver, string reference )
+    this ( ReleaseAction prev, Version ver, string reference )
     {
-        this.tag_prev = prev;
+        this.prev_release = prev;
         this.tag_version = ver;
         this.tag_reference = reference;
     }
@@ -53,8 +53,11 @@ class ReleaseAction : Action
 
         string prev_relnotes;
 
-        if (this.tag_prev.length > 0)
-            prev_relnotes = getTagMessage(this.tag_prev);
+        auto prev_tag = this.prev_release !is null ?
+            this.prev_release.tag_version.toString : "";
+
+        if (prev_tag.length > 0)
+            prev_relnotes = getTagMessage(prev_tag);
 
         string tag_msg;
 
@@ -62,7 +65,9 @@ class ReleaseAction : Action
         if (tag_version.patch > 0)
             tag_msg = tag_version.toString;
         else
-            tag_msg = buildReleaseNotes(this.tag_prev, prev_relnotes);
+        {
+            tag_msg = buildReleaseNotes(prev_tag, prev_relnotes);
+        }
 
         assert(tag_msg.length > 0, "No release notes found?!");
 
@@ -188,13 +193,11 @@ string buildReleaseNotes ( string previous_version, string previous_notes  )
     return (migrations ~ deprecations ~ features ~ previous_notes).dup;
 }
 
-
 /*******************************************************************************
 
     Params:
         release_version = release version to make
         target = target reference for the release
-        previous = previous release
 
     Returns:
         an actionlist element containing all the actions/refs required to do the
@@ -202,7 +205,29 @@ string buildReleaseNotes ( string previous_version, string previous_notes  )
 
 *******************************************************************************/
 
-ActionList makeRelease ( Version release_version, string target, string previous )
+ActionList makeRelease ( Version release_version, string target )
+{
+    ReleaseAction dummy;
+    return makeRelease(release_version, target, dummy);
+}
+
+/*******************************************************************************
+
+    Params:
+        release_version = release version to make
+        target = target reference for the release
+        previous = previous release that this one is based on. Will be
+                   overwritten after usage with the ActionRelease object
+                   of this release
+
+    Returns:
+        an actionlist element containing all the actions/refs required to do the
+        requested release
+
+*******************************************************************************/
+
+ActionList makeRelease ( Version release_version, string target,
+                         ref ReleaseAction previous )
 {
     import std.format;
     import release.versionHelper;
@@ -213,7 +238,7 @@ ActionList makeRelease ( Version release_version, string target, string previous
 
     with (list)
     {
-        actions ~= new ReleaseAction(previous, release_version, target);
+        actions ~= previous = new ReleaseAction(previous, release_version, target);
         affected_refs ~= v;
         releases ~= v;
     }

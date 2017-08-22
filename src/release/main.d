@@ -464,7 +464,7 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
     auto current_branch = SemVerBranch(getCurrentBranch());
 
     // Make sure no merges are between the last major and this
-    if (current_branch.major > 1)
+    if (tags.length > 1)
     {
         import release.shellHelper;
 

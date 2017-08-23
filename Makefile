@@ -3,5 +3,5 @@
 include submodules/makd/Makd.mak
 
 # Default goal for building this directory
-.DEFAULT_GOAL := test
+.DEFAULT_GOAL := all
 

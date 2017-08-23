@@ -19,3 +19,6 @@
 [submodule "tinyendian"]
 	path = submodules/tinyendian
 	url = https://github.com/kiith-sa/tinyendian
+[submodule "beaver"]
+	path = submodules/beaver
+	url = https://github.com/sociomantic-tsunami/beaver.git

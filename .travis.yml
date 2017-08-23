@@ -1,16 +1,29 @@
-language: d
-sudo: false
+# We will use docker to set up out environment, so don't use any particular
+# language in Travis itself
+language: generic
 
-d:
-    - dmd-2.074.0
-    - dmd-2.073.2
+# Enable docker
+sudo: required
+services:
+    - docker
 
-addons:
-  apt:
-    packages:
-    - libevent-dev
-    - libssl-dev
+# Disable automatic submodule fetching (it's done recursively)
+git:
+    submodules: false
 
-script:
-    - git submodule update --init
-    - make all test
+# Do a shallow submodule fetch
+before_install: git submodule update --init
+
+env:
+    global:
+        # Make sure beaver is in the PATH
+        - PATH="$(git config -f .gitmodules submodule.beaver.path)/bin:$PATH"
+    matrix:
+        - DMD=2.073.2-0 DIST=xenial F=devel
+        - DMD=2.073.2-0 DIST=xenial F=production
+        - DMD=2.074.0-0 DIST=xenial F=devel
+        - DMD=2.074.0-0 DIST=xenial F=production
+
+install: beaver dlang install
+
+script: beaver dlang make

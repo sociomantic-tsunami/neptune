@@ -24,6 +24,8 @@ struct Options
 
     bool help_triggered;
 
+    string github_url = "https://api.github.com";
+
     bool assume_yes = false;
 }
 
@@ -62,6 +64,7 @@ Options parseOpts ( string[] opts )
            "release-all|a",
            "If set, branches that were merged due to a minor release will also be released (default: true)",
            &options.release_subsequent,
+           "base-url", "Github API base URL", &options.github_url,
            "assume-yes", "Assumes yes for all questions", &options.assume_yes);
 
     if (verbose)

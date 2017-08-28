@@ -484,7 +484,7 @@ Subject: %s
     Creates local versions of all given remote branches
 
     Params:
-        remote branches to create local branches from
+        branches = remote branches to create local branches from
 
 ***************************************************************************/
 

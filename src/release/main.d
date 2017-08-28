@@ -70,7 +70,10 @@ void main ( string[] params )
         writefln("Warning: %s", exc.msg);
     }
 
-    auto con = HTTPConnection.connect(getConf());
+    auto conf = getConf();
+    conf.baseURL = opts.github_url;
+
+    auto con = HTTPConnection.connect(conf);
     auto repo = con.repository(getUpstream());
 
     auto tags = repo

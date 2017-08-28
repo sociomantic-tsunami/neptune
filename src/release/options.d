@@ -23,6 +23,8 @@ struct Options
     bool release_subsequent = true;
 
     bool help_triggered;
+
+    bool assume_yes = false;
 }
 
 
@@ -59,7 +61,8 @@ Options parseOpts ( string[] opts )
 
            "release-all|a",
            "If set, branches that were merged due to a minor release will also be released (default: true)",
-           &options.release_subsequent);
+           &options.release_subsequent,
+           "assume-yes", "Assumes yes for all questions", &options.assume_yes);
 
     if (verbose)
         options.logging = options.logging.trace;

@@ -22,7 +22,7 @@ $O/libdyaml.a: $(shell find $C/submodules/d-yaml/source -type f -name '*.d') \
 $O/%unittests: override LDFLAGS += -L$O -lvibed -ldyaml -levent -lssl -lcrypto
 $O/pkg-neptune.stamp: release overview
 
-test: $O/libvibed.a $O/libdyaml.a
+%unittests: $O/libvibed.a $O/libdyaml.a
 
 $B/neptune-overview: $O/libvibed.a $O/libdyaml.a
 $B/neptune-overview: $C/src/overview/main.d

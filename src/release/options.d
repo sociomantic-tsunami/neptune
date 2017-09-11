@@ -27,6 +27,8 @@ struct Options
     string github_url = "https://api.github.com";
 
     bool assume_yes = false;
+
+    bool no_send_mail = false;
 }
 
 
@@ -65,7 +67,9 @@ Options parseOpts ( string[] opts )
            "If set, branches that were merged due to a minor release will also be released (default: true)",
            &options.release_subsequent,
            "base-url", "Github API base URL", &options.github_url,
-           "assume-yes", "Assumes yes for all questions", &options.assume_yes);
+           "assume-yes", "Assumes yes for all questions", &options.assume_yes,
+           "no-send-mail", "When set, will not send the release email",
+           &options.no_send_mail);
 
     if (verbose)
         options.logging = options.logging.trace;

@@ -24,6 +24,10 @@ $O/allunittests $O/fastunittest: $O/libvibed.a $O/libdyaml.a
 $O/%unittests: override LDFLAGS += -L$O -lvibed -ldyaml -levent -lssl -lcrypto
 $O/pkg-neptune.stamp: release overview
 
+ITFLAGS += --tmp=$O --bin=$B
+$O/test-initial_release: $B/neptune-release $O/libvibed.a
+$O/test-%: override LDFLAGS += -L$O -lvibed -levent -lssl -lcrypto
+
 $B/neptune-overview: $O/libvibed.a $O/libdyaml.a
 $B/neptune-overview: $C/src/overview/main.d
 $B/neptune-overview: override LDFLAGS += -L$O -lvibed -ldyaml -levent -lssl -lcrypto

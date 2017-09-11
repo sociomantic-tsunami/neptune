@@ -205,7 +205,9 @@ void main ( string[] params )
 
     if (recp.length == 0)
         writefln("Can't send email, neptune.mail-recipient config missing or corrupt!");
-    else if (readYesNoResponse("Would you like to send it to %s now?", recp))
+    else if (!opts.no_send_mail &&
+        (opts.assume_yes ||
+        readYesNoResponse("Would you like to send it to %s now?", recp)))
     {
         sendMail(email_body, recp);
     }

@@ -173,6 +173,8 @@ string buildReleaseNotes ( string previous_version, string previous_notes  )
                                                 previous_version))
                         .array;
 
+    files.sort();
+
     string getNotes ( string file )
     {
         return files.match(file)

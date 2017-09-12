@@ -351,8 +351,11 @@ class PatchMerger
         import std.range;
 
         // Find latest patch release of this minor branch
-        auto latest_patch = this.versions.retro.find!(a=>a.minor == br.minor &&
-                                                         a.major == br.major);
+        auto latest_patch = this.versions
+            .retro.find!(a=>a.minor == br.minor &&
+                         a.major == br.major &&
+                         a.prerelease.length == 0 &&
+                         a.metadata.length == 0);
 
 
         // A minor branch MUST have a release

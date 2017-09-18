@@ -432,7 +432,7 @@ Issues fixed in this release:`];
             .listIssues(format("%s/%s",
                                repo.json["owner"]["login"].get!string(),
                                repo.name), IssueState.Closed)
-            .filter!(a=>a.json["milestone"].type != Json.Type.undefined)
+            .filter!(a=>a.json["milestone"].type == Json.Type.object)
             .array;
         });
     }

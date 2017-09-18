@@ -44,16 +44,13 @@ public Configuration getConf ( )
 
     Checks whether the oauth config is setup and starts the setup process if not
 
-    Params:
-        assume_yes = if yes, assume yes to any question
-
 *******************************************************************************/
 
-public void checkOAuthSetup ( bool assume_yes )
+public void checkOAuthSetup ( )
 {
     import std.exception;
 
-    getConf().ifThrown(githubSetup(assume_yes));
+    getConf().ifThrown(githubSetup());
 }
 
 
@@ -61,15 +58,12 @@ public void checkOAuthSetup ( bool assume_yes )
 
     Sets up the interaction with github using an oauth token
 
-    Params:
-        assume_yes = if true, assume yes to any question
-
     Returns:
         set up configuration object
 
 *******************************************************************************/
 
-private Configuration githubSetup ( bool assume_yes )
+private Configuration githubSetup ( )
 {
     import release.shellHelper;
     import release.gitHelper;
@@ -82,7 +76,7 @@ private Configuration githubSetup ( bool assume_yes )
     Configuration cfg;
     cfg.dryRun = false;
 
-    string tryHubToken ( )
+    static string tryHubToken ( )
     {
         auto hub_oauth = getConfig("hub.oauthtoken");
 
@@ -91,7 +85,7 @@ private Configuration githubSetup ( bool assume_yes )
         writefln("No oauth token was found under neptune.oauthtoken, "~
                  "however an hub.oauthtoken was found. ");
 
-        if (assume_yes || readYesNoResponse("Would you like to use it as neptune.oauthtoken config?"))
+        if (getBoolChoice("Would you like to use it as neptune.oauthtoken config?"))
             return hub_oauth;
 
         throw new Exception("");

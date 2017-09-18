@@ -86,7 +86,8 @@ string askUpstreamName ( )
 
 /*******************************************************************************
 
-    Prompts the user for a yes or no response, returns the response
+    Prompts the user for a yes or no response, returns the response.
+    Respects global assume_yes option and skips user interaction in that case.
 
     Params:
         fmt = question to ask
@@ -97,10 +98,14 @@ string askUpstreamName ( )
 
 *******************************************************************************/
 
-public bool readYesNoResponse ( Args... ) ( string fmt, Args args )
+public bool getBoolChoice ( Args... ) ( string fmt, Args args )
 {
     import std.stdio;
     import std.string;
+    import release.options;
+
+    if (options.assume_yes)
+        return true;
 
     writef(fmt ~ " y/n: ", args);
 

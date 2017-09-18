@@ -33,7 +33,7 @@ class MergeAction : LocalAction
     {
         import std.format;
 
-        super(format(`git merge -m "Merge tag %s into %s" %s`,
+        super(format(`git merge --no-ff -m "Merge tag %s into %s" %s`,
                      tag, target, tag),
               format("Merge %s into %s", tag, target));
     }

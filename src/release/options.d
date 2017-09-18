@@ -12,6 +12,10 @@
 
 module release.options;
 
+/// Global accessible options
+public Options options;
+
+/// Options struct
 struct Options
 {
     import vibe.core.log;
@@ -53,7 +57,6 @@ Options parseOpts ( string[] opts )
     import std.range;
     import std.algorithm;
 
-    Options options;
     options.logging = LogLevel.info;
 
     bool verbose;

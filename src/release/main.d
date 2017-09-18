@@ -21,7 +21,9 @@ import release.mergeHelper;
 import semver.Version;
 
 import octod.api.repos;
+import octod.api.releases;
 import octod.core;
+
 
 import std.variant;
 
@@ -40,6 +42,7 @@ Options opts;
 
 *******************************************************************************/
 
+version(UnitTest) {} else
 void main ( string[] params )
 {
     import release.shellHelper;
@@ -231,8 +234,6 @@ void main ( string[] params )
 void createGithubRelease ( HTTPConnection con, Repository repo, string ver,
                            string notes )
 {
-    import octod.api.releases;
-
     auto mstone_link = getMilestoneLink(con, repo, ver);
 
     con.createRelease(repo, ver, ver, mstone_link ~ notes);
@@ -258,7 +259,6 @@ string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
     import release.github;
     import release.gitHelper;
 
-    import octod.api.releases;
     import std.algorithm;
     import std.stdio;
     import std.range;

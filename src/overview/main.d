@@ -22,6 +22,7 @@ import overview.repository;
 import overview.config;
 
 /// ditto
+version(UnitTest) {} else
 void main ( )
 {
     import overview.htmlreport;

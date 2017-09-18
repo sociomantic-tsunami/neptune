@@ -12,7 +12,6 @@
 
 module release.main;
 
-import release.options;
 import release.api;
 import release.actions;
 import release.versionHelper;
@@ -33,9 +32,6 @@ struct InvalidVersion {}
 /// Wrap a version and an invalid-version marker
 alias GithubReleaseVersion = Algebraic!(Version, InvalidVersion);
 
-/// Globally accessable options
-Options opts;
-
 /*******************************************************************************
 
     Programs entry point
@@ -46,6 +42,7 @@ version(UnitTest) {} else
 void main ( string[] params )
 {
     import release.shellHelper;
+    import release.options;
 
     import vibe.core.log;
 
@@ -54,14 +51,14 @@ void main ( string[] params )
     import std.range : array;
     import std.exception : ifThrown;
 
-    opts = parseOpts(params);
+    auto opts = parseOpts(params);
 
     if (opts.help_triggered)
         return;
 
     setLogLevel(opts.logging);
 
-    checkOAuthSetup(opts.assume_yes);
+    checkOAuthSetup();
 
     try
     {
@@ -119,8 +116,7 @@ void main ( string[] params )
     foreach (action; list.actions)
         writefln(" * %s (%s)", action.description, action.command);
 
-    if (!opts.assume_yes &&
-        !readYesNoResponse("\nWould you like to continue?"))
+    if (!getBoolChoice("\nWould you like to continue?"))
     {
         writefln("Aborting...");
         return;
@@ -142,8 +138,7 @@ void main ( string[] params )
 
     writefln("Done! Some references should be pushed: %s", unique_refs);
 
-    if (!opts.assume_yes &&
-        !readYesNoResponse("Would you like to push the modified references now?"))
+    if (!getBoolChoice("Would you like to push the modified references now?"))
     {
         writefln("Aborting...");
         return;
@@ -157,8 +152,7 @@ void main ( string[] params )
     writefln("Some tags on github should be released: %s",
              list.releases);
 
-    if (!opts.assume_yes &&
-        !readYesNoResponse("Would you like to release those tags now?"))
+    if (!getBoolChoice("Would you like to release those tags now?"))
     {
         writefln("Aborting...");
         return;
@@ -182,8 +176,7 @@ void main ( string[] params )
         writefln("Some milestones on github should be closed: %s",
                  open_milestones.map!(a=>a.title));
 
-        if (opts.assume_yes ||
-            readYesNoResponse("Would you like to close them now?"))
+        if (getBoolChoice("Would you like to close them now?"))
         {
             foreach (milestone; open_milestones)
                 keepTrying(
@@ -208,9 +201,8 @@ void main ( string[] params )
 
     if (recp.length == 0)
         writefln("Can't send email, neptune.mail-recipient config missing or corrupt!");
-    else if (!opts.no_send_mail &&
-        (opts.assume_yes ||
-        readYesNoResponse("Would you like to send it to %s now?", recp)))
+    if (!opts.no_send_mail &&
+        getBoolChoice("Would you like to send it to %s now?", recp))
     {
         sendMail(email_body, recp);
     }
@@ -928,8 +920,7 @@ string getUpstream ( )
         writefln("However, an hub.upstream configuration was found: %s",
                  hubupstream);
 
-        if (opts.assume_yes ||
-            readYesNoResponse("Would you like to use it as neptune.upstream config?"))
+        if (getBoolChoice("Would you like to use it as neptune.upstream config?"))
            return hubupstream;
 
         throw new Exception("");

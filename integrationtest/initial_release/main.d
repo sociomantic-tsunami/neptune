@@ -94,6 +94,7 @@ void runNeptune ( RestAPI gh_test )
     git.cmd("git init");
 
     git.cmd("git config neptune.upstream " ~ GitRepo);
+    git.cmd("git config neptune.upstreamremote origin");
     git.cmd("git config neptune.oauthtoken 0000");
     git.cmd("git config user.name Tes Ter");
     git.cmd("git config user.email tester@notexisting.example");

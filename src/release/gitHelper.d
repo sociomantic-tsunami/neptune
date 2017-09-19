@@ -99,18 +99,37 @@ string getRemote ( string upstream )
     import std.conv;
     import std.regex;
     import std.format;
+    import std.exception;
 
-    auto remotes = cmd("git remote -v")
-                      .splitter!(a=>a == '\n')
-                      .uniq()
-                      .filter!(a=>a.matchAll(r"github\.com[:/]" ~ upstream))
-                      .map!(a=>a.splitter!(a=>a == ' ' || a == '\t').front);
+    try return getConfig("neptune.upstreamremote");
+    catch (Exception exc)
+    {
+        auto remotes = cmd("git remote -v")
+            .splitter!(a=>a == '\n')
+            .uniq()
+            .filter!(a=>a.matchAll(r"github\.com[:/]" ~ upstream))
+            .map!(a=>a.splitter!(a=>a == ' ' || a == '\t').front);
 
-    if (remotes.empty)
-        throw new Exception(format("Can't find your upstream remote for %s",
-                            upstream));
+        auto guessed_remote = remotes.empty ? "" : remotes.front.array.to!string;
+        auto asked_remote = readString(
+                                       format("Please enter the upstream remote name.\nWill default to [%s]: ",
+                                              guessed_remote), true, true);
 
-    return remotes.front.array.to!string;
+        string remote;
+
+        if (asked_remote.empty)
+            remote = guessed_remote;
+        else
+            remote = asked_remote;
+
+        if (remote.empty)
+            throw new Exception(
+                                format("Can't find your upstream remote for %s", upstream));
+
+        cmd("git config neptune.upstream-remote " ~ remote);
+
+        return remote;
+    }
 }
 
 

@@ -135,10 +135,12 @@ public bool getBoolChoice ( Args... ) ( string fmt, Args args )
     Params:
         question = question to ask the user
         do_strip = whether to strip whitespaces
+        allow_empty = whether to allow empty responses
 
 *******************************************************************************/
 
-public string readString ( string question, bool do_strip = true )
+public string readString ( string question, bool do_strip = true,
+    bool allow_empty = false )
 {
     import std.string;
     import std.stdio;
@@ -147,7 +149,7 @@ public string readString ( string question, bool do_strip = true )
 
     auto str = strip(readln());
 
-    while (str.length == 0)
+    while (str.length == 0 && !allow_empty)
     {
         writef("Empty input. %s", question);
 

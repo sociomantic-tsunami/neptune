@@ -50,6 +50,7 @@ void main ( string[] params )
     import std.algorithm : map, sort, uniq, filter;
     import std.range : array;
     import std.exception : ifThrown;
+    import colorize;
 
     auto opts = parseOpts(params);
 
@@ -67,7 +68,7 @@ void main ( string[] params )
     }
     catch (Exception exc)
     {
-        writefln("Warning: %s", exc.msg);
+        writefln("Warning: %s".color(fg.red), exc.msg);
     }
 
     auto conf = getConf();
@@ -120,14 +121,14 @@ void main ( string[] params )
     if (list == ActionList())
         return;
 
-    writefln("Actions to be done:");
+    writefln("Actions to be done:".color(fg.green));
 
     foreach (action; list.actions)
         writefln(" * %s (%s)", action.description, action.command);
 
     if (!getBoolChoice("\nWould you like to continue?"))
     {
-        writefln("Aborting...");
+        writefln("Aborting...".color(fg.red));
         return;
     }
 
@@ -190,8 +191,8 @@ void main ( string[] params )
             foreach (milestone; open_milestones)
                 keepTrying(
                 {
-                    writef("Closing %s (%s open issues) ... ",
-                        milestone.title, milestone.open_issues);
+                    writef("Closing %s ("~"%s open issues".color(fg.red)~") ... ",
+                        milestone.title.color(mode.bold), milestone.open_issues);
 
                     updateMilestoneState(con, repo, milestone.number, State.closed);
                 });
@@ -208,7 +209,7 @@ void main ( string[] params )
                 .filter!(a=>a !is null)
                 .array);
 
-        writefln("This is the announcement email:\n-----\n%s\n-----", email);
+        writefln("This is the announcement email:\n///////\n%s\n///////", email);
 
         if (!opts.no_send_mail &&
             getBoolChoice("Would you like to send it to %s now?", recipient))
@@ -221,7 +222,7 @@ void main ( string[] params )
         writefln("Can't send email, neptune.mail-recipient config missing or corrupt!");
     }
 
-    writefln("All done.");
+    writefln("All done.".color(fg.green));
 }
 
 
@@ -538,6 +539,8 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
     import release.mergeHelper;
     import release.versionHelper;
 
+    import colorize;
+
     import std.format;
     import std.algorithm;
     import std.range;
@@ -555,7 +558,7 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
     scope(exit)
         list.actions ~= new LocalAction(["git", "checkout", current_branch],
                                         format("Checkout original branch %s",
-                                               current_branch));
+                                               current_branch.color(mode.bold)));
 
     scope releaser = new PatchMerger(branches, tags);
 
@@ -588,6 +591,8 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
 {
     import release.gitHelper;
 
+    import colorize;
+
     import std.format;
     import std.algorithm;
     import std.range;
@@ -612,7 +617,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
             list.actions ~= new LocalAction(
                                      ["git", "checkout", current_branch.toString],
                                      format("Checkout next branch %s",
-                                            current_branch));
+                                            current_branch.toString.color(mode.bold)));
         // Make the release
         list ~= makeRelease(current_release, current_branch.toString,
                             last_release);
@@ -641,7 +646,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
                 list.actions ~= new LocalAction(
                                  ["git", "checkout", current_branch.toString],
                                  format("Checkout previous branch %s",
-                                        current_branch));
+                                        current_branch.toString.color(mode.bold)));
 
                 // If we don't iterate again, add this branch as modified
                 // right here
@@ -673,7 +678,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
         current_branch = SemVerBranch(getCurrentBranch());
         list.actions ~= new LocalAction(
                                 ["git", "checkout", current_branch.toString],
-                                format("Checkout original branch %s", current_branch));
+                                format("Checkout original branch %s", current_branch.toString.color(mode.bold)));
     }
 
     return list;
@@ -901,6 +906,8 @@ Version autodetectVersions ( Version[] tags )
     import release.versionHelper;
     import release.options;
 
+    import colorize;
+
     import octod.api.repos;
 
     import std.stdio;
@@ -912,8 +919,8 @@ Version autodetectVersions ( Version[] tags )
     writefln("We are on branch %s", current);
 
     if (tags.length == 0)
-        writefln("Warning: No previous releases found. "~
-                 "This should only be the case for your very first release!");
+        writefln(("Warning: No previous releases found. "~
+                 "This should only be the case for your very first release!").color(fg.red, bg.init, mode.bold));
 
     auto matching_major = tags.retro.find!((a)
     {
@@ -958,7 +965,7 @@ Version autodetectVersions ( Version[] tags )
         enforce(!options.pre_release,
             "Pre-releases are only allowed for upcoming minors and majors (not patch releases)");
 
-    writefln("Detected release %s", rel_ver);
+    writefln("Detected release %s", rel_ver.toString.color(mode.bold));
 
     return rel_ver;
 }
@@ -1026,11 +1033,13 @@ void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo, string 
     import std.stdio;
     import std.range;
 
+    import colorize;
+
     auto mstone_list = listMilestones(con, repo).find!(a=>a.title == name);
 
     if (mstone_list.empty)
     {
-        writefln("Warning: No corresponding milestone found for %s", name);
+        writefln("Warning: No corresponding milestone found for %s".color(fg.red), name);
         return;
     }
 
@@ -1038,7 +1047,7 @@ void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo, string 
 
     if (mstone.open_issues > 0)
     {
-        writefln("Warning: Corresponding milestone still has %s open issues!",
-                 mstone.open_issues);
+        writefln("Warning: Corresponding milestone still has %s open issues!"
+                 .color(fg.red, bg.init, mode.bold), mstone.open_issues);
     }
 }

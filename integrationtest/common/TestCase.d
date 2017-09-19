@@ -282,9 +282,9 @@ class TestCase
         import std.string : strip;
         import std.format;
 
-        auto begin = stdout.findSplitAfter("This is the announcement email:\n-----\n");
+        auto begin = stdout.findSplitAfter("This is the announcement email:\n///////\n");
         auto skip_first = begin[1].findSplitAfter("\n");
-        auto content = skip_first[1].findSplitBefore("-----\nAll done.");
+        auto content = skip_first[1].findSplitBefore("///////\n");
 
         assert(!begin[1].empty);
         assert(!skip_first[1].empty);

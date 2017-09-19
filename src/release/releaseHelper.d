@@ -104,7 +104,9 @@ class ReleaseAction : Action
     override string description ( ) const
     {
         import std.format;
-        return format("Creating annotated tag %s", this.tag_version);
+        import colorize;
+        return format("%s %s", "Creating annotated tag".color(fg.yellow),
+                      this.tag_version.toString.color(fg.yellow, bg.init, mode.bold));
     }
 
     /// Returns command of this action

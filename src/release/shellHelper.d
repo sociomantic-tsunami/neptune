@@ -145,11 +145,12 @@ public bool getBoolChoice ( Args... ) ( string fmt, Args args )
     import std.stdio;
     import std.string;
     import release.options;
+    import colorize;
 
     if (options.assume_yes)
         return true;
 
-    writef(fmt ~ " y/n: ", args);
+    writef((fmt ~ " y/n: ").color(fg.light_blue), args);
 
     while (true)
     {

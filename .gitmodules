@@ -22,3 +22,6 @@
 [submodule "beaver"]
 	path = submodules/beaver
 	url = https://github.com/sociomantic-tsunami/beaver.git
+[submodule "d-colorize"]
+	path = submodules/d-colorize
+	url = https://github.com/yamadapc/d-colorize.git

@@ -32,10 +32,15 @@ class MergeAction : LocalAction
     this ( string target, string tag )
     {
         import std.format;
+        import colorize;
 
         super(["git", "merge", "--no-ff", "-m",
                 format("Merge tag %s into %s", tag, target), tag],
-              format("Merge %s into %s", tag, target));
+                format("%s %s %s %s",
+                     "Merge".color(fg.green),
+                     tag.color(fg.green, bg.init, mode.bold),
+                     "into".color(fg.green),
+                     target.color(fg.green, bg.init, mode.bold)));
     }
 
     /***************************************************************************

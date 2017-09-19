@@ -81,6 +81,7 @@ void main ( string[] params )
         .map!(a=>GithubReleaseVersion(Version.parse(a.name)).ifThrown(GithubReleaseVersion(InvalidVersion.init)))
         .filter!(a=>a.peek!Version)
         .map!(a=>a.get!Version)
+        .filter!(a=>a.prerelease.length == 0 && a.metadata.length == 0)
         .array;
 
     sort(tags);

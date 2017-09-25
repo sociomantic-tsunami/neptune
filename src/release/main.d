@@ -282,8 +282,11 @@ void sendMail ( string full_body, string recipient )
     import std.process;
     import std.format;
     import std.stdio;
+    import std.exception : ifThrown;
 
-    auto proc = pipeShell(format("sendmail %s", recipient),
+    auto sendmailbin = getConfig("neptune.sendmail").ifThrown("sendmail");
+
+    auto proc = pipeShell(format("%s %s", sendmailbin, recipient),
                           Redirect.all);
 
     proc.stdin.write(full_body);

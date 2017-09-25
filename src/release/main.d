@@ -191,9 +191,11 @@ void main ( string[] params )
 
     writefln("This is the announcement email:\n-----\n%s\n-----", email_body);
 
-    auto recp = getConfig("neptune.mail-recipient");
+    auto recp = getConfig("neptune.mail-recipient").ifThrown("");
 
-    if (readYesNoResponse("Would you like to send it to %s now?", recp))
+    if (recp.length == 0)
+        writefln("Can't send email, neptune.mail-recipient config missing or corrupt!");
+    else if (readYesNoResponse("Would you like to send it to %s now?", recp))
     {
         sendMail(email_body, recp);
     }

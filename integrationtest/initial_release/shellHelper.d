@@ -30,7 +30,10 @@ string cmd ( string wd, string command )
     import std.process : executeShell, Config;
     import std.string : strip;
 
-    auto c = executeShell(command, cast(string[string]) null, Config.none, size_t.max, wd);
+    string[string] env;
+    env["HOME"] = wd;
+
+    auto c = executeShell(command, env, Config.none, size_t.max, wd);
 
     if (c.status != 0)
         throw new Exception(c.output);

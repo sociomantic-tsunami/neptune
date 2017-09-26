@@ -92,11 +92,13 @@ void runNeptune ( RestAPI gh_test )
     tmp.cmd("rm -rf " ~ GitPath);
     tmp.cmd("mkdir -p " ~ GitPath);
     git.cmd("git init");
+
     git.cmd("git config neptune.upstream " ~ GitRepo);
     git.cmd("git config neptune.oauthtoken 0000");
-    // avoid side effects
-    git.cmd("git config commit.gpgSign false");
+    git.cmd("git config user.name Tes Ter");
+    git.cmd("git config user.email tester@notexisting.example");
     git.cmd("git config neptune.mail-recipient dummy@notexisting.example");
+
     git.cmd("git remote add origin " ~ git);
 
     git.cmd("git checkout -B v1.x.x");
@@ -111,7 +113,7 @@ void runNeptune ( RestAPI gh_test )
                                "--no-send-mail",
                                "--verbose",
                                "--base-url=http://127.0.0.1:8080"],
-                               Redirect.all, null, Config.none, git);
+                               Redirect.all, ["HOME" : git], Config.none, git);
 
     bool killed = false;
 

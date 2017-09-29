@@ -18,6 +18,9 @@ import integrationtest.common.shellHelper;
 
 import std.stdio : File;
 
+// Hack to make rdmd report dependencies properly
+static import release.shellHelper;
+
 /// TestCase from which other tests can derive
 class TestCase
 {
@@ -164,12 +167,12 @@ class TestCase
     {
         import std.format;
 
-        git.cmd(format("git checkout -B %s", branch));
+        git.cmd(["git", "checkout", "-B", branch]);
 
-        git.cmd(format("cp -r %s/relnotes ./", this.common_data));
+        git.cmd(["cp", "-r", this.common_data ~ "/relnotes",  "./"]);
 
         git.cmd("git add relnotes");
-        git.cmd(`git commit -m "Add rel notes"`);
+        git.cmd(["git", "commit", "-m", "Add rel notes"]);
     }
 
     /***************************************************************************
@@ -249,8 +252,9 @@ class TestCase
 
         // Check for correct tag text
         {
+            import release.shellHelper : linesFrom;
             auto tagmsg =
-                this.git.cmd(format("git cat-file %s -p | tail -n+6", ver));
+                linesFrom(this.git.cmd(["git", "cat-file", ver, "-p"]), 6);
 
             assert(tagmsg.startsWith(correct_relnotes));
         }
@@ -269,6 +273,8 @@ class TestCase
     protected void checkReleaseMail ( string stdout, string file = "mail.txt" )
     {
         import std.algorithm : findSplitAfter, findSplitBefore;
+        import release.shellHelper : linesFrom;
+        import std.file : readText;
         import std.range : empty;
         import std.string : strip;
         import std.format;
@@ -281,8 +287,8 @@ class TestCase
         assert(!skip_first[1].empty);
         assert(!content[1].empty);
 
-        auto test_mail = strip(content[0]);
-        auto correct_mail = git.cmd(format("tail %s/%s -n+2", data, file));
+        auto test_mail = content[0];
+        auto correct_mail = readText(data ~ "/" ~ file).linesFrom(2);
         if (test_mail != correct_mail)
         {
             import std.stdio;

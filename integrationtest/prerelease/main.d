@@ -33,6 +33,7 @@ class Prerelease : TestCase
     protected void testMajor ( )
     {
         import integrationtest.common.shellHelper;
+        import std.stdio: toFile;
 
         this.prepareGitRepo();
         this.prepareRelNotes("v1.x.x");
@@ -40,9 +41,9 @@ class Prerelease : TestCase
         this.testReleaseCandidate(0, 1);
 
         // simulate some changes fo rc 2
-        git.cmd("echo bla > somefile.txt");
+        toFile("bla", "somefile.txt");
         git.cmd("git add somefile.txt");
-        git.cmd(`git commit -m "Add some file"`);
+        git.cmd(["git", "commit", "-m", "Add some file"]);
 
         this.testReleaseCandidate(0, 2);
 
@@ -53,15 +54,16 @@ class Prerelease : TestCase
     protected void testMinor ( )
     {
         import integrationtest.common.shellHelper;
+        import std.stdio: toFile;
 
         this.prepareGitRepo();
         this.fake_github.reset();
 
         // Create a v1.0.0 dummy
         git.cmd("git checkout -B v1.x.x");
-        git.cmd("echo bla > somefile.txt");
+        toFile("bla", "somefile.txt");
         git.cmd("git add somefile.txt");
-        git.cmd(`git commit -m "Add some file"`);
+        git.cmd(["git", "commit", "-m", "Add some file"]);
         git.cmd(`git tag -a v1.0.0 -m v1.0.0`);
 
         auto sha = git.cmd("git rev-parse v1.0.0");
@@ -76,9 +78,9 @@ class Prerelease : TestCase
         this.testReleaseCandidate(1, 1);
 
         // simulate some changes fo rc 2
-        git.cmd("echo bla > somefile2.txt");
+        toFile("bla", "somefile2.txt");
         git.cmd("git add somefile2.txt");
-        git.cmd(`git commit -m "Add some file2"`);
+        git.cmd(["git", "commit", "-m", "Add some file2"]);
 
         this.testReleaseCandidate(1, 2);
 

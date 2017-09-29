@@ -40,6 +40,7 @@ interface Action
     string description ( ) const;
 
     /// Returns the command the action does
+    /// (only for display, to execute the command use execute())
     string command ( ) const;
 }
 
@@ -102,7 +103,7 @@ struct ActionList
 class LocalAction : Action
 {
     /// The command this action is going to run
-    string _command;
+    const(string[]) _cmd_list;
 
     /// The description of this command
     string _description;
@@ -118,9 +119,9 @@ class LocalAction : Action
 
     ***************************************************************************/
 
-    this ( string command, string description )
+    this ( const(string[]) command, string description )
     {
-        this._command = command;
+        this._cmd_list = command;
         this._description = description;
     }
 
@@ -138,7 +139,7 @@ class LocalAction : Action
         import release.shellHelper;
         import std.string : strip;
 
-        return strip(cmd(this.command()));
+        return strip(cmd(this._cmd_list));
     }
 
     /***************************************************************************
@@ -156,12 +157,15 @@ class LocalAction : Action
     /***************************************************************************
 
         Returns:
-            command to be run
+            command to be run and its arguments
 
     ***************************************************************************/
 
     override string command ( ) const
     {
-        return this._command;
+        import std.string: join;
+        return this._cmd_list.join(" ");
     }
+
+
 }

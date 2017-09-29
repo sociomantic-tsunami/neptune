@@ -33,8 +33,8 @@ class MergeAction : LocalAction
     {
         import std.format;
 
-        super(format(`git merge --no-ff -m "Merge tag %s into %s" %s`,
-                     tag, target, tag),
+        super(["git", "merge", "--no-ff", "-m",
+                format("Merge tag %s into %s", tag, target), tag],
               format("Merge %s into %s", tag, target));
     }
 
@@ -403,8 +403,7 @@ ActionList checkoutMerge ( in Version merge, in SemVerBranch checkout )
 
     ActionList list;
 
-    list.actions ~= new LocalAction(format("git checkout %s",
-                                           checkout),
+    list.actions ~= new LocalAction(["git", "checkout", checkout.toString],
                                     format("Checkout %s locally", checkout));
     list.actions ~= new MergeAction(checkout.toString, merge.toString);
 

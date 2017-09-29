@@ -150,7 +150,7 @@ string getTagMessage ( string tag )
     import std.format;
     import std.algorithm.searching : findSplitBefore;
 
-    auto result = cmd(format("git cat-file %s -p | tail -n+6", tag));
+    auto result = cmd(["git", "cat-file", tag, "-p"]).linesFrom(6);
 
     return result.findSplitBefore("\n-----BEGIN PGP SIGNATURE-----")[0];
 }

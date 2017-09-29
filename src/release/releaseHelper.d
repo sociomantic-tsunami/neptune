@@ -84,7 +84,7 @@ class ReleaseAction : Action
 
         assert(tag_msg.length > 0, "No release notes found?!");
 
-        auto proc = pipeShell(this.command, Redirect.all);
+        auto proc = pipeProcess(this._cmd_list);
 
         proc.stdin.write(tag_msg);
         proc.stdin.flush();
@@ -110,10 +110,15 @@ class ReleaseAction : Action
     /// Returns command of this action
     override string command ( ) const
     {
-        import std.format;
-        return format("git tag -F- %s %s",
-                      this.tag_version,
-                      this.tag_reference);
+        import std.string: join;
+        return this._cmd_list.join(" ");
+    }
+
+    /// Returns command list of this action
+    protected const(string[]) _cmd_list ( ) const
+    {
+        return ["git", "tag", "-F-", this.tag_version.toString,
+               this.tag_reference];
     }
 }
 
@@ -265,7 +270,7 @@ ActionList makeRelease ( Version release_version, string target,
         auto branch = SemVerBranch(major, minor);
 
         // Create the appropriate branch
-        list.actions ~= new LocalAction(format("git branch %s %s", branch, v),
+        list.actions ~= new LocalAction(["git", "branch", branch.toString, v],
                                         format("Create tracking branch %s",
                                                  branch));
 

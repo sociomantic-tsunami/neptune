@@ -156,7 +156,7 @@ void main ( string[] params )
     import release.gitHelper;
     import std.format;
 
-    cmd(format("git push %s %(%s %)", getRemote(getUpstream()), unique_refs));
+    cmd(["git", "push", getRemote(getUpstream())] ~ array(unique_refs));
 
     writefln("Some tags on github should be released: %s",
              list.releases);
@@ -299,9 +299,7 @@ void sendMail ( string email, string recipient )
     import std.exception : ifThrown;
 
     auto sendmailbin = getConfig("neptune.sendmail").ifThrown("sendmail");
-
-    auto proc = pipeShell(format("%s %s", sendmailbin, recipient),
-                          Redirect.all);
+    auto proc = pipeProcess([sendmailbin, recipient]);
 
     proc.stdin.write(email);
     proc.stdin.flush();
@@ -512,7 +510,8 @@ void createLocalBranches ( R ) ( R branches )
     auto upstream = getRemote(getUpstream());
 
     foreach (branch; branches)
-        cmd(format("git branch -f %s %s/%s", branch, upstream, branch));
+        cmd(["git", "branch", "-f", branch.toString,
+                format("%s/%s", upstream, branch)]);
 }
 
 
@@ -554,7 +553,7 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
     ActionList list;
 
     scope(exit)
-        list.actions ~= new LocalAction(format("git checkout %s", current_branch),
+        list.actions ~= new LocalAction(["git", "checkout", current_branch],
                                         format("Checkout original branch %s",
                                                current_branch));
 
@@ -611,7 +610,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
         // Make sure we are on the branch we're operating on
         if (SemVerBranch(getCurrentBranch()) != current_branch)
             list.actions ~= new LocalAction(
-                                     format("git checkout %s", current_branch),
+                                     ["git", "checkout", current_branch.toString],
                                      format("Checkout next branch %s",
                                             current_branch));
         // Make the release
@@ -640,9 +639,9 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
 
                 // Checkout previous branch so we can remove the rel notes
                 list.actions ~= new LocalAction(
-                                         format("git checkout %s", current_branch),
-                                         format("Checkout previous branch %s",
-                                                current_branch));
+                                 ["git", "checkouts", current_branch.toString],
+                                 format("Checkout previous branch %s",
+                                        current_branch));
 
                 // If we don't iterate again, add this branch as modified
                 // right here
@@ -674,9 +673,9 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
     scope(exit)
     {
         current_branch = SemVerBranch(getCurrentBranch());
-        list.actions ~= new LocalAction(format("git checkout %s", current_branch),
-                                        format("Checkout original branch %s",
-                                               current_branch));
+        list.actions ~= new LocalAction(
+                                ["git", "checkout", current_branch.toString],
+                                format("Checkout original branch %s", current_branch));
     }
 
     return list;
@@ -696,9 +695,14 @@ ActionList clearReleaseNotes ( )
 {
     ActionList list;
 
-    list.actions ~= new LocalAction("git rm relnotes/*.md",
+    import std.file: dirEntries, SpanMode;
+    import std.array: array;
+    import std.algorithm.iteration: map;
+    list.actions ~= new LocalAction(["git", "rm"] ~ array(dirEntries("relnotes", "*.md",
+                                     SpanMode.shallow).map!("a.name")),
                                       "Removing release notes");
-    list.actions ~= new LocalAction(`git commit -m "Clear release notes after release"`,
+    list.actions ~= new LocalAction(["git", "commit", "-m",
+                                     "Clear release notes after release"],
                                       "Commiting removal of release notes");
 
     return list;
@@ -740,8 +744,8 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
         auto previous_major_branch = current_branch;
         previous_major_branch.major--;
 
-        auto merges = cmd(format("git log --oneline --merges %s..%s",
-                                 previous_major_branch, current_branch));
+        auto merges = cmd(["git", "log", "--oneline", "--merges",
+                format("%s..%s", previous_major_branch, current_branch)]);
 
         if (merges.length > 0)
         {
@@ -780,12 +784,12 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
     {
         if (next_major_rslt.empty)
         {
-            list.actions ~= new LocalAction(format("git branch %s", next_major),
+            list.actions ~= new LocalAction(["git", "branch", next_major.toString],
                                             format("Create next major branch %s",
                                                    next_major));
         }
 
-        list.actions ~= new LocalAction(format("git checkout %s", next_major),
+        list.actions ~= new LocalAction(["git", "checkout", next_major.toString],
                                         format("Checkout next major branch %s",
                                                next_major));
 
@@ -794,7 +798,7 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
         list.affected_refs ~= next_major.toString;
     }
 
-    list.actions ~= new LocalAction(format("git checkout %s", current_branch),
+    list.actions ~= new LocalAction(["git", "checkout", current_branch.toString],
                                     format("Checkout original branch %s",
                                            current_branch));
     return list;

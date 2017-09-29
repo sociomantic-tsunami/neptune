@@ -34,10 +34,58 @@ class ExitCodeException : Exception
 
 /*******************************************************************************
 
+    Emulates "tail -n+<n>" (gets the lines from <n> till the end)
+
+    This can also be seen as a line-based slice "text[n-1..$]".
+
+    Params:
+        text = text to get the tail from
+        n = starting line to get from text
+
+    Returns:
+        line-sliced text
+
+*******************************************************************************/
+
+string linesFrom ( string text, size_t n )
+{
+    import std.string: splitLines, join, Yes;
+    return text
+        .splitLines(Yes.keepTerminator)[n-1..$]
+        .join;
+}
+
+/*******************************************************************************
+
     Runs a command and returns the output
 
     Params:
-        command = command to run
+        command = command and arguments to run (as a list)
+
+    Returns:
+        output of the command
+
+*******************************************************************************/
+
+string cmd ( const(string[]) command )
+{
+    import std.process : execute;
+    import std.string : strip;
+
+    auto c = execute(command);
+
+    if (c.status != 0)
+        throw new ExitCodeException(c.output, c.status);
+
+    return strip(c.output);
+}
+
+/*******************************************************************************
+
+    Runs a command and returns the output
+
+    Params:
+        command = command and arguments to run (it will be split based on spaces)
 
     Returns:
         output of the command
@@ -46,15 +94,9 @@ class ExitCodeException : Exception
 
 string cmd ( string command )
 {
-    import std.process : executeShell;
-    import std.string : strip;
+    import std.string : split;
 
-    auto c = executeShell(command);
-
-    if (c.status != 0)
-        throw new ExitCodeException(c.output, c.status);
-
-    return strip(c.output);
+    return cmd(command.split);
 }
 
 /*******************************************************************************

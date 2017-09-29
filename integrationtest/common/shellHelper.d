@@ -18,7 +18,27 @@ module integrationtest.common.shellHelper;
 
     Params:
         wd = directory to run the command in
-        command = command to run
+        command = command to run and arguments to pass to it
+
+    Returns:
+        output of the command
+
+*******************************************************************************/
+
+string cmd ( string wd, const(string[]) command )
+{
+    int status;
+    return cmd(wd, command, status);
+}
+
+/*******************************************************************************
+
+    Runs a command and returns the output
+
+    Params:
+        wd = directory to run the command in
+        command = command to run (including arguments). Arguments will be split
+                  based on spaces
 
     Returns:
         output of the command
@@ -28,13 +48,7 @@ module integrationtest.common.shellHelper;
 string cmd ( string wd, string command )
 {
     int status;
-
-    auto output = cmd(wd, command, status);
-
-    if (status != 0)
-        throw new Exception(output);
-
-    return output;
+    return cmd(wd, command, status);
 }
 
 /*******************************************************************************
@@ -43,7 +57,8 @@ string cmd ( string wd, string command )
 
     Params:
         wd = directory to run the command in
-        command = command to run
+        command = command to run (including arguments). Arguments will be split
+                  based on spaces
         status = the return status of the command will be written to this out
                  parameter
 
@@ -54,13 +69,34 @@ string cmd ( string wd, string command )
 
 string cmd ( string wd, string command, out int status )
 {
-    import std.process : executeShell, Config;
+    import std.string: split;
+    return cmd(wd, command.split(), status);
+}
+
+/*******************************************************************************
+
+    Runs a command and returns the output
+
+    Params:
+        wd = directory to run the command in
+        command = command to run and arguments to pass to it
+        status = the return status of the command will be written to this out
+                 parameter
+
+    Returns:
+        output of the command
+
+*******************************************************************************/
+
+string cmd ( string wd, const(string[]) command, out int status )
+{
+    import std.process : execute, Config;
     import std.string : strip;
 
     string[string] env;
     env["HOME"] = wd;
 
-    auto c = executeShell(command, env, Config.none, size_t.max, wd);
+    auto c = execute(command, env, Config.none, size_t.max, wd);
 
     status = c.status;
 

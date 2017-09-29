@@ -1,4 +1,5 @@
 First line is skipped
+To: dummy@notexisting.example
 Subject: [MinorRelease] sandbox v1.1.0
 
 If your application is using a previous sandbox v1.x.x release, it is recommended to update it to use this new minor release. As this is a minor release, it may contain new features, deprecations, or minor internal refactorings; it is guaranteed to not contain API changes and will not require you to change your code.

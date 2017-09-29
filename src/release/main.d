@@ -198,22 +198,27 @@ void main ( string[] params )
         }
     }
 
-    auto email = craftMail(con, repo, myrelease.type,
-        list.actions
-            .map!(a=>cast(ReleaseAction) a)
-            .filter!(a=>a !is null)
-            .array);
+    auto recipient = getConfig("neptune.mail-recipient").ifThrown("");
 
-    writefln("This is the announcement email:\n-----\n%s\n-----", email);
-
-    auto recp = getConfig("neptune.mail-recipient").ifThrown("");
-
-    if (recp.length == 0)
-        writefln("Can't send email, neptune.mail-recipient config missing or corrupt!");
-    if (!opts.no_send_mail &&
-        getBoolChoice("Would you like to send it to %s now?", recp))
+    if (recipient.length > 0)
     {
-        sendMail(email, recp);
+        auto email = craftMail(con, repo, myrelease.type, recipient,
+            list.actions
+                .map!(a=>cast(ReleaseAction) a)
+                .filter!(a=>a !is null)
+                .array);
+
+        writefln("This is the announcement email:\n-----\n%s\n-----", email);
+
+        if (!opts.no_send_mail &&
+            getBoolChoice("Would you like to send it to %s now?", recipient))
+        {
+            sendMail(email, recipient);
+        }
+    }
+    else
+    {
+        writefln("Can't send email, neptune.mail-recipient config missing or corrupt!");
     }
 
     writefln("All done.");
@@ -339,8 +344,8 @@ void sendMail ( string email, string recipient )
 
 *******************************************************************************/
 
-string craftMail ( Range ) ( ref HTTPConnection con, Repository repo, Type rel_type,
-    Range releases )
+string craftMail ( Range ) ( ref HTTPConnection con, Repository repo,
+    Type rel_type, string recipient, Range releases )
 {
     import release.gitHelper;
 
@@ -470,6 +475,7 @@ Issues fixed in this release:`];
 
     auto full_mail = format(
 `From: %s <%s>
+To: %s
 Subject: %s
 
 %s`~ // Pretext
@@ -480,7 +486,7 @@ Subject: %s
 `/* Release links */~`
 %-(%s
 %)
-`,  name, mail, subject, pretext,
+`,  name, mail, recipient, subject, pretext,
     releases.retro.map!(a=>formatRelNotes(a, issues)),
     releases.retro.map!(a=>formatRelLink(a.tag_version.toString)));
 

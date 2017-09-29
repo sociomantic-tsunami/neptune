@@ -198,13 +198,13 @@ void main ( string[] params )
         }
     }
 
-    auto email_body = craftMail(con, repo, myrelease.type,
+    auto email = craftMail(con, repo, myrelease.type,
         list.actions
             .map!(a=>cast(ReleaseAction) a)
             .filter!(a=>a !is null)
             .array);
 
-    writefln("This is the announcement email:\n-----\n%s\n-----", email_body);
+    writefln("This is the announcement email:\n-----\n%s\n-----", email);
 
     auto recp = getConfig("neptune.mail-recipient").ifThrown("");
 
@@ -213,7 +213,7 @@ void main ( string[] params )
     if (!opts.no_send_mail &&
         getBoolChoice("Would you like to send it to %s now?", recp))
     {
-        sendMail(email_body, recp);
+        sendMail(email, recp);
     }
 
     writefln("All done.");
@@ -279,12 +279,12 @@ string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
     Sends the announcement email
 
     Params:
-        full_body = complete body of the email, including From & Subject line
+        email = complete email, including headers and body
         recipient = recipient email
 
 *******************************************************************************/
 
-void sendMail ( string full_body, string recipient )
+void sendMail ( string email, string recipient )
 {
     import release.gitHelper;
 
@@ -298,7 +298,7 @@ void sendMail ( string full_body, string recipient )
     auto proc = pipeShell(format("%s %s", sendmailbin, recipient),
                           Redirect.all);
 
-    proc.stdin.write(full_body);
+    proc.stdin.write(email);
     proc.stdin.flush();
     proc.stdin.close();
 

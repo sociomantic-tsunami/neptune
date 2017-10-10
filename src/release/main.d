@@ -431,7 +431,7 @@ Issues fixed in this release:`];
         import release.shellHelper;
         import vibe.data.json;
 
-        static void nullOut(A...)(A args) {};
+        static void nullOut(A...)(A args) {}
 
         keepTrying!nullOut({
         issues = con

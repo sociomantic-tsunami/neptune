@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module integrationtest.initial_release.GHTestServer;
+module integrationtest.common.GHTestServer;
 
 import vibe.data.json;
 import vibe.web.rest;

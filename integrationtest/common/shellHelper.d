@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module integrationtest.initial_release.shellHelper;
+module integrationtest.common.shellHelper;
 
 /*******************************************************************************
 

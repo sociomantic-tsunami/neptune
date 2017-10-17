@@ -44,6 +44,8 @@ class InitialRelease : TestCase
         this.checkTerminationStatus();
         this.checkRelNotes("v1.0.0");
         this.checkReleaseMail(stdout);
+
+        assert(this.git.branchExists("v1.0.x"), "Tracking branch is missing!");
     }
 }
 

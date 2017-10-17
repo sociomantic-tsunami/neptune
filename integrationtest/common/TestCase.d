@@ -302,3 +302,28 @@ public string getAsyncStream ( File stream )
 
     return stdstream.readAllUTF8();
 }
+
+/*******************************************************************************
+
+    Checks if the given branch exists
+
+    Params:
+        wd = working directory to use
+        branch = branch to check for
+
+    Returns:
+        true if branch exists, else false
+
+*******************************************************************************/
+
+public bool branchExists ( string wd, string branch )
+{
+    import std.format;
+
+    int status;
+
+    wd.cmd(format("git rev-parse --verify %s", branch), status);
+
+    // 0 means local branch with <branch-name> exists.
+    return status == 0;
+}

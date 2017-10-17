@@ -62,31 +62,30 @@ struct SemVerBranch
     this ( string ver )
     {
         import std.conv;
+        import std.exception : enforce;
 
         auto splitted = ver.splitter(".");
 
         if (splitted.empty || splitted.front[0] != 'v')
-            return;
+            throw new Exception("Invalid branch name! Expected 'v..'!");
 
         this.major = splitted.front["v".length..$].to!int;
 
         splitted.popFront;
 
-        if (splitted.empty)
-            return;
+        enforce(!splitted.empty,
+            "Invalid branch name! No minor version given!");
 
         if (splitted.front != "x")
             this.minor = splitted.front.to!int;
-        else
-            return;
 
         splitted.popFront;
 
-        if (splitted.empty)
-            return;
+        enforce(!splitted.empty,
+            "Invalid branch name! No patch version given!");
 
-        import std.exception : enforce;
-        enforce(splitted.front == "x");
+        enforce(splitted.front == "x",
+            "Invalid branch name! Expected 'x' for patch value");
     }
 
 
@@ -203,6 +202,7 @@ unittest
         T test_type;
 
         SMB ver;
+        bool should_fail;
         alias ver this;
     }
 
@@ -211,17 +211,25 @@ unittest
         "v3.0.x" : V(T.Minor, SMB(3, 0)),
         "v1.x.x" : V(T.Major, SMB(1)),
         "v3.x.x" : V(T.Major, SMB(3)),
+        "v4.x.x-rc1" : V(T.Major, SMB(4), true),
         ];
 
     foreach (name, ver; versions)
     {
-        auto v = SemVerBranch(name);
+        SemVerBranch v;
 
         scope(failure)
         {
             import std.stdio;
-            writefln("Failed: %s(%s) != %s(%s)", v, v.type, ver, ver.type);
+            writefln("%s Failed: %s(%s) != %s(%s)", name, v, v.type, ver, ver.type);
         }
+
+        try v = SemVerBranch(name);
+        catch (Exception exc)
+            if (ver.should_fail)
+                continue;
+            else
+                throw exc;
 
         assert(v == ver);
         assert(v.type == ver.test_type);

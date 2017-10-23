@@ -250,10 +250,11 @@ class TestCase
 
         Params:
             stdout = stdout from neptune-process
+            file = file that contains correct email
 
     ***************************************************************************/
 
-    protected void checkReleaseMail ( string stdout )
+    protected void checkReleaseMail ( string stdout, string file = "mail.txt" )
     {
         import std.algorithm : findSplitAfter, findSplitBefore;
         import std.range : empty;
@@ -269,7 +270,7 @@ class TestCase
         assert(!content[1].empty);
 
         auto test_mail = strip(content[0]);
-        auto correct_mail = git.cmd(format("tail %s/mail.txt -n+2", data));
+        auto correct_mail = git.cmd(format("tail %s/%s -n+2", data, file));
         assert(test_mail == correct_mail, "Generated Email is incorrect");
     }
 

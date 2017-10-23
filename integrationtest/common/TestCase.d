@@ -116,6 +116,9 @@ class TestCase
         scope(exit)
             exitEventLoop();
 
+        scope(failure)
+            this.failed = true;
+
         this.run();
     }
 

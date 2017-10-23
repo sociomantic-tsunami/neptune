@@ -258,8 +258,9 @@ ActionList makeRelease ( Version release_version, string target,
         releases ~= v;
     }
 
-    // Is this a major or minor release?
-    with (release_version) if (patch == 0)
+    // Create branch tracking the release only for major & minor and never for
+    // prereleases
+    with (release_version) if (patch == 0 && prerelease.length == 0)
     {
         auto branch = SemVerBranch(major, minor);
 

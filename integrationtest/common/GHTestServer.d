@@ -44,15 +44,30 @@ class RestAPI : IRestAPI
     /// Structure collecting data about a release
     struct Release
     {
-        string title;
-        string tag;
+        string name;
+        string tag_name;
         string content;
         string target_committish;
+        bool draft;
+    }
+
+    struct Tag
+    {
+        string name;
+        string sha;
     }
 
     /// Releases done over the API so far
     Release[] releases;
 
+    /// Tags that gh should be aware of
+    Tag[] tags;
+
+
+    void reset ( )
+    {
+        this.releases.length = this.tags.length = 0;
+    }
 
     /***************************************************************************
 
@@ -106,9 +121,7 @@ class RestAPI : IRestAPI
 
     Json getReleases ( string _owner, string _name )
     {
-        auto json = Json.emptyArray;
-
-        return json;
+        return serializeToJson(this.releases);
     }
 
     /***************************************************************************
@@ -126,9 +139,20 @@ class RestAPI : IRestAPI
 
     Json getTags ( string _owner, string _name )
     {
-        auto json = Json.emptyArray;
+        auto ret = Json.emptyArray;
 
-        return json;
+        foreach (tag; this.tags)
+        {
+            Json jsn = Json.emptyObject, cmmt = Json.emptyObject;
+
+            cmmt["sha"] = tag.sha;
+            jsn["name"] = tag.name;
+            jsn["commit"] = cmmt;
+
+            ret ~= jsn;
+        }
+
+        return ret;
     }
 
     /***************************************************************************

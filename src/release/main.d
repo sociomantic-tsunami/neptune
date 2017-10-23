@@ -80,15 +80,23 @@ void main ( string[] params )
         .releasedTags()
         .map!(a=>GithubReleaseVersion(Version.parse(a.name)).ifThrown(GithubReleaseVersion(InvalidVersion.init)))
         .filter!(a=>a.peek!Version)
-        .map!(a=>a.get!Version)
+        .map!(a=>a.get!Version);
+
+    auto tags_with_prereleases = tags
+        .filter!(a=>a.prerelease.length > 0 || a.metadata.length == 0)
+        .array;
+
+    auto tags_no_prerelease = tags
         .filter!(a=>a.prerelease.length == 0 && a.metadata.length == 0)
         .array;
 
-    sort(tags);
+    sort(tags_with_prereleases);
+    sort(tags_no_prerelease);
+
 
     cmd("git remote update");
 
-    auto myrelease = autodetectVersions(tags);
+    auto myrelease = autodetectVersions(tags_with_prereleases);
 
     sanityCheckMilestone(con, repo, myrelease.toString);
 
@@ -97,14 +105,14 @@ void main ( string[] params )
     with (Type) final switch (myrelease.type)
     {
         case Patch:
-            list = preparePatchRelease(con, repo, tags, myrelease);
+            list = preparePatchRelease(con, repo, tags_no_prerelease, myrelease);
             break;
         case Minor:
-            list = prepareMinorRelease(con, repo, tags, myrelease,
+            list = prepareMinorRelease(con, repo, tags_no_prerelease, myrelease,
                                        opts.release_subsequent);
             break;
         case Major:
-            list = prepareMajorRelease(con, repo, tags, myrelease);
+            list = prepareMajorRelease(con, repo, tags_no_prerelease, myrelease);
             break;
     }
 
@@ -650,9 +658,12 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
         else
             follow = false;
 
-        list ~= clearReleaseNotes();
+        // Keep release notes if it is a prerelease
+        if (minor_version.prerelease.length == 0)
+            list ~= clearReleaseNotes();
     }
-    while (follow);
+    while (follow &&
+        minor_version.prerelease.length == 0/* never follow for prereleases's*/);
 
     scope(exit)
     {
@@ -757,20 +768,25 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
 
     auto next_major_rslt = branches.find(next_major);
 
-    if (next_major_rslt.empty)
+    // Only create next major branch and clear release notes when not doing a
+    // prerelease
+    if (major_version.prerelease.length == 0)
     {
-        list.actions ~= new LocalAction(format("git branch %s", next_major),
-                                        format("Create next major branch %s",
+        if (next_major_rslt.empty)
+        {
+            list.actions ~= new LocalAction(format("git branch %s", next_major),
+                                            format("Create next major branch %s",
+                                                   next_major));
+        }
+
+        list.actions ~= new LocalAction(format("git checkout %s", next_major),
+                                        format("Checkout next major branch %s",
                                                next_major));
+
+        list ~= clearReleaseNotes();
+
+        list.affected_refs ~= next_major.toString;
     }
-
-    list.actions ~= new LocalAction(format("git checkout %s", next_major),
-                                    format("Checkout next major branch %s",
-                                           next_major));
-
-    list ~= clearReleaseNotes();
-
-    list.affected_refs ~= next_major.toString;
 
     list.actions ~= new LocalAction(format("git checkout %s", current_branch),
                                     format("Checkout original branch %s",
@@ -866,6 +882,7 @@ Version autodetectVersions ( Version[] tags )
     import release.shellHelper;
     import release.gitHelper;
     import release.versionHelper;
+    import release.options;
 
     import octod.api.repos;
 
@@ -875,15 +892,36 @@ Version autodetectVersions ( Version[] tags )
     import std.exception : enforce;
 
     auto current = SemVerBranch(getCurrentBranch());
+    writefln("We are on branch %s", current);
 
     if (tags.length == 0)
         writefln("Warning: No previous releases found. "~
                  "This should only be the case for your very first release!");
 
-    auto matching_major = tags.retro.find!(a=>a.major == current.major);
-    auto matching_minor = tags.retro.find!(a=>!current.minor.isNull &&
-                                              a.major == current.major &&
-                                              a.minor == current.minor);
+    auto matching_major = tags.retro.find!((a)
+    {
+        if (a.major != current.major)
+            return false;
+
+        if (!options.pre_release && a.prerelease.length > 0)
+            return false;
+
+        return true;
+    });
+
+    auto matching_minor = tags.retro.find!((a)
+    {
+        if (current.minor.isNull ||
+            a.major != current.major ||
+            a.minor != current.minor)
+            return false;
+
+        if (!options.pre_release && a.prerelease.length > 0)
+            return false;
+
+        return true;
+    });
+
     Version rel_ver;
 
     bool detected =
@@ -893,7 +931,10 @@ Version autodetectVersions ( Version[] tags )
 
     enforce(detected);
 
-    writefln("We are on branch %s", current);
+    if (rel_ver.type == rel_ver.type.Patch)
+        enforce(!options.pre_release,
+            "Pre-releases are only allowed for upcoming minors and majors (not patch releases)");
+
     writefln("Detected release %s", rel_ver);
 
     return rel_ver;

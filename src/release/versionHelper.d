@@ -320,14 +320,36 @@ public bool needMinorRelease ( A, B ) ( A matching_major, B matching_minor,
                                         SemVerBranch current,
                                         out Version new_version )
 {
+    import release.options;
+
     import std.algorithm;
     import std.range;
-    import std.stdio;
 
     if (!matching_major.empty && matching_minor.empty)
         with (matching_major.front)
         {
-            new_version = Version(major, minor+1, 0);
+            int rc = 1;
+
+            if (options.pre_release && prerelease.length > "rc".length)
+            {
+                import std.conv;
+
+                rc = prerelease["rc".length .. $].to!int + 1;
+                new_version.minor = minor;
+            }
+            else
+                // Only bump minor if previous minor was not a rc, too
+                new_version.minor = minor + 1;
+
+            if (options.pre_release)
+            {
+                import std.format;
+                new_version.prerelease = format("rc%s", rc);
+            }
+
+            new_version.major = major;
+            new_version.patch = 0;
+
             return true;
         }
 
@@ -358,16 +380,39 @@ public bool needMajorRelease ( A, B ) ( A matching_major, B matching_minor,
                                         SemVerBranch current,
                                         out Version new_version )
 {
+    import release.options;
+
     if (current.type != current.type.Major)
         return false;
 
-    if (!matching_major.empty)
+    if (!matching_major.empty && !options.pre_release)
         return false;
 
     if (!matching_minor.empty)
         return false;
 
-    new_version = Version(current.major, 0, 0);
+    new_version.major = current.major;
+    new_version.minor = 0;
+    new_version.patch = 0;
+
+
+    if (options.pre_release)
+    {
+        import std.format;
+
+        int rc = 1;
+
+        with (matching_major) if (!empty &&
+            front.prerelease.length > "rc".length)
+        {
+            import std.conv;
+
+            rc = front.prerelease["rc".length .. $].to!int + 1;
+        }
+
+        new_version.prerelease = format("rc%s", rc);
+    }
+
     return true;
 }
 

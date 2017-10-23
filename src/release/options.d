@@ -33,6 +33,8 @@ struct Options
     bool assume_yes = false;
 
     bool no_send_mail = false;
+
+    bool pre_release;
 }
 
 
@@ -71,6 +73,8 @@ Options parseOpts ( string[] opts )
            &options.release_subsequent,
            "base-url", "Github API base URL", &options.github_url,
            "assume-yes", "Assumes yes for all questions", &options.assume_yes,
+           "pre-release|p", "Creates a release candidate (pre-release)",
+           &options.pre_release,
            "no-send-mail", "When set, will not send the release email",
            &options.no_send_mail);
 

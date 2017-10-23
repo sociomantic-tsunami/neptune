@@ -326,8 +326,6 @@ class PatchMerger
                                            a.type == a.type.Minor &&
                                            isAncestor(prev_ver.toString, a.toString));
 
-        import std.stdio;
-
         if (rslt.empty)
             return false;
 

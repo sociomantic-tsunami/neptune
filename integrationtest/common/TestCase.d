@@ -215,7 +215,8 @@ class TestCase
     {
         import std.format;
         import std.string : strip;
-        import std.algorithm : startsWith;
+        import std.algorithm : startsWith, find;
+        import std.range : empty, front;
 
         // Check for correct release notes file
         const(char)[] correct_relnotes;
@@ -225,7 +226,11 @@ class TestCase
             assert(fsize < 1024 * 16, "relnotes file unexpectedly large!");
 
             correct_relnotes = strip(file.rawRead(new char[fsize]));
-            auto test_relnotes = strip(this.fake_github.releases[0].content);
+
+            auto gh_rel = this.fake_github.releases.find!(a=>a.name == ver);
+            assert(!gh_rel.empty, "Release not found on gh fake server!");
+
+            auto test_relnotes = strip(gh_rel.front.content);
 
             assert(correct_relnotes == test_relnotes);
         }

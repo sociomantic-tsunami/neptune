@@ -393,7 +393,7 @@ Issues fixed in this release:`];
         */
         return format("%s\n%s%s%-(%s, %)\n\n%s",
             ver.tag_version, // Version
-            repeat('=', ver.tag_reference.length), // to underline the version
+            repeat('=', ver.tag_version.toString.length), // to underline the version
             inheritance_chain.empty ? // string mentioning inherited changes
                 "" :
                 inherited_str,

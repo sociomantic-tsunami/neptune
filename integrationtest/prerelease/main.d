@@ -20,7 +20,7 @@ import integrationtest.common.TestCase;
 class Prerelease : TestCase
 {
     /// C'tor, required so that the auto parameter __FILE_FULL_PATH__ is set
-    this ( ) { super(); }
+    this ( ) { super(8002); }
 
     /// Runs the actual test
     override protected void run ( )

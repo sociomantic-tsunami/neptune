@@ -20,7 +20,7 @@ class InitialRelease : TestCase
 {
     this ( )
     {
-        super();
+        super(8001);
     }
 
     override protected void run ( )

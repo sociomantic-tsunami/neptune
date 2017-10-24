@@ -54,16 +54,20 @@ class TestCase
     /// Fake Github Class
     protected RestAPI fake_github;
 
+    /// Port to use for github server
+    protected ushort gh_port;
+
     /***************************************************************************
 
         C'tor
 
         Params:
+            gh_port = port to use for github
             test_file = path to the main.d file of the test
 
     ***************************************************************************/
 
-    public this ( string test_file = __FILE_FULL_PATH__ )
+    public this ( ushort gh_port, string test_file = __FILE_FULL_PATH__ )
     {
         import vibe.core.args;
         import vibe.web.rest;
@@ -77,6 +81,10 @@ class TestCase
 
         "/usr/bin".cmd("mkdir " ~ this.tmp);
 
+        this.gh_port = gh_port;
+
+        assert(this.gh_port != 0);
+
         this.bin = readRequiredOption!string("bin", "Binary directory");
         this.data = test_file[0 .. $-"main.d".length] ~ "data";
         this.common_data = __FILE_FULL_PATH__[0 .. $-"TestCase.d".length] ~ "data";
@@ -87,7 +95,7 @@ class TestCase
         router.registerRestInterface(this.fake_github = new RestAPI);
 
         auto settings = new HTTPServerSettings;
-        settings.port = 8080;
+        settings.port = this.gh_port;
         listenHTTP(settings, router);
 
         this.prepareGitRepo();
@@ -195,7 +203,8 @@ class TestCase
                                "--assume-yes=true",
                                "--no-send-mail",
                                "--verbose",
-                               "--base-url=http://127.0.0.1:8080"],
+                               format("--base-url=http://127.0.0.1:%s",
+                                   this.gh_port)],
                                Redirect.all, ["HOME" : this.git],
                                Config.none, this.git);
 

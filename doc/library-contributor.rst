@@ -37,11 +37,12 @@ The following procedure should be followed:
 
    The descriptions of changes should be written in the following form::
 
-     * `name.of.affected.module` [, `name.of.another.affected.module`]
+     ## Catchy, max 80 characters description of the change
 
-       One or more lines describing the changes made. Each of these description
-       lines should be at most 80 characters long and should be indented to the
-       level of the bullet above.
+     `name.of.affected.module` [, `name.of.another.affected.module`]
+
+     One or more lines describing the changes made. Each of these description
+     lines should be at most 80 characters long.
 
 3. Insert your descriptions into files in the library's ``relnotes`` folder,
    named as follows: ``<name>.<change-type>.md``:

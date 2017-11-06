@@ -3,7 +3,7 @@
     Helper to deal with version strings
 
     Copyright:
-        Copyright (c) 2017 Sociomantic Labs GmbH. All rights reserved.
+        Copyright (c) 2017 sociomantic labs GmbH. All rights reserved.
 
     License:
         Boost Software License Version 1.0. See LICENSE.txt for details.

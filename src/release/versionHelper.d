@@ -330,14 +330,14 @@ public bool needMinorRelease ( A, B ) ( A matching_major, B matching_minor,
         {
             int rc = 1;
 
-            if (options.pre_release && prerelease.length > RCPrefix.length)
+            if (options.pre_release && prerelease.startsWith(RCPrefix))
             {
                 import std.conv;
 
                 rc = prerelease[RCPrefix.length .. $].to!int + 1;
                 new_version.minor = minor;
             }
-            else
+            else if (prerelease.length == 0)
                 // Only bump minor if previous minor was not a rc, too
                 new_version.minor = minor + 1;
 

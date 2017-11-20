@@ -65,12 +65,15 @@ class Prerelease : TestCase
         git.cmd("git add somefile.txt");
         git.cmd(["git", "commit", "-m", "Add some file"]);
         git.cmd(`git tag -a v1.0.0 -m v1.0.0`);
+        git.cmd(`git tag -a v1.1.0-norc -m v1.1.0-norc`);
 
         auto sha = git.cmd("git rev-parse v1.0.0");
 
         // Also create the release in the fake-github server
         this.fake_github.releases ~= RestAPI.Release("v1.0.0", "v1.0.0", "", sha);
+        this.fake_github.releases ~= RestAPI.Release("v1.1.0-norc", "v1.1.0-norc", "", sha);
         this.fake_github.tags ~= RestAPI.Tag("v1.0.0", sha);
+        this.fake_github.tags ~= RestAPI.Tag("v1.1.0-norc", sha);
 
         // Prepare for release v1.1.0
         this.prepareRelNotes("v1.x.x");

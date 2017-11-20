@@ -925,6 +925,9 @@ Version autodetectVersions ( Version[] tags )
         if (!options.pre_release && a.prerelease.length > 0)
             return false;
 
+        if (a.prerelease.length > 0 && !a.prerelease.startsWith(RCPrefix))
+            return false;
+
         return true;
     });
 
@@ -936,6 +939,9 @@ Version autodetectVersions ( Version[] tags )
             return false;
 
         if (!options.pre_release && a.prerelease.length > 0)
+            return false;
+
+        if (a.prerelease.length > 0 && !a.prerelease.startsWith(RCPrefix))
             return false;
 
         return true;

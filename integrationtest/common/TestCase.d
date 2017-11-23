@@ -283,7 +283,17 @@ class TestCase
 
         auto test_mail = strip(content[0]);
         auto correct_mail = git.cmd(format("tail %s/%s -n+2", data, file));
-        assert(test_mail == correct_mail, "Generated Email is incorrect");
+        if (test_mail != correct_mail)
+        {
+            import std.stdio;
+            writeln("Generated Email is incorrect");
+            writeln("--------------------- bad --------------------------");
+            write(test_mail);
+            writeln("--------------------- good -------------------------");
+            write(correct_mail);
+            writeln("--------------------- end --------------------------");
+            assert(false);
+        }
     }
 
     /// Checks the termination status & code of neptune-process

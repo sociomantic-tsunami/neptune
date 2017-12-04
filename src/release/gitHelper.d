@@ -101,7 +101,9 @@ string getRemote ( string upstream )
     import std.format;
     import std.exception;
 
-    try return getConfig("neptune.upstreamremote");
+    enum UpstreamConfig = "neptune.upstreamremote";
+
+    try return getConfig(UpstreamConfig);
     catch (Exception exc)
     {
         auto remotes = cmd("git remote -v")
@@ -126,7 +128,7 @@ string getRemote ( string upstream )
             throw new Exception(
                                 format("Can't find your upstream remote for %s", upstream));
 
-        cmd("git config neptune.upstream-remote " ~ remote);
+        cmd("git config " ~ UpstreamConfig ~ " " ~ remote);
 
         return remote;
     }

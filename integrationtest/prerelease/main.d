@@ -65,12 +65,15 @@ class Prerelease : TestCase
         git.cmd("git add somefile.txt");
         git.cmd(["git", "commit", "-m", "Add some file"]);
         git.cmd(`git tag -a v1.0.0 -m v1.0.0`);
+        git.cmd(`git tag -a v1.1.0-norc -m v1.1.0-norc`);
 
         auto sha = git.cmd("git rev-parse v1.0.0");
 
         // Also create the release in the fake-github server
         this.fake_github.releases ~= RestAPI.Release("v1.0.0", "v1.0.0", "", sha);
+        this.fake_github.releases ~= RestAPI.Release("v1.1.0-norc", "v1.1.0-norc", "", sha);
         this.fake_github.tags ~= RestAPI.Tag("v1.0.0", sha);
+        this.fake_github.tags ~= RestAPI.Tag("v1.1.0-norc", sha);
 
         // Prepare for release v1.1.0
         this.prepareRelNotes("v1.x.x");
@@ -152,16 +155,20 @@ class Prerelease : TestCase
                      stderr, stdout);
         }
 
+        import semver.Version : RCPrefix;
+
         this.checkTerminationStatus();
-        this.checkRelNotes(format("v1.%s.0-rc%s", minor, rc));
-        this.checkReleaseMail(stdout, format("mail-v1.%s.0-rc%s.txt", minor, rc));
+        this.checkRelNotes(format("v1.%s.0-%s%s", minor, RCPrefix, rc));
+        this.checkReleaseMail(stdout,
+            format("mail-v1.%s.0-%s%s.txt", minor, RCPrefix, rc));
 
         assert(!this.git.branchExists(format("v1.%s.x", minor)),
                "Tracking branch shouldn't exist!");
-        assert(!this.git.branchExists(format("v1.%s.x-rc%s", minor, rc)),
+        assert(!this.git.branchExists(format("v1.%s.x-%s%s", minor, RCPrefix, rc)),
                "Tracking branch shouldn't exist!");
 
-        this.fake_github.tags ~= RestAPI.Tag(format("v1.%s.0-rc%s", minor, rc));
+        this.fake_github.tags ~=
+            RestAPI.Tag(format("v1.%s.0-%s%s", minor, RCPrefix, rc));
     }
 }
 

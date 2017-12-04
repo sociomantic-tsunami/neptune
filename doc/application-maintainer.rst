@@ -133,7 +133,7 @@ Pre-release strings (as in ``v2.1.1-<string>``) should be used when deploying
 a test binary that will be run in one server or instance only for example.
 Anything that is a temporary test deploy should have a ``-<string>`` indicator
 in the version string. It is recommended to use common identifiers, like
-``-alpha1``, ``-beta1``, ``-rc1`` (depending on the level of trust there is
+``-alpha1``, ``-beta1``, ``-rc.1`` (depending on the level of trust there is
 that it will be the final version), and increment the number each time a bug is
 fixed in that version and is re-deployed for testing.
 

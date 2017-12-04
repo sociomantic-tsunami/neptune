@@ -736,13 +736,22 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
 
     auto current_branch = SemVerBranch(getCurrentBranch());
 
+    static bool branchExists ( SemVerBranch branch )
+    {
+        import std.process : execute;
+
+        auto res = execute(["git", "rev-parse", "--verify", branch.toString]);
+
+        return res.status == 0;
+    }
+
+    auto previous_major_branch = current_branch;
+    previous_major_branch.major--;
+
     // Make sure no merges are between the last major and this
-    if (tags.length > 1)
+    if (tags.length > 1 && branchExists(previous_major_branch))
     {
         import release.shellHelper;
-
-        auto previous_major_branch = current_branch;
-        previous_major_branch.major--;
 
         auto merges = cmd(["git", "log", "--oneline", "--merges",
                 format("%s..%s", previous_major_branch, current_branch)]);
@@ -916,6 +925,9 @@ Version autodetectVersions ( Version[] tags )
         if (!options.pre_release && a.prerelease.length > 0)
             return false;
 
+        if (a.prerelease.length > 0 && !a.prerelease.startsWith(RCPrefix))
+            return false;
+
         return true;
     });
 
@@ -927,6 +939,9 @@ Version autodetectVersions ( Version[] tags )
             return false;
 
         if (!options.pre_release && a.prerelease.length > 0)
+            return false;
+
+        if (a.prerelease.length > 0 && !a.prerelease.startsWith(RCPrefix))
             return false;
 
         return true;

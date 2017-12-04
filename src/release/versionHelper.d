@@ -330,21 +330,21 @@ public bool needMinorRelease ( A, B ) ( A matching_major, B matching_minor,
         {
             int rc = 1;
 
-            if (options.pre_release && prerelease.length > "rc".length)
+            if (options.pre_release && prerelease.startsWith(RCPrefix))
             {
                 import std.conv;
 
-                rc = prerelease["rc".length .. $].to!int + 1;
+                rc = prerelease[RCPrefix.length .. $].to!int + 1;
                 new_version.minor = minor;
             }
-            else
+            else if (prerelease.length == 0)
                 // Only bump minor if previous minor was not a rc, too
                 new_version.minor = minor + 1;
 
             if (options.pre_release)
             {
                 import std.format;
-                new_version.prerelease = format("rc%s", rc);
+                new_version.prerelease = format("%s%s", RCPrefix, rc);
             }
 
             new_version.major = major;
@@ -403,14 +403,14 @@ public bool needMajorRelease ( A, B ) ( A matching_major, B matching_minor,
         int rc = 1;
 
         with (matching_major) if (!empty &&
-            front.prerelease.length > "rc".length)
+            front.prerelease.length > RCPrefix.length)
         {
             import std.conv;
 
-            rc = front.prerelease["rc".length .. $].to!int + 1;
+            rc = front.prerelease[RCPrefix.length .. $].to!int + 1;
         }
 
-        new_version.prerelease = format("rc%s", rc);
+        new_version.prerelease = format("%s%s", RCPrefix, rc);
     }
 
     return true;

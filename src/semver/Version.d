@@ -13,6 +13,9 @@
 
 module semver.Version;
 
+/// Prefix used for Release Candidates
+enum RCPrefix = "rc.";
+
 /**
     Describes SemVer aware version instance
  **/
@@ -144,6 +147,27 @@ struct Version
         if (this.patch < rhs.patch)
             return -1;
 
+        import std.algorithm : startsWith;
+
+        if (this.prerelease.startsWith(RCPrefix) &&
+            rhs.prerelease.startsWith(RCPrefix))
+        {
+            import std.conv;
+
+            auto lhs_rc = this.prerelease[RCPrefix.length .. $].to!int;
+            auto rhs_rc = rhs.prerelease[RCPrefix.length .. $].to!int;
+
+            if (lhs_rc > rhs_rc)
+                return 1;
+            if (lhs_rc < rhs_rc)
+                return -1;
+        }
+
+        if (this.prerelease.length < rhs.prerelease.length)
+            return 1;
+        if (this.prerelease.length > rhs.prerelease.length)
+            return -1;
+
         return 0;
     }
 
@@ -154,14 +178,20 @@ struct Version
         auto vers = [
             Version.parse("v2.2.0"),
             Version.parse("v1.3.0"),
+            Version.parse("v1.2.4-rc.4"),
             Version.parse("v1.2.3"),
             Version.parse("v1.2.4"),
+            Version.parse("v1.2.4-alpha1"),
+            Version.parse("v1.2.4-rc.1"),
         ];
 
         sort(vers);
 
         assert(vers == [
                Version(1, 2, 3),
+               Version(1, 2, 4, "alpha1"),
+               Version(1, 2, 4, "rc.1"),
+               Version(1, 2, 4, "rc.4"),
                Version(1, 2, 4),
                Version(1, 3, 0),
                Version(2, 2, 0),

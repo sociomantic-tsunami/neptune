@@ -152,16 +152,20 @@ class Prerelease : TestCase
                      stderr, stdout);
         }
 
+        import semver.Version : RCPrefix;
+
         this.checkTerminationStatus();
-        this.checkRelNotes(format("v1.%s.0-rc%s", minor, rc));
-        this.checkReleaseMail(stdout, format("mail-v1.%s.0-rc%s.txt", minor, rc));
+        this.checkRelNotes(format("v1.%s.0-%s%s", minor, RCPrefix, rc));
+        this.checkReleaseMail(stdout,
+            format("mail-v1.%s.0-%s%s.txt", minor, RCPrefix, rc));
 
         assert(!this.git.branchExists(format("v1.%s.x", minor)),
                "Tracking branch shouldn't exist!");
-        assert(!this.git.branchExists(format("v1.%s.x-rc%s", minor, rc)),
+        assert(!this.git.branchExists(format("v1.%s.x-%s%s", minor, RCPrefix, rc)),
                "Tracking branch shouldn't exist!");
 
-        this.fake_github.tags ~= RestAPI.Tag(format("v1.%s.0-rc%s", minor, rc));
+        this.fake_github.tags ~=
+            RestAPI.Tag(format("v1.%s.0-%s%s", minor, RCPrefix, rc));
     }
 }
 

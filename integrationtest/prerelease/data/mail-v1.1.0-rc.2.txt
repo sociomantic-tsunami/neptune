@@ -1,11 +1,13 @@
 First line is skipped
 To: dummy@notexisting.example
-Subject: [MajorRelease] sandbox v1.0.0-rc2
+Subject: [MinorRelease] sandbox v1.1.0-rc.2
 
+If your application is using a previous sandbox v1.x.x release, it is recommended to update it to use this new minor release. As this is a minor release, it may contain new features, deprecations, or minor internal refactorings; it is guaranteed to not contain API changes and will not require you to change your code.
 
+Release notes:
 
-v1.0.0-rc2
-==========
+v1.1.0-rc.2
+===========
 
 Migration Instructions
 ----------------------
@@ -56,5 +58,5 @@ Features
 
 
 
-http://github.com/tester/sandbox/releases/tag/v1.0.0-rc2
+http://github.com/tester/sandbox/releases/tag/v1.1.0-rc.2
 

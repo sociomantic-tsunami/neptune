@@ -638,7 +638,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
 
                 // Checkout previous branch so we can remove the rel notes
                 list.actions ~= new LocalAction(
-                                 ["git", "checkouts", current_branch.toString],
+                                 ["git", "checkout", current_branch.toString],
                                  format("Checkout previous branch %s",
                                         current_branch));
 

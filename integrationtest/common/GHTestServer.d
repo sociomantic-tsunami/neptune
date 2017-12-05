@@ -51,7 +51,7 @@ class RestAPI : IRestAPI
         bool draft;
     }
 
-    struct Tag
+    struct Ref
     {
         string name;
         string sha;
@@ -61,8 +61,10 @@ class RestAPI : IRestAPI
     Release[] releases;
 
     /// Tags that gh should be aware of
-    Tag[] tags;
+    Ref[] tags;
 
+    /// Branches that gh should be aware of
+    Ref[] branches;
 
     void reset ( )
     {
@@ -102,8 +104,20 @@ class RestAPI : IRestAPI
 
     Json getBranches ( string _owner, string _name )
     {
-        auto json = Json.emptyArray;
-        return json;
+        auto ret = Json.emptyArray;
+
+        foreach (branch; this.branches)
+        {
+            Json jsn = Json.emptyObject, cmmt = Json.emptyObject;
+
+            cmmt["sha"] = branch.sha;
+            jsn["name"] = branch.name;
+            jsn["commit"] = cmmt;
+
+            ret ~= jsn;
+        }
+
+        return ret;
     }
 
     /***************************************************************************

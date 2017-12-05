@@ -320,40 +320,57 @@ public bool needMinorRelease ( A, B ) ( A matching_major, B matching_minor,
                                         SemVerBranch current,
                                         out Version new_version )
 {
-    import release.options;
-
-    import std.algorithm;
     import std.range;
 
     if (!matching_major.empty && matching_minor.empty)
-        with (matching_major.front)
-        {
-            int rc = 1;
-
-            if (options.pre_release && prerelease.startsWith(RCPrefix))
-            {
-                import std.conv;
-
-                rc = prerelease[RCPrefix.length .. $].to!int + 1;
-                new_version.minor = minor;
-            }
-            else if (prerelease.length == 0)
-                // Only bump minor if previous minor was not a rc, too
-                new_version.minor = minor + 1;
-
-            if (options.pre_release)
-            {
-                import std.format;
-                new_version.prerelease = format("%s%s", RCPrefix, rc);
-            }
-
-            new_version.major = major;
-            new_version.patch = 0;
-
-            return true;
-        }
+    {
+        new_version = getNextMinor(matching_major.front);
+        return true;
+    }
 
     return false;
+}
+
+/*******************************************************************************
+
+    Find out the minor version that would follow 'last'.
+    Considers RC releases when the according global option was given.
+
+    Returns:
+        the next minor version to release
+
+*******************************************************************************/
+
+public Version getNextMinor ( Version last )
+{
+    import release.options;
+    import std.algorithm;
+
+    int rc = 1;
+
+    Version new_version;
+
+    if (options.pre_release && last.prerelease.startsWith(RCPrefix))
+    {
+        import std.conv;
+
+        rc = last.prerelease[RCPrefix.length .. $].to!int + 1;
+        new_version.minor = last.minor;
+    }
+    else if (last.prerelease.length == 0)
+        // Only bump minor if previous minor was not a rc, too
+        new_version.minor = last.minor + 1;
+
+    if (options.pre_release)
+    {
+        import std.format;
+        new_version.prerelease = format("%s%s", RCPrefix, rc);
+    }
+
+    new_version.major = last.major;
+    new_version.patch = 0;
+
+    return new_version;
 }
 
 

@@ -226,17 +226,20 @@ class TestCase
     }
 
     /// Validates the release notes in the TAG and github
-    protected void checkRelNotes ( string ver )
+    protected void checkRelNotes ( string ver, string path = "" )
     {
         import std.format;
         import std.string : strip;
         import std.algorithm : startsWith, find;
         import std.range : empty, front;
 
+        if (path == "")
+            path = format("%s/relnotes.md", this.common_data);
+
         // Check for correct release notes file
         const(char)[] correct_relnotes;
         {
-            auto file = File(format("%s/relnotes.md", this.common_data), "r");
+            auto file = File(path, "r");
             auto fsize = file.size();
             assert(fsize < 1024 * 16, "relnotes file unexpectedly large!");
 

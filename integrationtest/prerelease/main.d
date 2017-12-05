@@ -27,6 +27,7 @@ class Prerelease : TestCase
     {
         this.testMajor();
         this.testMinor();
+        this.testMultipleMinor();
     }
 
     /// Tests prereleases with major versions
@@ -90,6 +91,66 @@ class Prerelease : TestCase
         this.testRelease(1);
     }
 
+    /// Tests prereleases with minors on multiple majors
+    protected void testMultipleMinor ( )
+    {
+        import integrationtest.common.shellHelper;
+        import std.stdio: toFile;
+
+        this.prepareGitRepo();
+        this.fake_github.reset();
+
+        // Create a v1.0.0 dummy
+        git.cmd("git checkout -B v1.x.x");
+        toFile("bla", git ~ "/somefile.txt");
+        git.cmd("git add somefile.txt");
+        git.cmd(["git", "commit", "-m", "Add some file"]);
+        git.cmd(`git tag -a v1.0.0 -m v1.0.0`);
+
+        auto sha1 = git.cmd("git rev-parse v1.0.0");
+
+        // Create a v2.0.0 dummy
+        git.cmd("git checkout -B v2.x.x");
+        toFile("bla2", git ~ "/somefile.txt");
+        git.cmd("git add somefile.txt");
+        git.cmd(["git", "commit", "-m", "Add some file2"]);
+        git.cmd(`git tag -a v2.0.0 -m v2.0.0`);
+
+        auto sha2 = git.cmd("git rev-parse v2.0.0");
+
+        git.cmd("git checkout v1.x.x");
+
+        // Also create the release in the fake-github server
+        this.fake_github.releases ~= RestAPI.Release("v1.0.0", "v1.0.0", "", sha1);
+        this.fake_github.tags ~= RestAPI.Ref("v1.0.0", sha1);
+        this.fake_github.releases ~= RestAPI.Release("v2.0.0", "v2.0.0", "", sha2);
+        this.fake_github.tags ~= RestAPI.Ref("v2.0.0", sha2);
+        this.fake_github.branches ~= RestAPI.Ref("v1.x.x", sha1);
+        this.fake_github.branches ~= RestAPI.Ref("v2.x.x", sha2);
+
+        // Prepare for release v1.1.0
+        this.prepareRelNotes("v1.x.x");
+
+        import std.format;
+        import semver.Version;
+        this.testReleaseCandidate(1, 1, 1, 2);
+
+        this.fake_github.tags ~= RestAPI.Ref("v1.1.0-rc.1", sha1);
+        this.fake_github.tags ~= RestAPI.Ref("v2.1.0-rc.1", sha2);
+
+        // simulate some changes fo rc 2
+        toFile("bla", "somefile2.txt");
+        git.cmd("git add somefile2.txt");
+        git.cmd(["git", "commit", "-m", "Add some file2"]);
+
+        this.testReleaseCandidate(1, 2, 1, 2);
+
+        this.fake_github.tags ~= RestAPI.Ref("v1.1.0-rc.2", sha1);
+        this.fake_github.tags ~= RestAPI.Ref("v2.1.0-rc.2", sha2);
+
+        this.testRelease(1, 1, 2);
+    }
+
     /***************************************************************************
 
         Test non-rc releases with the given minor version (always major v. 1)
@@ -99,9 +160,12 @@ class Prerelease : TestCase
 
     ***************************************************************************/
 
-    protected void testRelease ( int minor )
+    protected void testRelease ( int minor, int[] majors... )
     {
         import std.format;
+
+        if (majors.length == 0)
+            majors ~= 1;
 
         auto neptune = this.startNeptuneRelease();
 
@@ -119,12 +183,12 @@ class Prerelease : TestCase
 
         this.checkTerminationStatus();
         this.checkRelNotes(format("v1.%s.0", minor));
-        this.checkReleaseMail(stdout, format("mail-v1.%s.0.txt", minor));
+        this.checkReleaseMail(stdout, format("mail-v%(%s,%).%s.0.txt", majors, minor));
 
         assert(this.git.branchExists(format("v1.%s.x", minor)),
                "Tracking branch shouldn't exist!");
 
-        this.fake_github.tags ~= RestAPI.Tag(format("v1.%s.0", minor));
+        this.fake_github.tags ~= RestAPI.Ref(format("v1.%s.0", minor));
     }
 
     /***************************************************************************
@@ -134,12 +198,16 @@ class Prerelease : TestCase
         Params:
             minor = minor version to test
             rc = release candidate version to test
+            majors = major releases to test
 
     ***************************************************************************/
 
-    protected void testReleaseCandidate ( int minor, int rc )
+    protected void testReleaseCandidate ( int minor, int rc, int[] majors... )
     {
         import std.format;
+
+        if (majors.length == 0)
+            majors ~= 1;
 
         auto neptune = this.startNeptuneRelease("--pre-release");
 
@@ -158,9 +226,21 @@ class Prerelease : TestCase
         import semver.Version : RCPrefix;
 
         this.checkTerminationStatus();
-        this.checkRelNotes(format("v1.%s.0-%s%s", minor, RCPrefix, rc));
+
+        string relnote_file_major_2 =
+            format("%s/relnotes.rc.%s.md", this.data, rc);
+
+        import std.stdio;
+
+        foreach (major; majors)
+        {
+            this.checkRelNotes(
+                format("v%s.%s.0-%s%s", major, minor, RCPrefix, rc),
+                major > 1 ? relnote_file_major_2 : "");
+        }
+
         this.checkReleaseMail(stdout,
-            format("mail-v1.%s.0-%s%s.txt", minor, RCPrefix, rc));
+            format("mail-v%(%s,%).%s.0-%s%s.txt", majors, minor, RCPrefix, rc));
 
         assert(!this.git.branchExists(format("v1.%s.x", minor)),
                "Tracking branch shouldn't exist!");
@@ -168,7 +248,7 @@ class Prerelease : TestCase
                "Tracking branch shouldn't exist!");
 
         this.fake_github.tags ~=
-            RestAPI.Tag(format("v1.%s.0-%s%s", minor, RCPrefix, rc));
+            RestAPI.Ref(format("v1.%s.0-%s%s", minor, RCPrefix, rc));
     }
 }
 

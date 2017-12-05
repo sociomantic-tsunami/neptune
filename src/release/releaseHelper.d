@@ -79,7 +79,7 @@ class ReleaseAction : Action
 
             // For further processing later on
             this.rel_notes_without_inherited =
-                buildReleaseNotes("", "");
+                buildReleaseNotes(prev_tag, "");
         }
 
         assert(tag_msg.length > 0, "No release notes found?!");

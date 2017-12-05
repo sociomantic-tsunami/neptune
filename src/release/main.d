@@ -107,8 +107,9 @@ void main ( string[] params )
             list = preparePatchRelease(con, repo, tags_no_prerelease, myrelease);
             break;
         case Minor:
-            list = prepareMinorRelease(con, repo, tags_no_prerelease, myrelease,
-                                       opts.release_subsequent);
+            list = prepareMinorRelease(con, repo,
+                options.pre_release ? tags_with_prereleases : tags_no_prerelease,
+                myrelease, opts.release_subsequent);
             break;
         case Major:
             list = prepareMajorRelease(con, repo, tags_no_prerelease, myrelease);
@@ -625,8 +626,8 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
         if (!major_branches.empty)
         {
             // find latest release on that branch
-            auto latest_rel = tags.retro.find!(a=>a.major ==
-                                                  major_branches.front.major);
+            auto latest_rel = tags.retro.find!(a=>
+                a.major == major_branches.front.major);
 
             // No release? Stop then, this is an unreleased major branch
             if (latest_rel.empty)
@@ -655,8 +656,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
 
                 major_branches.popFront;
 
-                current_release = Version(current_branch.major,
-                                          latest_rel.front.minor+1, 0);
+                current_release = getNextMinor(latest_rel.front);
             }
         }
         else
@@ -666,8 +666,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
         if (minor_version.prerelease.length == 0)
             list ~= clearReleaseNotes();
     }
-    while (follow &&
-        minor_version.prerelease.length == 0/* never follow for prereleases's*/);
+    while (follow);
 
     scope(exit)
     {

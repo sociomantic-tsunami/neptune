@@ -72,8 +72,8 @@ class Prerelease : TestCase
         // Also create the release in the fake-github server
         this.fake_github.releases ~= RestAPI.Release("v1.0.0", "v1.0.0", "", sha);
         this.fake_github.releases ~= RestAPI.Release("v1.1.0-norc", "v1.1.0-norc", "", sha);
-        this.fake_github.tags ~= RestAPI.Tag("v1.0.0", sha);
-        this.fake_github.tags ~= RestAPI.Tag("v1.1.0-norc", sha);
+        this.fake_github.tags ~= RestAPI.Ref("v1.0.0", sha);
+        this.fake_github.tags ~= RestAPI.Ref("v1.1.0-norc", sha);
 
         // Prepare for release v1.1.0
         this.prepareRelNotes("v1.x.x");

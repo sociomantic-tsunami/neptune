@@ -37,6 +37,9 @@ struct Options
     bool check_ancestor = true;
 
     bool pre_release;
+
+    /// metadata to be appended to the version
+    string metadata;
 }
 
 
@@ -92,7 +95,10 @@ Options parseOpts ( string[] opts )
         // -------------
         "no-check-ancestor", "When set, will not check if release branch"
             ~ "descends from HEAD of the previous branch",
-        { options.check_ancestor = false; }
+        { options.check_ancestor = false; },
+        // -------------
+        "metadata|m", "When set, will be appended to the version as metadata string",
+        &options.metadata
     );
 
     if (verbose)

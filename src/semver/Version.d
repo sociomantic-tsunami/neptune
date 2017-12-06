@@ -61,8 +61,7 @@ struct Version
             return "<invalid>";
 
         return format(
-            "v%s.%s.%s%s%s", this.major, this.minor, this.patch,
-            this.prerelease.length ? "-" ~ this.prerelease : "",
+            "%s%s", this.toStringNoMetadata(),
             this.metadata.length ? "+" ~ this.metadata : ""
         );
     }
@@ -122,6 +121,7 @@ struct Version
         assert(ver.prerelease == "alpha", ver.prerelease);
         assert(ver.metadata == "breaking");
         assert(ver.toString() == "v1.1.1-alpha+breaking");
+        assert(ver.toStringNoMetadata() == "v1.1.1-alpha");
 
         import std.exception : assertThrown;
         assertThrown(Version.parse("gibberish"));

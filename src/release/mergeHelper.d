@@ -133,6 +133,9 @@ class PatchMerger
     /// All versions/tags of this repo
     const(Version[]) versions;
 
+    /// Metadata to be used for all releases
+    const(string) metadata;
+
     /***************************************************************************
 
         Contsructor
@@ -140,13 +143,15 @@ class PatchMerger
         Params:
             branches = all existing branches of the repository
             versions = all existing versions/tags of the repository
+            metadata = metadata to be added to all releases
 
     ***************************************************************************/
 
-    this ( in SemVerBranch[] branches, in Version[] versions )
+    this ( in SemVerBranch[] branches, in Version[] versions, in string metadata )
     {
         this.branches = branches;
         this.versions = versions;
+        this.metadata = metadata;
     }
 
     /***************************************************************************
@@ -248,6 +253,7 @@ class PatchMerger
 
         // Find next version to be released
         auto next_ver = this.findNewPatchRelease(ver_branch);
+        next_ver.metadata = this.metadata;
 
         // Release it
         this.actions ~= makeRelease(next_ver, ver_branch.toString, prev);

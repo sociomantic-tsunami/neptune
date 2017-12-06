@@ -104,6 +104,7 @@ void main ( string[] params )
     cmd("git remote update");
 
     auto myrelease = autodetectVersions(tags_with_prereleases);
+    myrelease.metadata = opts.metadata;
 
     sanityCheckMilestone(con, repo, myrelease.toString);
 
@@ -569,7 +570,7 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
                                         format("Checkout original branch %s",
                                                current_branch.color(mode.bold)));
 
-    scope releaser = new PatchMerger(branches, tags);
+    scope releaser = new PatchMerger(branches, tags, patch_version.metadata);
 
     list ~= releaser.release(SemVerBranch(current_branch));
 
@@ -670,7 +671,9 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
 
                 major_branches.popFront;
 
-                current_release = getNextMinor(latest_rel.front);
+                auto next_release = getNextMinor(latest_rel.front);
+                next_release.metadata = current_release.metadata;
+                current_release = next_release;
             }
         }
         else

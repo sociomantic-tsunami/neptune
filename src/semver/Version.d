@@ -65,6 +65,24 @@ struct Version
     }
 
     /**
+        Returns:
+            string representation of the version stripped from
+            and metadata information
+     **/
+    string toStringNoMetadata ( ) const pure
+    {
+        import std.format;
+
+        if (!this.valid())
+            return "<invalid>";
+
+        return format(
+            "v%s.%s.%s%s", this.major, this.minor, this.patch,
+            this.prerelease.length ? "-" ~ this.prerelease : ""
+        );
+    }
+
+    /**
         Parses version string of form vX.Y.Z
 
         Params:

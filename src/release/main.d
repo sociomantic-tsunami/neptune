@@ -99,7 +99,7 @@ void main ( string[] params )
     auto myrelease = autodetectVersions(tags_with_prereleases);
     myrelease.metadata = opts.metadata;
 
-    sanityCheckMilestone(con, repo, myrelease.toString);
+    sanityCheckMilestone(con, repo, myrelease.toStringNoMetadata());
 
     ActionList list;
 

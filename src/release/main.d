@@ -97,6 +97,7 @@ void main ( string[] params )
     cmd("git remote update");
 
     auto myrelease = autodetectVersions(tags_with_prereleases);
+    myrelease.metadata = opts.metadata;
 
     sanityCheckMilestone(con, repo, myrelease.toString);
 

@@ -35,6 +35,9 @@ struct Options
     bool no_send_mail = false;
 
     bool pre_release;
+
+    /// metadata to be appended to the version
+    string metadata;
 }
 
 
@@ -76,7 +79,9 @@ Options parseOpts ( string[] opts )
            "pre-release|p", "Creates a release candidate (pre-release)",
            &options.pre_release,
            "no-send-mail", "When set, will not send the release email",
-           &options.no_send_mail);
+           &options.no_send_mail,
+           "metadata|m", "When set, will be appended to version as metadata string",
+           &options.metadata);
 
     if (verbose)
         options.logging = options.logging.trace;

@@ -392,7 +392,13 @@ public bool needMajorRelease ( A, B ) ( A matching_major, B matching_minor,
         return false;
 
     new_version.major = current.major;
-    new_version.minor = 0;
+
+    // Start releases with v0.1.0, not v0.0.0
+    if (new_version.major == 0)
+        new_version.minor = 1;
+    else
+        new_version.minor = 0;
+
     new_version.patch = 0;
 
 

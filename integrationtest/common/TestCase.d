@@ -246,7 +246,7 @@ class TestCase
             correct_relnotes = strip(file.rawRead(new char[fsize]));
 
             auto gh_rel = this.fake_github.releases.find!(a=>a.name == ver);
-            assert(!gh_rel.empty, "Release not found on gh fake server!");
+            assert(!gh_rel.empty, "Release "~ ver ~" not found on gh fake server!");
 
             auto test_relnotes = strip(gh_rel.front.content);
 

@@ -83,11 +83,10 @@ void main ( string[] params )
         .map!(a=>a.get!Version);
 
     auto tags_with_prereleases = tags
-        .filter!(a=>a.prerelease.length > 0 || a.metadata.length == 0)
         .array;
 
     auto tags_no_prerelease = tags
-        .filter!(a=>a.prerelease.length == 0 && a.metadata.length == 0)
+        .filter!(a=>a.prerelease.length == 0)
         .array;
 
     sort(tags_with_prereleases);

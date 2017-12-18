@@ -25,7 +25,7 @@ $O/libd-colorize.a: $(shell find $C/submodules/d-colorize/source -type f -name '
 
 ################################################################################
 
-$O/allunittests $O/fastunittest: $O/libvibed.a $O/libdyaml.a
+$O/allunittests $O/fastunittest: $O/libvibed.a $O/libdyaml.a $O/libd-colorize.a
 
 $O/%unittests: override LDFLAGS += -L$O -lvibed -ldyaml -levent \
 								   -lssl -lcrypto -ld-colorize

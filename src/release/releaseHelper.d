@@ -58,7 +58,7 @@ class ReleaseAction : Action
     override string execute ( )
     {
         import std.process;
-        import release.gitHelper;
+        import common.gitHelper;
 
         string prev_relnotes;
 
@@ -159,7 +159,7 @@ private auto match ( R ) ( R range, string match_str )
 
 string buildReleaseNotes ( string previous_version, string previous_notes  )
 {
-    import release.gitHelper;
+    import common.gitHelper;
 
     import std.file;
     import std.algorithm;

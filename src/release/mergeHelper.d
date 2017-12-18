@@ -316,7 +316,7 @@ class PatchMerger
     bool findCorrespondingBranch ( int major, in Version ver,
                                    out SemVerBranch branch )
     {
-        import release.gitHelper;
+        import common.gitHelper;
 
         import std.algorithm;
         import std.range;

@@ -12,7 +12,7 @@
 
 module release.main;
 
-import release.api;
+import common.api;
 import release.actions;
 import release.versionHelper;
 import release.releaseHelper;
@@ -59,11 +59,11 @@ void main ( string[] params )
 
     setLogLevel(opts.logging);
 
-    checkOAuthSetup();
+    checkOAuthSetup(options.assume_yes);
 
     try
     {
-        import release.gitHelper;
+        import common.gitHelper;
         getRemote(getUpstream());
     }
     catch (Exception exc)
@@ -154,7 +154,7 @@ void main ( string[] params )
         return;
     }
 
-    import release.gitHelper;
+    import common.gitHelper;
     import std.format;
 
     cmd(["git", "push", getRemote(getUpstream())] ~ array(unique_refs));
@@ -264,7 +264,7 @@ void createGithubRelease ( HTTPConnection con, Repository repo, string ver,
 string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
 {
     import release.github;
-    import release.gitHelper;
+    import common.gitHelper;
 
     import std.algorithm;
     import std.stdio;
@@ -292,7 +292,7 @@ string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
 
 void sendMail ( string email, string recipient )
 {
-    import release.gitHelper;
+    import common.gitHelper;
 
     import std.process;
     import std.format;
@@ -346,7 +346,7 @@ void sendMail ( string email, string recipient )
 string craftMail ( Range ) ( ref HTTPConnection con, Repository repo,
     Type rel_type, string recipient, Range releases )
 {
-    import release.gitHelper;
+    import common.gitHelper;
 
     import octod.api.issues;
 
@@ -504,7 +504,7 @@ Subject: %s
 
 void createLocalBranches ( R ) ( R branches )
 {
-    import release.gitHelper;
+    import common.gitHelper;
     import release.shellHelper;
     import std.format;
 
@@ -535,7 +535,7 @@ void createLocalBranches ( R ) ( R branches )
 ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
                                  Version[] tags, Version patch_version )
 {
-    import release.gitHelper;
+    import common.gitHelper;
     import release.mergeHelper;
     import release.versionHelper;
 
@@ -589,7 +589,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
                                  Version[] tags, Version minor_version,
                                  bool follow = true )
 {
-    import release.gitHelper;
+    import common.gitHelper;
 
     import colorize;
 
@@ -731,7 +731,7 @@ ActionList clearReleaseNotes ( )
 ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
                                  Version[] tags, Version major_version )
 {
-    import release.gitHelper;
+    import common.gitHelper;
 
     import std.algorithm : find;
     import std.range : empty;
@@ -902,7 +902,7 @@ SemVerBranch[] getBranches ( ref HTTPConnection con, ref Repository repo,
 Version autodetectVersions ( Version[] tags )
 {
     import release.shellHelper;
-    import release.gitHelper;
+    import common.gitHelper;
     import release.versionHelper;
     import release.options;
 
@@ -983,7 +983,7 @@ Version autodetectVersions ( Version[] tags )
 string getUpstream ( )
 {
     import release.shellHelper;
-    import release.gitHelper;
+    import common.gitHelper;
     import std.exception;
     import std.stdio;
 

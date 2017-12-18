@@ -13,6 +13,8 @@
 
 module overview.repository;
 
+import common.yaml;
+
 import octod.core;
 import octod.api.repos;
 
@@ -188,20 +190,4 @@ void updateRepositoryDependencies ( ref Repository project, HTTPConnection clien
         logInfo(".. FAILED (%s): %s", typeid(e), e.msg);
         return;
     }
-}
-
-/**
-    YAML parsing helper for usage in pipeline
-
-    Params:
-        content = raw data that is expected to contain UTF-8 YAML text
- **/
-private auto parseYAML ( const void[] content )
-{
-    import std.utf;
-    import dyaml.loader;
-
-    auto s = cast(char[]) content.dup;
-    validate(s);
-    return Loader.fromString(s).load();
 }

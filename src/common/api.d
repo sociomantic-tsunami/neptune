@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module release.api;
+module common.api;
 
 import octod.core;
 import octod.api.repos;
@@ -26,7 +26,7 @@ import octod.api.repos;
 
 public Configuration getConf ( )
 {
-    import release.gitHelper;
+    import common.gitHelper;
     import std.exception;
 
     Configuration cfg;
@@ -46,11 +46,11 @@ public Configuration getConf ( )
 
 *******************************************************************************/
 
-public void checkOAuthSetup ( )
+public void checkOAuthSetup ( bool assume_yes )
 {
     import std.exception;
 
-    getConf().ifThrown(githubSetup());
+    getConf().ifThrown(githubSetup(assume_yes));
 }
 
 
@@ -58,15 +58,18 @@ public void checkOAuthSetup ( )
 
     Sets up the interaction with github using an oauth token
 
+    Params:
+        assume_yes = whether to assume yes to potential questions asked
+
     Returns:
         set up configuration object
 
 *******************************************************************************/
 
-private Configuration githubSetup ( )
+private Configuration githubSetup ( bool assume_yes )
 {
-    import release.shellHelper;
-    import release.gitHelper;
+    import common.shellHelper;
+    import common.gitHelper;
 
     import std.stdio;
     import std.string;
@@ -76,7 +79,7 @@ private Configuration githubSetup ( )
     Configuration cfg;
     cfg.dryRun = false;
 
-    static string tryHubToken ( )
+    static string tryHubToken ( bool assume_yes )
     {
         auto hub_oauth = getConfig("hub.oauthtoken");
 
@@ -85,8 +88,11 @@ private Configuration githubSetup ( )
         writefln("No oauth token was found under neptune.oauthtoken, "~
                  "however an hub.oauthtoken was found. ");
 
-        if (getBoolChoice("Would you like to use it as neptune.oauthtoken config?"))
+        if (getBoolChoice(assume_yes,
+            "Would you like to use it as neptune.oauthtoken config?"))
+        {
             return hub_oauth;
+        }
 
         throw new Exception("");
     }
@@ -106,7 +112,7 @@ private Configuration githubSetup ( )
 
     cfg = cfg.init;
     cfg.dryRun = false;
-    cfg.oauthToken = tryHubToken().ifThrown(askUserAndCreate());
+    cfg.oauthToken = tryHubToken(assume_yes).ifThrown(askUserAndCreate());
 
     cmd("git config --global neptune.oauthtoken " ~ cfg.oauthToken);
 

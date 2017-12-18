@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module integrationtest.initial_release.main;
+module integrationtest.first_release.main;
 
 import integrationtest.common.GHTestServer;
 

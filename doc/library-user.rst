@@ -78,6 +78,27 @@ changes. Because of this, it is important to pay special attention to the
 release notes of `+breaking` releases, so that you understand what problems may
 be encountered down the line when updating.
 
+What if I Get Compilation Errors When Updating?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When updating your project to use a new major release of a library, it is
+expected that you may get compilation errors. Please consult the migration
+instructions in the release notes.
+
+Compilation errors after updating to a patch or minor release are not normally
+expected, but may occasionally occur as a result of a critical bug fix (see
+Exceptions, above). If this happens, please do the following:
+
+1. Check whether the release you're updating to is tagged `+breaking`. If so,
+   the release notes will describe the required migration steps.
+2. Look back through the release history to check whether a release tagged with
+   `+breaking` was merged into the release you're updating to. If so, the
+   release notes for the `+breaking` release will describe the required
+   migration steps.
+3. If there is no `+breaking` release in the history, it is possible that a
+   breaking change has been introduced by accident. Please contact the library
+   maintainers.
+
 Support Guarantees
 ------------------
 

@@ -67,7 +67,7 @@ handled as follows:
 1. If the addressed bug is critical (i.e. may result in memory corruption, wrong
    business logic, etc.), it will be released as a patch release. The release
    notes will clearly indicate that a breaking change has been made and the
-   tag of the patch release will have `+breaking` appended.
+   tag of the patch release will have ``+breaking`` appended.
 
 2. If the fixed issue is non-critical, it will be delayed until the next major
    release (following the normal Neptune guarantees).
@@ -75,8 +75,8 @@ handled as follows:
 Also note that a breaking patch release will be merged into subsequent patch and
 minor releases, which *will not* be explicitly marked as containing breaking
 changes. Because of this, it is important to pay special attention to the
-release notes of `+breaking` releases, so that you understand what problems may
-be encountered down the line when updating.
+release notes of ``+breaking`` releases, so that you understand what problems
+may be encountered down the line when updating.
 
 What if I Get Compilation Errors When Updating?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,13 +89,13 @@ Compilation errors after updating to a patch or minor release are not normally
 expected, but may occasionally occur as a result of a critical bug fix (see
 Exceptions, above). If this happens, please do the following:
 
-1. Check whether the release you're updating to is tagged `+breaking`. If so,
+1. Check whether the release you're updating to is tagged ``+breaking``. If so,
    the release notes will describe the required migration steps.
 2. Look back through the release history to check whether a release tagged with
-   `+breaking` was merged into the release you're updating to. If so, the
-   release notes for the `+breaking` release will describe the required
+   ``+breaking`` was merged into the release you're updating to. If so, the
+   release notes for the ``+breaking`` release will describe the required
    migration steps.
-3. If there is no `+breaking` release in the history, it is possible that a
+3. If there is no ``+breaking`` release in the history, it is possible that a
    breaking change has been introduced by accident. Please contact the library
    maintainers.
 

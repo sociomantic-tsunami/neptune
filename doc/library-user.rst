@@ -72,6 +72,12 @@ handled as follows:
 2. If the fixed issue is non-critical, it will be delayed until the next major
    release (following the normal Neptune guarantees).
 
+Also note that a breaking patch release will be merged into subsequent patch and
+minor releases, which *will not* be explicitly marked as containing breaking
+changes. Because of this, it is important to pay special attention to the
+release notes of `+breaking` releases, so that you understand what problems may
+be encountered down the line when updating.
+
 Support Guarantees
 ------------------
 

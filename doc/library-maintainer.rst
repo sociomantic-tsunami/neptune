@@ -227,7 +227,9 @@ After making a patch release, you need to make sure that subsequent branches
 also receive the bug-fixes.
 
 1. Merge the patch release tag into any subsequent minor branches and make a
-   patch release for each of them.
+   patch release for each of them. If the patch release being merged is tagged
+   as a `+breaking` release, also tag the patch release on subsequent branches
+   the same way.
 2. Merge the patch release on the latest minor branch into the corresponding
    major branch.
 3. If the next major branch already has one or more releases, repeat 1 and 2 for

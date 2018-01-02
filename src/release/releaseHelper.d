@@ -119,7 +119,7 @@ class ReleaseAction : Action
     /// Returns command list of this action
     protected const(string[]) _cmd_list ( ) const
     {
-        return ["git", "tag", "-F-", this.tag_version.toString,
+        return ["git", "tag", "--cleanup=verbatim", "-F-", this.tag_version.toString,
                this.tag_reference];
     }
 }

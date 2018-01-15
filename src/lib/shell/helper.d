@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module common.shellHelper;
+module lib.shell.helper;
 
 import core.time;
 import std.stdio;

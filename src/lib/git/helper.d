@@ -10,9 +10,9 @@
 
 *******************************************************************************/
 
-module common.gitHelper;
+module lib.git.helper;
 
-import common.shellHelper;
+import lib.shell.helper;
 
 /***************************************************************************
 
@@ -69,7 +69,7 @@ string getLastCommitOf ( string file )
 
 string getCurrentBranch ( )
 {
-    import common.shellHelper;
+    import lib.shell.helper;
     import std.string;
 
     auto branch = cmd("git symbolic-ref --short HEAD");
@@ -84,6 +84,7 @@ string getCurrentBranch ( )
 /*******************************************************************************
 
     Params:
+        app_name = name of the app who's configuration should be used
         upstream = upstream to use for getting the data
 
     Returns:
@@ -91,7 +92,7 @@ string getCurrentBranch ( )
 
 *******************************************************************************/
 
-string getRemote ( string upstream )
+string getRemote ( string app_name, string upstream )
 {
     import std.algorithm.iteration : splitter, uniq, map, filter;
     import std.algorithm.searching: canFind;
@@ -101,9 +102,9 @@ string getRemote ( string upstream )
     import std.format;
     import std.exception;
 
-    enum UpstreamConfig = "neptune.upstreamremote";
+    auto upstream_config = app_name ~ ".upstreamremote";
 
-    try return getConfig(UpstreamConfig);
+    try return getConfig(upstream_config);
     catch (Exception exc)
     {
         auto remotes = cmd("git remote -v")
@@ -128,7 +129,7 @@ string getRemote ( string upstream )
             throw new Exception(
                                 format("Can't find your upstream remote for %s", upstream));
 
-        cmd("git config " ~ UpstreamConfig ~ " " ~ remote);
+        cmd("git config " ~ upstream_config ~ " " ~ remote);
 
         return remote;
     }
@@ -160,18 +161,20 @@ string getTagMessage ( string tag )
 
 /*******************************************************************************
 
+    Params:
+        app_name = name of the app configuration to use
     Returns:
-        the configured neptune.upstream variable. If not found, asks the user to
+        the configured <app_name>.upstream variable. If not found, asks the user to
         set it up.
 
 *******************************************************************************/
 
-string getUpstream ( )
+string getUpstream ( string app_name )
 {
     import std.exception;
 
-    return cmd("git config neptune.upstream")
-              .ifThrown(configureUpstream(askUpstreamName()));
+    return cmd("git config "~app_name~".upstream")
+              .ifThrown(configureUpstream(app_name, askUpstreamName()));
 }
 
 
@@ -197,6 +200,7 @@ string getConfig ( string path )
     Configures neptune upstream
 
     Params:
+        app_name = which app configuration to use
         upstream = desired upstream
 
     Returns:
@@ -204,9 +208,9 @@ string getConfig ( string path )
 
 *******************************************************************************/
 
-string configureUpstream ( string upstream )
+string configureUpstream ( string app_name, string upstream )
 {
-    cmd("git config neptune.upstream " ~ upstream);
+    cmd("git config " ~ app_name ~ ".upstream " ~ upstream);
 
     return upstream;
 }

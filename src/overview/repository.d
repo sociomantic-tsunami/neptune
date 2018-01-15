@@ -13,7 +13,7 @@
 
 module overview.repository;
 
-import common.yaml;
+import lib.yaml.parse;
 
 import octod.core;
 import octod.api.repos;

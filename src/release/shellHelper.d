@@ -12,7 +12,7 @@
 
 module release.shellHelper;
 
-public import common.shellHelper;
+public import lib.shell.helper;
 
 import release.options;
 
@@ -31,6 +31,6 @@ import release.options;
 
 public bool getBoolChoice ( Args... ) ( string fmt, Args args )
 {
-    import common.shellHelper : getBoolChoice;
+    import lib.shell.helper : getBoolChoice;
     return getBoolChoice(options.assume_yes, fmt, args);
 }

@@ -19,7 +19,7 @@ import integrationtest.common.shellHelper;
 import std.stdio : File;
 
 // Hack to make rdmd report dependencies properly
-static import common.shellHelper;
+static import lib.shell.helper;
 
 /// TestCase from which other tests can derive
 class TestCase
@@ -255,7 +255,7 @@ class TestCase
 
         // Check for correct tag text
         {
-            import common.shellHelper : linesFrom;
+            import lib.shell.helper : linesFrom;
             auto tagmsg =
                 linesFrom(this.git.cmd(["git", "cat-file", ver, "-p"]), 6);
 
@@ -275,8 +275,8 @@ class TestCase
 
     protected void checkReleaseMail ( string stdout, string file = "mail.txt" )
     {
+        import lib.shell.helper : linesFrom;
         import std.algorithm : findSplitAfter, findSplitBefore;
-        import common.shellHelper : linesFrom;
         import std.file : readText;
         import std.range : empty;
         import std.string : strip;

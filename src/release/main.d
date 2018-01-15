@@ -12,7 +12,7 @@
 
 module release.main;
 
-import common.api;
+import lib.github.GithubConfig;
 import release.actions;
 import release.versionHelper;
 import release.releaseHelper;
@@ -23,8 +23,12 @@ import octod.api.repos;
 import octod.api.releases;
 import octod.core;
 
+import lib.github.GithubConfig;
 
 import std.variant;
+
+/// This apps configuration app name
+enum AppName = "neptune";
 
 /// Invalid version marker used with GithubReleaseVersion
 struct InvalidVersion {}
@@ -52,6 +56,7 @@ void main ( string[] params )
     import std.exception : ifThrown;
     import colorize;
 
+    string upstream;
     auto opts = parseOpts(params);
 
     if (opts.help_triggered)
@@ -59,19 +64,21 @@ void main ( string[] params )
 
     setLogLevel(opts.logging);
 
-    checkOAuthSetup(options.assume_yes);
+    auto gc = GithubConfig(AppName);
+
+    gc.checkOAuthSetup(options.assume_yes);
 
     try
     {
-        import common.gitHelper;
-        getRemote(getUpstream());
+        import lib.git.helper;
+        upstream = gc.getRemote(getUpstream());
     }
     catch (Exception exc)
     {
         writefln("Warning: %s".color(fg.red), exc.msg);
     }
 
-    auto conf = getConf();
+    auto conf = gc.getConf();
     conf.baseURL = opts.github_url;
 
     auto con = HTTPConnection.connect(conf);
@@ -105,7 +112,8 @@ void main ( string[] params )
     with (Type) final switch (myrelease.type)
     {
         case Patch:
-            list = preparePatchRelease(con, repo, tags_no_prerelease, myrelease);
+            list = preparePatchRelease(con, repo, tags_no_prerelease, myrelease,
+                                       upstream);
             break;
         case Minor:
             list = prepareMinorRelease(con, repo,
@@ -154,10 +162,10 @@ void main ( string[] params )
         return;
     }
 
-    import common.gitHelper;
+    import lib.git.helper;
     import std.format;
 
-    cmd(["git", "push", getRemote(getUpstream())] ~ array(unique_refs));
+    cmd(["git", "push", gc.getRemote(getUpstream())] ~ array(unique_refs));
 
     writefln("Some tags on github should be released: %s",
              list.releases);
@@ -264,7 +272,7 @@ void createGithubRelease ( HTTPConnection con, Repository repo, string ver,
 string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
 {
     import release.github;
-    import common.gitHelper;
+    import lib.git.helper;
 
     import std.algorithm;
     import std.stdio;
@@ -292,7 +300,7 @@ string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
 
 void sendMail ( string email, string recipient )
 {
-    import common.gitHelper;
+    import lib.git.helper;
 
     import std.process;
     import std.format;
@@ -346,7 +354,7 @@ void sendMail ( string email, string recipient )
 string craftMail ( Range ) ( ref HTTPConnection con, Repository repo,
     Type rel_type, string recipient, Range releases )
 {
-    import common.gitHelper;
+    import lib.git.helper;
 
     import octod.api.issues;
 
@@ -498,17 +506,16 @@ Subject: %s
     Creates local versions of all given remote branches
 
     Params:
+        upstream = upstream to use for local branch remotes
         branches = remote branches to create local branches from
 
 ***************************************************************************/
 
-void createLocalBranches ( R ) ( R branches )
+void createLocalBranches ( R ) ( string upstream, R branches )
 {
-    import common.gitHelper;
     import release.shellHelper;
+    import lib.git.helper;
     import std.format;
-
-    auto upstream = getRemote(getUpstream());
 
     foreach (branch; branches)
         cmd(["git", "branch", "-f", branch.toString,
@@ -533,11 +540,13 @@ void createLocalBranches ( R ) ( R branches )
 *******************************************************************************/
 
 ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
-                                 Version[] tags, Version patch_version )
+                                 Version[] tags, Version patch_version,
+                                 string upstream )
 {
-    import common.gitHelper;
     import release.mergeHelper;
     import release.versionHelper;
+
+    import lib.git.helper;
 
     import colorize;
 
@@ -549,7 +558,7 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
     // Get version tracking branches
     auto branches = getBranches(con, repo, patch_version);
 
-    createLocalBranches(branches);
+    createLocalBranches(upstream, branches);
 
     auto current_branch = getCurrentBranch();
 
@@ -589,7 +598,7 @@ ActionList prepareMinorRelease ( ref HTTPConnection con, ref Repository repo,
                                  Version[] tags, Version minor_version,
                                  bool follow = true )
 {
-    import common.gitHelper;
+    import lib.git.helper;
 
     import colorize;
 
@@ -731,7 +740,7 @@ ActionList clearReleaseNotes ( )
 ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
                                  Version[] tags, Version major_version )
 {
-    import common.gitHelper;
+    import lib.git.helper;
 
     import std.algorithm : find;
     import std.range : empty;
@@ -904,9 +913,10 @@ SemVerBranch[] getBranches ( ref HTTPConnection con, ref Repository repo,
 Version autodetectVersions ( Version[] tags )
 {
     import release.shellHelper;
-    import common.gitHelper;
     import release.versionHelper;
     import release.options;
+
+    import lib.git.helper;
 
     import colorize;
 
@@ -985,7 +995,7 @@ Version autodetectVersions ( Version[] tags )
 string getUpstream ( )
 {
     import release.shellHelper;
-    import common.gitHelper;
+    import lib.git.helper;
     import std.exception;
     import std.stdio;
 
@@ -1012,7 +1022,7 @@ string getUpstream ( )
     }
 
     return getConfig("neptune.upstream")
-              .ifThrown(configureUpstream(getUpstreamFromUser()));
+              .ifThrown(configureUpstream(AppName, getUpstreamFromUser()));
 }
 
 

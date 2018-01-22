@@ -66,22 +66,33 @@ Options parseOpts ( string[] opts )
     bool verbose;
 
     auto help_info = getopt(opts,
-           "log|l", format("Set the logging level, one of %s",
-                           iota(LogLevel.min, LogLevel.max).map!LogLevel), &options.logging,
-           "verbose|v", "Set logging to verbose", &verbose,
-
-           "release-all|a",
-           "If set, branches that were merged due to a minor release will also be released (default: true)",
-           &options.release_subsequent,
-           "base-url", "Github API base URL", &options.github_url,
-           "assume-yes", "Assumes yes for all questions", &options.assume_yes,
-           "pre-release|p", "Creates a release candidate (pre-release)",
-           &options.pre_release,
-           "no-send-mail", "When set, will not send the release email",
-           &options.no_send_mail,
-           "no-check-ancestor", "When set, will not check if release branch"
-               ~ "descends from HEAD of the previous branch",
-           { options.check_ancestor = false; }
+        // -------------
+        "log|l", format("Set the logging level, one of %s",
+            iota(LogLevel.min, LogLevel.max).map!LogLevel),
+        &options.logging,
+        // -------------
+        "verbose|v", "Set logging to verbose",
+        &verbose,
+        // -------------
+        "release-all|a", "If set, branches that were merged due to a minor "
+            ~ "release will also be released (default: true)",
+        &options.release_subsequent,
+        // -------------
+        "base-url", "Github API base URL",
+        &options.github_url,
+        // -------------
+        "assume-yes", "Assumes yes for all questions",
+        &options.assume_yes,
+        // -------------
+        "pre-release|p", "Creates a release candidate (pre-release)",
+        &options.pre_release,
+        // -------------
+        "no-send-mail", "When set, will not send the release email",
+        &options.no_send_mail,
+        // -------------
+        "no-check-ancestor", "When set, will not check if release branch"
+            ~ "descends from HEAD of the previous branch",
+        { options.check_ancestor = false; }
     );
 
     if (verbose)

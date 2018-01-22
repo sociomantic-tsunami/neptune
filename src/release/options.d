@@ -34,6 +34,8 @@ struct Options
 
     bool no_send_mail = false;
 
+    bool check_ancestor = true;
+
     bool pre_release;
 }
 
@@ -76,7 +78,11 @@ Options parseOpts ( string[] opts )
            "pre-release|p", "Creates a release candidate (pre-release)",
            &options.pre_release,
            "no-send-mail", "When set, will not send the release email",
-           &options.no_send_mail);
+           &options.no_send_mail,
+           "no-check-ancestor", "When set, will not check if release branch"
+               ~ "descends from HEAD of the previous branch",
+           { options.check_ancestor = false; }
+    );
 
     if (verbose)
         options.logging = options.logging.trace;

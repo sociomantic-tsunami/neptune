@@ -736,6 +736,7 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
     import std.algorithm : find;
     import std.range : empty;
     import std.format : format;
+    import release.options;
 
     auto current_branch = SemVerBranch(getCurrentBranch());
 
@@ -769,7 +770,8 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
         }
 
         // Make sure the last major is an ancestor of this major
-        if (!isAncestor(previous_major_branch.toString, current_branch.toString))
+        if (options.check_ancestor &&
+            !isAncestor(previous_major_branch.toString, current_branch.toString))
         {
             import std.stdio;
             writefln("%s is not decending from %s! Aborting!",

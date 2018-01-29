@@ -208,26 +208,26 @@ void main ( string[] params )
     }
 
     auto recipient = getConfig("neptune.mail-recipient").ifThrown("");
+    auto email = craftMail(con, repo, myrelease.type, recipient,
+        list.actions
+            .map!(a=>cast(ReleaseAction) a)
+            .filter!(a=>a !is null)
+            .array);
 
-    if (recipient.length > 0)
+    writefln("This is the announcement email:\n///////\n%s\n///////", email);
+
+    if (recipient.length == 0)
     {
-        auto email = craftMail(con, repo, myrelease.type, recipient,
-            list.actions
-                .map!(a=>cast(ReleaseAction) a)
-                .filter!(a=>a !is null)
-                .array);
-
-        writefln("This is the announcement email:\n///////\n%s\n///////", email);
-
+        writeln("Warning: neptune.mail-recipient is empty! "
+            ~ "E-mail won't be sent.".color(fg.red));
+    }
+    else
+    {
         if (!opts.no_send_mail &&
             getBoolChoice("Would you like to send it to %s now?", recipient))
         {
             sendMail(email, recipient);
         }
-    }
-    else
-    {
-        writefln("Can't send email, neptune.mail-recipient config missing or corrupt!");
     }
 
     writefln("All done.".color(fg.green));

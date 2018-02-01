@@ -16,6 +16,8 @@ import integrationtest.common.GHTestServer;
 
 import integrationtest.common.TestCase;
 
+import integrationtest.common.shellHelper;
+
 class InitialRelease : TestCase
 {
     this ( )
@@ -25,6 +27,7 @@ class InitialRelease : TestCase
 
     override protected void run ( )
     {
+        git.cmd("git checkout -B nonsemver");
         this.prepareRelNotes("v1.x.x");
 
         auto neptune = this.startNeptuneRelease();

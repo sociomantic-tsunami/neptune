@@ -851,6 +851,7 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
 SemVerBranch[] getBranches ( ref HTTPConnection con, ref Repository repo,
                              Version ver, bool same_major = true )
 {
+    import std.stdio;
     import std.algorithm;
     import std.range;
 
@@ -871,14 +872,31 @@ SemVerBranch[] getBranches ( ref HTTPConnection con, ref Repository repo,
                v.minor.isNull;
     }
 
+    bool isSemVerBranch ( GitRef git_ref )
+    {
+        try
+        {
+            auto _ = SemVerBranch(git_ref.name);
+            return true;
+        }
+        catch (Exception)
+            return false;
+    }
+
     auto branches = repo.branches()
-                      .map!(a=>SemVerBranch(a.name))
-                      .filter!(a=>!thisVersion(a) &&
-                                  (newerVersion(a) ||
-                                  (same_major && ourMajorRelease(a))))
-                      .array();
+        .filter!isSemVerBranch
+        .map!(a=>SemVerBranch(a.name))
+        .filter!(a=>!thisVersion(a) &&
+            (newerVersion(a) ||
+            (same_major && ourMajorRelease(a))))
+        .array();
 
     branches.sort();
+
+    auto ignored_branches = repo.branches()
+        .filter!(name => !isSemVerBranch(name))
+        .map!(a => a.name);
+    writefln("List of ingored non-semver branches: %s", ignored_branches);
 
     return branches;
 }

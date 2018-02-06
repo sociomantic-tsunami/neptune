@@ -43,10 +43,16 @@ $B/neptune-overview: $O/libvibed.a $O/libdyaml.a
 $B/neptune-overview: $C/src/overview/main.d
 $B/neptune-overview: override LDFLAGS += -L$O -lvibed -ldyaml -levent -lssl -lcrypto
 
+$B/neptune-autopr: $O/libvibed.a $O/libdyaml.a $O/libd-colorize.a
+$B/neptune-autopr: $C/src/autopr/main.d
+$B/neptune-autopr: override LDFLAGS += -L$O -lvibed -ldyaml -levent \
+									   -lssl -lcrypto -ld-colorize
+
 $B/neptune-release: override LDFLAGS += -L$O -lvibed -levent -lssl -lcrypto -ld-colorize
 $B/neptune-release: $C/src/release/main.d $O/libvibed.a $O/libd-colorize.a
 
 release: $B/neptune-release
 overview: $B/neptune-overview
+autopr: $B/neptune-autopr
 
-all += release overview
+all += release overview autopr

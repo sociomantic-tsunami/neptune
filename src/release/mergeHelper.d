@@ -195,7 +195,15 @@ class PatchMerger
 
             foreach (pending; local_pending_branches)
             {
-                this.tagAndMerge(pending.branch, pending.merged);
+                try this.tagAndMerge(pending.branch, pending.merged);
+                catch (Exception exc)
+                {
+                    import std.format;
+                    import colorize;
+                    exc.msg = format("Failed to handle branch %s: %s".color(fg.red),
+                        pending, exc.msg);
+                    throw exc;
+                }
             }
 
             this.pending_branches.sort();
@@ -370,6 +378,7 @@ class PatchMerger
     {
         import std.algorithm;
         import std.range;
+        import std.exception : enforce;
 
         // Find latest patch release of this minor branch
         auto latest_patch = this.versions
@@ -380,7 +389,7 @@ class PatchMerger
 
 
         // A minor branch MUST have a release
-        assert(!latest_patch.empty);
+        enforce(!latest_patch.empty, "No release found for minor branch");
 
         Version next_ver = latest_patch.front;
         next_ver.patch++;

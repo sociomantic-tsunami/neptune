@@ -37,7 +37,7 @@ The following procedure should be followed:
 
    The descriptions of changes should be written in the following form::
 
-     ## Catchy, max 80 characters description of the change
+     ### Catchy, max 80 characters description of the change
 
      `name.of.affected.module` [, `name.of.another.affected.module`]
 

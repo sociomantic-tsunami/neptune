@@ -54,12 +54,21 @@ enum RepositoryQueryString = `
       }
     }
   }
-  pullRequests(last:100, states:[OPEN]) {
+  pullRequests(headRefName:"refs/heads/neptune-update", last:100, states:[OPEN]) {
       edges {
           node {
               number
               headRefName
               title
+              commits(first:100) {
+                  edges {
+                    node {
+                        commit {
+                            messageHeadline
+                        }
+                    }
+                  }
+              }
           }
       }
   }
@@ -626,7 +635,7 @@ auto getRepoCommits ( ref HTTPConnection con, string owner, string repo )
 
 *******************************************************************************/
 
-void addComment ( ref HTTPConnection con, string id, string content )
+void addComment ( ID ) ( ref HTTPConnection con, ID id, string content )
 {
     import std.format;
 

@@ -14,7 +14,7 @@ module autopr.main;
 
 import autopr.helper;
 import autopr.yaml;
-import autopr.SubModUpdate;
+import autopr.SubModsUpdate;
 
 import autopr.github;
 import autopr.LibInfo;
@@ -215,7 +215,7 @@ void main ( string[] args )
     lib_info.extractInfo(con, result, orgas, meta_info);
 
     // Find out which repos require updates
-    SubModUpdate[] updates;
+    SubModsUpdate[] updates;
     foreach (orga; orgas)
     {
         auto aliased = OrgaFormat(orga).aliased();
@@ -264,7 +264,7 @@ void main ( string[] args )
         if (update.repo.toString() !in fork_info.forks)
         {
             writefln("Skipping %s.%s which is not in our forks", update.repo,
-                     update.submod);
+                     update.updates);
             continue;
         }
 
@@ -273,8 +273,8 @@ void main ( string[] args )
     }
     catch (Exception exc)
     {
-        writefln("Failed to create pull request in %s for %s:\n%s", update.repo, update.submod,
-                 exc);
+        writefln("Failed to create pull request in %s for %s:\n%s", update.repo,
+            update.updates, exc);
     }
 }
 
@@ -407,7 +407,7 @@ auto findUpdates ( Json repo_edges, LibInfo lib_info, MetaInfo meta_info )
     import std.stdio;
     import std.format;
 
-    SubModUpdate[] updates;
+    SubModsUpdate[] updates;
 
     // Iterate over every repo/edge
     foreach (edge; repo_edges)
@@ -468,13 +468,113 @@ auto findUpdates ( Json repo_edges, LibInfo lib_info, MetaInfo meta_info )
 
 void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
     RequestLevel[string] mods,
-    ref SubModUpdate[] updates, MetaInfo.MetaInfo meta_info )
+    ref SubModsUpdate[] updates, MetaInfo.MetaInfo meta_info )
 {
     import std.stdio : writefln;
     import std.algorithm : find;
+    import std.range : empty, front;
+    import std.string;
+    import std.typecons;
 
     auto pull_requests = edge.path!"node.pullRequests.edges";
     auto repo = edge["node"]["name"].get!string;
+
+
+    auto repoid = SubModsUpdate.NameWithOwner(repo, meta_info.owner);
+
+    // Skip if that update exists already
+    auto result = updates.find!(a=>a.repo == repoid);
+
+    SubModsUpdate update;
+
+    if (result.empty)
+        update = SubModsUpdate(
+        // Repo Name/Owner
+        repoid,
+        // Repos latest commit SHA
+        meta_info.latest_commit_sha,
+        // Repos latest commits tree SHA
+        meta_info.latest_commit_tree_sha,
+        // Repos default branch to create PR against
+        meta_info.def_branch);
+    else
+        update = result.front;
+
+    bool matchPrefix ( in Json a )
+    {
+        return a["node"]["title"]
+            .get!string.startsWith(PRTitle);
+    }
+
+    // Find out if a PR already exists
+    auto pr_exists = pull_requests.get!(Json[]).find!matchPrefix;
+
+    // If it exists already, remember pr number
+    if (!pr_exists.empty)
+    {
+        update.pr_number = pr_exists.front["node"]["number"].get!int;
+
+        auto pr_commits = pr_exists.front["node"]["commits"]["edges"].get!(Json[]);
+
+        foreach (commit; pr_commits) try
+        {
+            import std.algorithm : countUntil;
+
+            auto msg = commit["node"]["commit"]["messageHeadline"].get!string;
+
+            // Headline looks like "Advance %s from %s to %s"
+
+            if (msg.length < "Advance".length)
+                continue;
+
+            // First skip "Advance "
+            msg = msg["Advance ".length .. $];
+
+            // Now, find " from "
+            auto idx_name_end = msg.countUntil(" from ");
+
+            if (idx_name_end == -1)
+                continue;
+
+            // Extract submodule name
+            auto subname = msg[0 .. idx_name_end];
+
+            // Find beginning of current version
+            auto idx_cur_ver_start = idx_name_end + " from ".length;
+
+            if (idx_cur_ver_start == -1)
+                continue;
+
+            // Skip ahead to beginning
+            msg = msg[idx_cur_ver_start .. $];
+
+            // Find " to "
+            auto idx_cur_ver_end = msg.countUntil(" to ");
+
+            if (idx_cur_ver_end == -1)
+                continue;
+
+            // Parse current version
+            auto cur_ver = Version.parse(msg[0 .. idx_cur_ver_end]);
+
+            auto idx_target_ver_start = idx_cur_ver_end + " to ".length;
+
+            // Parse target version
+            auto target_ver = Version.parse(msg[idx_target_ver_start .. $]);
+
+            /// Add existing version to existing updates
+            update.existing_updates ~= SubModsUpdate.SubModUpdate(
+                SubModsUpdate.NameWithOwner(subname, ""),
+                SubModsUpdate.SubModVer("", cur_ver),
+                SubModsUpdate.SubModVer("", target_ver));
+        }
+        catch (Exception exc)
+        {
+            writefln("Skipping existing update: %s", exc.msg);
+        }
+    }
+    else
+        writefln("%s> No PR found!", repoid);
 
     // Iterate over all submodules
     foreach (name, sha; meta_info.submodules)
@@ -495,7 +595,7 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
 
         if (cur_ver.empty)
         {
-            writefln("%s: version %s of %s not found", repo, sha, name);
+            writefln("%s> version %s of %s not found", repoid, sha, name);
 
             continue;
         }
@@ -537,71 +637,55 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
             continue;
 
 
-        import std.string;
         import vibe.data.json;
         import std.typecons : Nullable;
 
-        auto pr_title_prefix = format("[neptune] Update %s to ", name);
-
-        bool matchPrefix ( in Json a )
-        {
-            return a["node"]["title"]
-                .get!string.startsWith(pr_title_prefix);
-        }
-
-        // Find out if a PR already exists
-        auto pr_exists = pull_requests.get!(Json[]).find!matchPrefix;
-        Nullable!int pr_number;
-
-        // If it exists already, find out if it's the same version we're trying
-        // to update to
-        if (!pr_exists.empty) try
-        {
-            auto pr_ver = Version.parse(
-                pr_exists.front["node"]["title"]
-                    .get!string[pr_title_prefix.length..$]);
-
-            if (pr_ver == latest.front.ver)
-            {
-                writefln("%s: PR already exists for %s:%s, skipping", repo,
-                    name, pr_ver);
-                continue ;
-            }
-
-            pr_number = pr_exists.front["node"]["number"].get!int;
-        }
-        catch (Exception exc)
-        {
-            writefln("%s: Failed to parse PR title: %s ..\n%s", repo,
-                pr_exists.front["node"]["title"], exc);
-            continue;
-        }
-
         import std.algorithm : canFind;
 
-        auto repo = SubModUpdate.NameWithOwner(repo, meta_info.owner);
-        auto submodule = SubModUpdate.NameWithOwner(name, latest.front.owner);
+        auto submodule = SubModsUpdate.NameWithOwner(name, latest.front.owner);
 
-        // Skip if that update exists already
-        if (updates.canFind!(a=>a.repo == repo && a.submod == submodule))
+        if (update.updates.canFind!(a=>a.repo == submodule))
             continue;
 
-        updates ~= SubModUpdate(
-            // Repo Name/Owner
-            repo,
+        update.updates ~= SubModsUpdate.SubModUpdate(
             // Submod Name/Owner
             submodule,
             // Current Submod sha/version
-            SubModUpdate.SubModVer(sha, cur_ver.front.ver),
+            SubModsUpdate.SubModVer(sha, cur_ver.front.ver),
             // new submod sha/version
-            SubModUpdate.SubModVer(latest.front.sha, latest.front.ver),
-            // Pr # if existing
-            pr_number,
-            // Repos latest commit SHA
-            meta_info.latest_commit_sha,
-            // Repos latest commits tree SHA
-            meta_info.latest_commit_tree_sha,
-            // Repos default branch to create PR against
-            meta_info.def_branch);
+            SubModsUpdate.SubModVer(latest.front.sha, latest.front.ver));
     }
+
+    if (update.updates.length == 0)
+        return;
+
+    // Compare the existing updates with the upcoming updates
+    if (update.updates.length == update.existing_updates.length)
+    {
+        int matching = 0;
+
+        foreach (upd; update.updates)
+        foreach (xupd; update.existing_updates)
+        {
+            if (upd.repo.name == xupd.repo.name &&
+                upd.cur.ver == xupd.cur.ver &&
+                upd.target.ver == xupd.target.ver)
+            {
+                matching++;
+            }
+        }
+
+        // If they are the same, we don't need to update this
+        if (matching == update.updates.length)
+        {
+            writefln("%s> Skipping existing PR", repoid);
+            return;
+        }
+    }
+
+    // Add the new or updated update struct
+    if (result.empty)
+        updates ~= update;
+    else
+        result.front = update;
 }

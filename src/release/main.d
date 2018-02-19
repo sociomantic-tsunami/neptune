@@ -570,7 +570,7 @@ ActionList preparePatchRelease ( ref HTTPConnection con, ref Repository repo,
                                         format("Checkout original branch %s",
                                                current_branch.color(mode.bold)));
 
-    scope releaser = new PatchMerger(branches, tags, patch_version.metadata);
+    auto releaser = new PatchMerger(branches, tags, patch_version.metadata);
 
     list ~= releaser.release(SemVerBranch(current_branch));
 

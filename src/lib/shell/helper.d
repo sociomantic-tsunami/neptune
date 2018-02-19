@@ -14,6 +14,7 @@ module lib.shell.helper;
 
 import core.time;
 import std.stdio;
+import std.typecons;
 
 /// Exception to be thrown when the exit code is unexpected
 class ExitCodeException : Exception
@@ -269,23 +270,76 @@ public string readPassword ( string question )
 
     Params:
         dg = delegate to call until it succeeds
-        max_attempts = amount of attempts (defaults to 10)
-        wait_time = time to wait between attempts (defaults to 1 second)
-        printer = function to use to print output (defaults to stdout)
+        printer = file to use to print normal output (defaults to stdout)
+        wprinter = file to use to print error/warning output (defaults to stderr)
 
 *******************************************************************************/
 
-void keepTrying ( alias printer = writefln ) ( void delegate ( ) dg,
+void keepTrying ( void delegate ( ) dg,
+    Nullable!File outstream, Nullable!File errstream )
+{
+    keepTrying(dg, 10, 1.seconds, outstream, errstream);
+}
+
+/*******************************************************************************
+
+    Repeatetly tries to call dg() if it threw an exception, while also keeping
+    the user informed about the attempts.
+
+    Works visually best if the dg() function prints it's actions according to
+    this pattern: "doing action abc ... " (no new line)
+
+    The function will then add either "success\n" or "failure: reason\n".
+
+    Params:
+        dg = delegate to call until it succeeds
+        max_attempts = amount of attempts (defaults to 10)
+        wait_time = time to wait between attempts (defaults to 1 second)
+
+*******************************************************************************/
+
+void keepTrying ( void delegate ( ) dg,
     int max_attempts = 10, Duration wait_time = 1.seconds )
+{
+    keepTrying(dg, max_attempts, wait_time, nullable(stdout), nullable(stderr));
+}
+
+/*******************************************************************************
+
+    Repeatetly tries to call dg() if it threw an exception, while also keeping
+    the user informed about the attempts.
+
+    Works visually best if the dg() function prints it's actions according to
+    this pattern: "doing action abc ... " (no new line)
+
+    The function will then add either "success\n" or "failure: reason\n".
+
+    Params:
+        dg = delegate to call until it succeeds
+        max_attempts = amount of attempts (defaults to 10)
+        wait_time = time to wait between attempts (defaults to 1 second)
+        printer = file to use to print normal output (defaults to stdout)
+        wprinter = file to use to print error/warning output (defaults to stderr)
+
+*******************************************************************************/
+
+void keepTrying ( void delegate ( ) dg, int max_attempts, Duration wait_time,
+    Nullable!File outstream, Nullable!File errstream )
 {
     import core.thread;
 
     Exception exception;
 
+    auto tryWritefln ( Args... ) ( Nullable!File stream, Args args )
+    {
+        if (!stream.isNull)
+            stream.writefln(args);
+    }
+
     foreach (_; 0..max_attempts) try
     {
         if (exception !is null)
-            printer("retrying ...");
+            tryWritefln(errstream, "retrying ...");
 
         dg();
 
@@ -297,18 +351,19 @@ void keepTrying ( alias printer = writefln ) ( void delegate ( ) dg,
     {
         exception = exc;
 
-        printer("failed: %s", exc.msg);
+        tryWritefln(errstream, "failed: %s", exc.msg);
 
         Thread.sleep(wait_time);
     }
 
     if (exception !is null)
     {
-        printer("Giving up after %s attempts", max_attempts);
+        tryWritefln(errstream, "Giving up after %s attempts", max_attempts);
+
         throw exception;
     }
 
-    printer("success");
+    tryWritefln(outstream, "success");
 }
 
 
@@ -330,7 +385,8 @@ unittest
         import std.exception : ifThrown;
         import std.format;
 
-        try keepTrying!format(&fail!Attempts, MaxAttempts, 0.seconds);
+        try keepTrying(&fail!Attempts, MaxAttempts, 0.seconds,
+            Nullable!File(), Nullable!File());
         catch (Exception exc)
         {
                 assert(Attempts >= MaxAttempts,

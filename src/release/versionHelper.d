@@ -221,7 +221,7 @@ unittest
         scope(failure)
         {
             import std.stdio;
-            writefln("%s Failed: %s(%s) != %s(%s)", name, v, v.type, ver, ver.type);
+            stderr.writefln("%s Failed: %s(%s) != %s(%s)", name, v, v.type, ver, ver.type);
         }
 
         try v = SemVerBranch(name);

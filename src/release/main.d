@@ -75,7 +75,7 @@ void main ( string[] params )
     }
     catch (Exception exc)
     {
-        writefln("Warning: %s".color(fg.red), exc.msg);
+        stderr.writefln("Warning: %s".color(fg.red), exc.msg);
     }
 
     auto conf = gc.getConf();
@@ -137,7 +137,7 @@ void main ( string[] params )
 
     if (!getBoolChoice("\nWould you like to continue?"))
     {
-        writefln("Aborting...".color(fg.red));
+        stderr.writefln("Aborting...".color(fg.red));
         return;
     }
 
@@ -159,7 +159,7 @@ void main ( string[] params )
 
     if (!getBoolChoice("Would you like to push the modified references now?"))
     {
-        writefln("Aborting...");
+        stderr.writefln("Aborting...");
         return;
     }
 
@@ -173,7 +173,7 @@ void main ( string[] params )
 
     if (!getBoolChoice("Would you like to release those tags now?"))
     {
-        writefln("Aborting...");
+        stderr.writefln("Aborting...");
         return;
     }
 
@@ -462,17 +462,16 @@ Issues fixed in this release:`];
     {
         import release.shellHelper;
         import vibe.data.json;
+        import std.typecons;
 
-        static void nullOut(A...)(A args) {}
-
-        keepTrying!nullOut({
+        keepTrying({
         issues = con
             .listIssues(format("%s/%s",
                                repo.json["owner"]["login"].get!string(),
                                repo.name), IssueState.Closed)
             .filter!(a=>a.json["milestone"].type == Json.Type.object)
             .array;
-        });
+        }, Nullable!File(), Nullable!File());
     }
 
     auto name = getConfig("user.name");
@@ -782,7 +781,7 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
         if (merges.length > 0)
         {
             import std.stdio;
-            writefln("Found merges between this and the last major "~
+            stderr.writefln("Found merges between this and the last major "~
                      "branch:\n-----\n%s\n-----\nPlease rebase the current branch and "~
                      "retry.\n", merges);
             return ActionList();
@@ -793,7 +792,7 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
             !isAncestor(previous_major_branch.toString, current_branch.toString))
         {
             import std.stdio;
-            writefln("%s is not decending from %s! Aborting!",
+            stderr.writefln("%s is not decending from %s! Aborting!",
                      current_branch.toString, previous_major_branch.toString);
             return ActionList();
         }
@@ -959,7 +958,7 @@ Version autodetectVersions ( Version[] tags )
     writefln("We are on branch %s", current);
 
     if (tags.length == 0)
-        writefln(("Warning: No previous releases found. "~
+        stderr.writefln(("Warning: No previous releases found. "~
                  "This should only be the case for your very first release!").color(fg.red, bg.init, mode.bold));
 
     auto matching_major = tags.retro.find!((a)
@@ -1079,7 +1078,7 @@ void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo, string 
 
     if (mstone_list.empty)
     {
-        writefln("Warning: No corresponding milestone found for %s".color(fg.red), name);
+        stderr.writefln("Warning: No corresponding milestone found for %s".color(fg.red), name);
         return;
     }
 
@@ -1087,7 +1086,7 @@ void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo, string 
 
     if (mstone.open_issues > 0)
     {
-        writefln("Warning: Corresponding milestone still has %s open issues!"
+        stderr.writefln("Warning: Corresponding milestone still has %s open issues!"
                  .color(fg.red, bg.init, mode.bold), mstone.open_issues);
     }
 }

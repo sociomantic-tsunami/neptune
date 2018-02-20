@@ -446,7 +446,9 @@ auto findUpdates ( Json repo_edges, LibInfo lib_info, MetaInfo meta_info )
         }
 
         processSubmodules(edge, lib_info, global, mods,
-                          updates, *meta);
+                          updates, *meta, RCFlag.No);
+        processSubmodules(edge, lib_info, global, mods,
+                          updates, *meta, RCFlag.Yes);
     }
 
     return updates;
@@ -463,12 +465,13 @@ auto findUpdates ( Json repo_edges, LibInfo lib_info, MetaInfo meta_info )
         mods   = the submodule specific update request levels
         updates = in/out param, will be populated with any updates we detect
         meta_info = meta information object
+        rc_flag = flag for release candidates (Yes, No, All)
 
 *******************************************************************************/
 
 void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
     RequestLevel[string] mods,
-    ref SubModsUpdate[] updates, MetaInfo.MetaInfo meta_info )
+    ref SubModsUpdate[] updates, MetaInfo.MetaInfo meta_info, RCFlag rc_flag )
 {
     import std.stdio : writefln;
     import std.algorithm : find;
@@ -482,8 +485,9 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
 
     auto repoid = SubModsUpdate.NameWithOwner(repo, meta_info.owner);
 
-    // Skip if that update exists already
-    auto result = updates.find!(a=>a.repo == repoid);
+    // Update if entry exists, else create
+    auto result = updates.find!(a=>
+        a.repo == repoid && a.release_candidates == rc_flag);
 
     SubModsUpdate update;
 
@@ -496,14 +500,16 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
         // Repos latest commits tree SHA
         meta_info.latest_commit_tree_sha,
         // Repos default branch to create PR against
-        meta_info.def_branch);
+        meta_info.def_branch,
+        // Whether it's an RC update or not
+        rc_flag);
     else
         update = result.front;
 
     bool matchPrefix ( in Json a )
     {
         return a["node"]["title"]
-            .get!string.startsWith(PRTitle);
+            .get!string.startsWith(PRTitles[rc_flag]);
     }
 
     // Find out if a PR already exists
@@ -516,6 +522,7 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
 
         auto pr_commits = pr_exists.front["node"]["commits"]["edges"].get!(Json[]);
 
+        // Compare all commits and see if the PR is already up-to-date
         foreach (commit; pr_commits) try
         {
             import std.algorithm : countUntil;
@@ -613,6 +620,12 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
                 level = global;
             else
                 level = *mod;
+
+            if (rc_flag == rc_flag.Yes && !rel.ver.prerelease.startsWith("rc"))
+                return false;
+
+            if (rc_flag == rc_flag.No && rel.ver.prerelease.startsWith("rc"))
+                return false;
 
             with(cur_ver.front)
             with(RequestLevel)

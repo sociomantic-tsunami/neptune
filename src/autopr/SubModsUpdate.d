@@ -13,8 +13,24 @@
 
 module autopr.SubModsUpdate;
 
-/// Format to use for update PR titles
-public enum PRTitle = "[neptune] Update submodules";
+/// Format to use for update PR titles, matches the index with RCFlag values
+public enum PRTitles = [
+    "[neptune] Update submodules",
+    "[neptune] [Rc] Update submodules",
+    "[neptune] [NoRc] Update submodules"];
+
+/// refs to use for update PRs, matches the index with RCFlag values
+public enum PRRefNames = [
+    "refs/heads/neptune-update",
+    "refs/heads/neptune-update-rc",
+    "refs/heads/neptune-update-no-rc"
+    ];
+
+/// Flag to mark updates as RCs
+public enum RCFlag
+{
+    All=0, Yes, No
+}
 
 /// Structure & logic to perform a submodule update
 struct SubModsUpdate
@@ -74,6 +90,9 @@ struct SubModsUpdate
     /// Branch name used for the update
     string branch;
 
+    /// Whether this is an RC update or a stable update PR
+    RCFlag release_candidates;
+
     /// PR number, if it already exists for an earlier update
     Nullable!int pr_number;
 
@@ -119,8 +138,7 @@ struct SubModsUpdate
 
         Json reference;
 
-        // If you change this branch name, also change it in github.d
-        auto refname = "refs/heads/neptune-update";
+        auto refname = PRRefNames[this.release_candidates];
 
         // Always try updating first. Chances are that the branch already exists
         try
@@ -153,16 +171,20 @@ as described in the [documentation](https://github.com/sociomantic-tsunami/neptu
 
         if (this.pr_number.isNull)
         {
-            writefln("%s> Creating PR ...", this.repo);
+            writefln("%s> Creating PR (%s) ...",
+                this.repo, this.release_candidates);
+
             auto pr = con.createPullrequest(this.repo.owner, this.repo.name,
-                PRTitle, content, fork_owner,  this.branch, refname);
+                PRTitles[this.release_candidates], content, fork_owner,  this.branch, refname);
             this.pr_number = pr["number"].get!int;
         }
         else
         {
-            writefln("%s> Adding comment to PR %s", this.repo, this.pr_number);
+            writefln("%s> Adding comment to PR %s (%s)",
+                this.repo, this.pr_number, this.release_candidates);
+
             auto pr = con.updatePullrequest(this.repo.owner, this.repo.name,
-                this.pr_number, PRTitle, content);
+                this.pr_number, PRTitles[this.release_candidates], content);
 
             auto msg = format("This PR has been updated: \n\n%s",
                 pr_msg_part);

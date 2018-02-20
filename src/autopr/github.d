@@ -54,7 +54,7 @@ enum RepositoryQueryString = `
       }
     }
   }
-  pullRequests(headRefName:"refs/heads/neptune-update", last:100, states:[OPEN]) {
+  pullRequests(last:100, states:[OPEN]) {
       edges {
           node {
               number

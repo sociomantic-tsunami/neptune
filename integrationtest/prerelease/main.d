@@ -19,6 +19,8 @@ import integrationtest.common.TestCase;
 /// PreRelease test class
 class Prerelease : TestCase
 {
+    import semver.Version;
+
     /// C'tor, required so that the auto parameter __FILE_FULL_PATH__ is set
     this ( ) { super(8002); }
 
@@ -182,7 +184,7 @@ class Prerelease : TestCase
         }
 
         this.checkTerminationStatus();
-        this.checkRelNotes(format("v1.%s.0", minor));
+        this.checkRelNotes(Version(1, minor, 0));
         this.checkReleaseMail(stdout, format("mail-v%(%s,%).%s.0.txt", majors, minor));
 
         assert(this.git.branchExists(format("v1.%s.x", minor)),
@@ -235,7 +237,7 @@ class Prerelease : TestCase
         foreach (major; majors)
         {
             this.checkRelNotes(
-                format("v%s.%s.0-%s%s", major, minor, RCPrefix, rc),
+                Version(major, minor, 0, format("%s%s", RCPrefix, rc)),
                 major > 1 ? relnote_file_major_2 : "");
         }
 

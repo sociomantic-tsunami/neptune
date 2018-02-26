@@ -52,6 +52,8 @@ interface Action
 
 struct ActionList
 {
+    import semver.Version;
+
     /// List of actions to execute, local only
     Action[] actions;
 
@@ -59,7 +61,7 @@ struct ActionList
     string[] affected_refs;
 
     /// List of releases done
-    string[] releases;
+    Version[] releases;
 
     /***************************************************************************
 

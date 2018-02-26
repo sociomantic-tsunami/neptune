@@ -181,7 +181,7 @@ void main ( string[] params )
         keepTrying(
         {
             writef("Creating %s ... ", ver);
-            createGithubRelease(con, repo, ver, getTagMessage(ver));
+            createGithubRelease(con, repo, ver, getTagMessage(ver.toString));
         });
 
     import release.github;
@@ -247,12 +247,15 @@ void main ( string[] params )
 
 *******************************************************************************/
 
-void createGithubRelease ( HTTPConnection con, Repository repo, string ver,
+void createGithubRelease ( HTTPConnection con, Repository repo, Version ver,
                            string notes )
 {
-    auto mstone_link = getMilestoneLink(con, repo, ver);
 
-    con.createRelease(repo, ver, ver, mstone_link ~ notes);
+    auto ver_str = ver.toString();
+
+    auto mstone_link = getMilestoneLink(con, repo, ver_str);
+
+    con.createRelease(repo, ver_str, ver_str, mstone_link ~ notes);
 }
 
 

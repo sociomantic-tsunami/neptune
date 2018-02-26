@@ -27,6 +27,8 @@ class InitialRelease : TestCase
 
     override protected void run ( )
     {
+        import semver.Version;
+
         git.cmd("git checkout -B nonsemver");
         this.prepareRelNotes("v1.x.x");
 
@@ -45,7 +47,7 @@ class InitialRelease : TestCase
         }
 
         this.checkTerminationStatus();
-        this.checkRelNotes("v1.0.0");
+        this.checkRelNotes(Version(1, 0, 0));
         this.checkReleaseMail(stdout);
 
         assert(this.git.branchExists("v1.0.x"), "Tracking branch is missing!");

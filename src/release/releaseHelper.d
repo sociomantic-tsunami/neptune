@@ -262,7 +262,7 @@ ActionList makeRelease ( Version release_version, string target,
     {
         actions ~= previous = new ReleaseAction(previous, release_version, target);
         affected_refs ~= v;
-        releases ~= v;
+        releases ~= release_version;
     }
 
     // Create branch tracking the release only for major & minor and never for

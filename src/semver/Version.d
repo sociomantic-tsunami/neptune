@@ -231,6 +231,14 @@ struct Version
     }
 
     /**
+        Detects equality of versions including ones not complying to SemVer
+     **/
+    equals_t opEquals ( const string rhs ) const pure
+    {
+        return this.toString() == rhs;
+    }
+
+    /**
         Returns:
             `true` if this instance represents valid SemVer version
      **/

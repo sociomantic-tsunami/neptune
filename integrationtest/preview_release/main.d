@@ -25,6 +25,8 @@ class InitialRelease : TestCase
 
     override protected void run ( )
     {
+        import semver.Version;
+
         this.prepareRelNotes("v0.x.x");
 
         auto neptune = this.startNeptuneRelease();
@@ -42,7 +44,7 @@ class InitialRelease : TestCase
         }
 
         this.checkTerminationStatus();
-        this.checkRelNotes("v0.1.0");
+        this.checkRelNotes(Version(0, 1, 0));
         this.checkReleaseMail(stdout);
 
         assert(this.git.branchExists("v0.1.x"), "Tracking branch is missing!");

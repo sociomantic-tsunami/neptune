@@ -25,6 +25,7 @@ static import lib.shell.helper;
 class TestCase
 {
     import integrationtest.common.GHTestServer : RestAPI;
+    import semver.Version;
     import std.process;
 
     enum GitRepo = "tester/sandbox";
@@ -226,7 +227,7 @@ class TestCase
     }
 
     /// Validates the release notes in the TAG and github
-    protected void checkRelNotes ( string ver, string path = "" )
+    protected void checkRelNotes ( Version ver, string path = "" )
     {
         import std.format;
         import std.string : strip;
@@ -246,7 +247,7 @@ class TestCase
             correct_relnotes = strip(file.rawRead(new char[fsize]));
 
             auto gh_rel = this.fake_github.releases.find!(a=>a.name == ver);
-            assert(!gh_rel.empty, "Release "~ ver ~" not found on gh fake server!");
+            assert(!gh_rel.empty, "Release "~ ver.toString ~" not found on gh fake server!");
 
             auto test_relnotes = strip(gh_rel.front.content);
 
@@ -257,7 +258,7 @@ class TestCase
         {
             import lib.shell.helper : linesFrom;
             auto tagmsg =
-                linesFrom(this.git.cmd(["git", "cat-file", ver, "-p"]), 6);
+                linesFrom(this.git.cmd(["git", "cat-file", ver.toString, "-p"]), 6);
 
             assert(tagmsg.startsWith(correct_relnotes));
         }

@@ -31,7 +31,13 @@ interface IRestAPI
     Json getTags ( string _owner, string _name );
 
     @path("repos/:owner/:name/milestones")
-    Json getMilestones ( string _owner, string _name );
+    Json getMilestones ( string _owner, string _name, string state );
+
+    @path("repos/:owner/:name/milestones/:number")
+    Json patchMilestones ( string _owner, string _name, string state, int _number );
+
+    @path("repos/:owner/:name/issues")
+    Json getIssues ( string _owner, string _name, string state );
 
     @path("repos/:owner/:name/releases")
     Json postReleases ( string _owner, string _name, string tag_name,
@@ -57,6 +63,34 @@ class RestAPI : IRestAPI
         string name;
         string sha;
     }
+
+    struct Milestone
+    {
+        int id;
+        int number;
+        string title;
+        string html_url;
+        string state;
+        int open_issues;
+        int closed_issues;
+    }
+
+    struct Issue
+    {
+        import std.typecons;
+
+        string title;
+        int number;
+        string state;
+
+        Nullable!Milestone milestone;
+    }
+
+    /// Issues
+    Issue[] issues;
+
+    /// Milestones
+    Milestone[] milestones;
 
     /// Releases done over the API so far
     Release[] releases;
@@ -177,15 +211,77 @@ class RestAPI : IRestAPI
         Params:
             _owner = owner of the qeueried repo
             _name  = name of the repo
+            state  = desired state
 
         Returns:
-            empty json array (no milestones)
+            array of requested milestones
 
     ***************************************************************************/
 
-    Json getMilestones ( string _owner, string _name )
+    Json getMilestones ( string _owner, string _name, string state )
     {
-        return Json.emptyArray;
+        auto ret = Json.emptyArray;
+
+        foreach (milestone; this.milestones)
+            if (state == "all" || state == milestone.state)
+                ret ~= milestone.serializeToJson();
+
+        return ret;
+    }
+
+    /***************************************************************************
+
+        Milestones mutation API endpoint
+
+        Params:
+            _owner = owner of the qeueried repo
+            _name  = name of the repo
+            _number = number of the milestone
+            state   = desired state of the milestone
+
+        Returns:
+            empty json object
+
+    ***************************************************************************/
+
+    Json patchMilestones ( string _owner, string _name, string state, int _number )
+    {
+        import std.algorithm;
+        import std.range;
+
+        auto res = this.milestones.find!(a=>a.number == _number);
+
+        if (res.empty)
+            return Json.emptyObject;
+
+        res.front.state = state;
+
+        return Json.emptyObject;
+    }
+
+    /***************************************************************************
+
+        Issue list API endpoint
+
+        Params:
+            _owner = owner of the qeueried repo
+            _name  = name of the repo
+            state  = state of the issues requested [open, closed, all]
+
+        Returns:
+            Requested issues
+
+    ***************************************************************************/
+
+    Json getIssues ( string _owner, string _name, string state )
+    {
+        auto ret = Json.emptyArray;
+
+        foreach (issue; this.issues)
+            if (state == "all" || state == issue.state)
+                ret ~= issue.serializeToJson();
+
+        return ret;
     }
 
     /***************************************************************************

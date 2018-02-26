@@ -82,6 +82,7 @@ class RestAPI : IRestAPI
         string title;
         int number;
         string state;
+        string url;
 
         Nullable!Milestone milestone;
     }

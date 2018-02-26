@@ -9,9 +9,12 @@ Issues fixed in this release:
 v1.0.1
 ======
 
-* Terrible bug #55
-* Sneaky bug #56
-* Obvious bug #57
+* Terrible bug
+  https://github.com/tester/sandbox/issues/55
+* Sneaky bug
+  https://github.com/tester/sandbox/issues/56
+* Obvious bug
+  https://github.com/tester/sandbox/issues/57
 
 http://github.com/tester/sandbox/releases/tag/v1.0.1
 

@@ -250,12 +250,16 @@ void main ( string[] params )
 void createGithubRelease ( HTTPConnection con, Repository repo, Version ver,
                            string notes )
 {
+    import std.typecons;
 
     auto ver_str = ver.toString();
 
     auto mstone_link = getMilestoneLink(con, repo, ver_str);
 
-    con.createRelease(repo, ver_str, ver_str, mstone_link ~ notes);
+    auto prerelease = ver.prerelease.length > 0 ?
+        Yes.prerelease : No.prerelease;
+
+    con.createRelease(repo, ver_str, ver_str, mstone_link ~ notes, prerelease);
 }
 
 

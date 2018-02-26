@@ -252,6 +252,7 @@ class TestCase
             auto test_relnotes = strip(gh_rel.front.content);
 
             assert(correct_relnotes == test_relnotes);
+            assert(gh_rel.front.prerelease == (ver.prerelease.length > 0));
         }
 
         // Check for correct tag text

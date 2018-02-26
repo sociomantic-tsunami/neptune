@@ -35,7 +35,7 @@ interface IRestAPI
 
     @path("repos/:owner/:name/releases")
     Json postReleases ( string _owner, string _name, string tag_name,
-                        string name, string body_, string target_committish );
+        string name, string body_, string target_committish, bool prerelease );
 }
 
 /// Implementation of the JSON API
@@ -49,6 +49,7 @@ class RestAPI : IRestAPI
         string content;
         string target_committish;
         bool draft;
+        bool prerelease;
     }
 
     struct Ref
@@ -198,6 +199,7 @@ class RestAPI : IRestAPI
             title = title of the release
             body_ = content of the release
             target_committish = ref object to associate the release with
+            prerelease = if true, this is set to be a prerelease
 
         Returns:
             empty json object
@@ -205,9 +207,10 @@ class RestAPI : IRestAPI
     ***************************************************************************/
 
     Json postReleases ( string _owner, string _name, string tag_name,
-                        string title, string body_, string target_committish )
+        string title, string body_, string target_committish, bool prerelease )
     {
-        this.releases ~= Release(title, tag_name, body_, target_committish);
+        this.releases ~=
+            Release(title, tag_name, body_, target_committish, false, prerelease);
 
         return Json.emptyObject;
     }

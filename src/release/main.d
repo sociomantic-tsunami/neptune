@@ -400,7 +400,9 @@ Issues fixed in this release:`];
             return format("%-(%s\n%)", issues
                 .filter!(a=>a.json["milestone"]["title"] ==
                          ver.tag_version.toString)
-                .map!(a=>format("* %s #%s", strip(a.title()), a.number())));
+                .map!(a=>format("* %s\n  %s",
+                    strip(a.title()),
+                    a.json["url"].get!string)));
         }
 
         /* This complex format call basically creates a string like this:

@@ -63,26 +63,31 @@ class PatchRelease : TestCase
                     "Terrible bug", // title
                     55, // number
                     "closed", // state
+                    "https://github.com/tester/sandbox/issues/55",
                     nullable(milestones.front)),
                 Issue(
                     "Sneaky bug", // title
                     56, // number
                     "closed", // state
+                    "https://github.com/tester/sandbox/issues/56",
                     nullable(milestones.front)),
                 Issue(
                     "Obvious bug", // title
                     57, // number
                     "closed", // state
+                    "https://github.com/tester/sandbox/issues/57",
                     nullable(milestones.front)),
                 Issue(
                     "Unrelated bug", // title
                     58, // number
                     "open", // state
+                    "https://github.com/tester/sandbox/issues/58",
                     Nullable!Milestone()),
                 Issue(
                     "Completely unrelated bug", // title
                     59, // number
                     "closed", // state
+                    "https://github.com/tester/sandbox/issues/59",
                     Nullable!Milestone())
                     ];
         }

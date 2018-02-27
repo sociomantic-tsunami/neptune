@@ -179,6 +179,18 @@ class Prerelease : TestCase
         if (majors.length == 0)
             majors ~= 1;
 
+        auto ver = format("v1.%s.0", minor);
+
+        with (this.fake_github)
+            milestones ~= Milestone(
+               10, // id
+               20, // number
+               ver, // title
+               "https://github.com/sociomantic/sandbox/milestone/20", // html url
+               "open", // state
+               0, // open issues
+               0); // closed issues
+
         auto neptune = this.startNeptuneRelease();
 
         // Capture stdout/stderr
@@ -195,6 +207,8 @@ class Prerelease : TestCase
 
         this.checkTerminationStatus();
         this.checkRelNotes(Version(1, minor, 0));
+        this.checkTagNotes(Version(1, minor, 0));
+
         this.checkReleaseMail(stdout, format("mail-v%(%s,%).%s.0.txt", majors, minor));
 
         assert(this.git.branchExists(format("v1.%s.x", minor)),
@@ -218,6 +232,16 @@ class Prerelease : TestCase
         import std.range;
         import std.algorithm;
 
+        foreach (i, ver; vers) with (this.fake_github)
+            milestones ~= Milestone(
+               cast(int)(10 + i), // id
+               cast(int)(20 + i), // number
+               ver.ver.toString, // title
+               format("https://github.com/sociomantic/sandbox/milestone/%s",
+                   20 +i),  // html url
+               "open", // state
+               0, // open issues
+               0); // closed issues
 
         auto neptune = this.startNeptuneRelease("--pre-release");
 
@@ -240,14 +264,18 @@ class Prerelease : TestCase
         foreach (i, ver; vers)
         {
             string relnote_file;
+            string tagnote_file;
 
             if (ver.ver.major > 1)
             {
                 relnote_file = format("%s/relnotes.%s.md",
                     this.data, ver.ver.prerelease);
+                tagnote_file = format("%s/tagnotes.%s.md",
+                    this.data, ver.ver.prerelease);
             }
 
             this.checkRelNotes(ver.ver, relnote_file);
+            this.checkTagNotes(ver.ver, tagnote_file);
         }
 
         this.checkReleaseMail(stdout,

@@ -32,6 +32,16 @@ class InitialRelease : TestCase
         git.cmd("git checkout -B nonsemver");
         this.prepareRelNotes("v1.x.x");
 
+        with (this.fake_github)
+            milestones ~= Milestone(
+               10, // id
+               20, // number
+               "v1.0.0", // title
+               "https://github.com/sociomantic/sandbox/milestone/20", // html url
+               "open", // state
+               0, // open issues
+               0); // closed issues
+
         auto neptune = this.startNeptuneRelease();
 
         // Capture stdout/stderr
@@ -48,6 +58,7 @@ class InitialRelease : TestCase
 
         this.checkTerminationStatus();
         this.checkRelNotes(Version(1, 0, 0));
+        this.checkTagNotes(Version(1, 0, 0));
         this.checkReleaseMail(stdout);
 
         assert(this.git.branchExists("v1.0.x"), "Tracking branch is missing!");

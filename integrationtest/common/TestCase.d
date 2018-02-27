@@ -226,43 +226,56 @@ class TestCase
         this.failed = true;
     }
 
-    /// Validates the release notes in the TAG and github
+    /// Validates the release notes in github
     protected void checkRelNotes ( Version ver, string path = "" )
     {
         import std.format;
         import std.string : strip;
         import std.algorithm : startsWith, find;
         import std.range : empty, front;
+        import std.file;
 
         if (path == "")
             path = format("%s/relnotes.md", this.common_data);
 
-        // Check for correct release notes file
-        const(char)[] correct_relnotes;
+        auto correct_relnotes = strip(readText(path));
+
+        auto gh_rel = this.fake_github.releases.find!(a=>a.name == ver);
+        assert(!gh_rel.empty, "Release "~ ver.toString ~" not found on gh fake server!");
+
+        auto test_relnotes = strip(gh_rel.front.content);
+
+        if (correct_relnotes != test_relnotes)
         {
-            auto file = File(path, "r");
-            auto fsize = file.size();
-            assert(fsize < 1024 * 16, "relnotes file unexpectedly large!");
+            import std.stdio;
 
-            correct_relnotes = strip(file.rawRead(new char[fsize]));
-
-            auto gh_rel = this.fake_github.releases.find!(a=>a.name == ver);
-            assert(!gh_rel.empty, "Release "~ ver.toString ~" not found on gh fake server!");
-
-            auto test_relnotes = strip(gh_rel.front.content);
-
-            assert(correct_relnotes == test_relnotes);
-            assert(gh_rel.front.prerelease == (ver.prerelease.length > 0));
+            writefln("Release Notes mismatch."~
+                "Expected:\n#############%s\n############\n%s",
+                correct_relnotes, test_relnotes);
+            assert(false);
         }
+        assert(gh_rel.front.prerelease == (ver.prerelease.length > 0));
+    }
 
-        // Check for correct tag text
-        {
-            import lib.shell.helper : linesFrom;
-            auto tagmsg =
-                linesFrom(this.git.cmd(["git", "cat-file", ver.toString, "-p"]), 6);
+    /// Validates the tag notes
+    protected void checkTagNotes ( Version ver, string path = "" )
+    {
+        import std.format;
+        import std.string : strip;
+        import std.algorithm : startsWith, find;
+        import std.range : empty, front;
+        import std.file;
 
-            assert(tagmsg.startsWith(correct_relnotes));
-        }
+        if (path == "")
+            path = format("%s/tagnotes.md", this.common_data);
+
+        auto correct_tagnotes = strip(readText(path));
+
+        import lib.shell.helper : linesFrom;
+        auto tagmsg =
+            linesFrom(this.git.cmd(["git", "cat-file", ver.toString, "-p"]), 6);
+
+        assert(tagmsg.startsWith(correct_tagnotes));
     }
 
     /***************************************************************************

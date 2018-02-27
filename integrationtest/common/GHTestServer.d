@@ -104,7 +104,11 @@ class RestAPI : IRestAPI
 
     void reset ( )
     {
-        this.releases.length = this.tags.length = 0;
+        this.issues.length =
+            this.milestones.length =
+            this.releases.length =
+            this.tags.length =
+            this.branches.length = 0;
     }
 
     /***************************************************************************

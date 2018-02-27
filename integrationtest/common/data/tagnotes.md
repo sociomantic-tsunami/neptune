@@ -1,8 +1,3 @@
-https://github.com/sociomantic/sandbox/milestone/21
-
-Inherited changes from v1.1.0-rc.2
-==================================
-
 Migration Instructions
 ----------------------
 

@@ -21,6 +21,7 @@ import semver.Version;
 
 import octod.api.repos;
 import octod.api.releases;
+import octod.api.issues;
 import octod.core;
 
 import lib.github.GithubConfig;
@@ -177,11 +178,19 @@ void main ( string[] params )
         return;
     }
 
+    auto issues = myrelease.type != Type.Patch ? [] :
+        getIssues(con, repo.json["owner"]["login"].get!string(), repo.name());
+
     foreach (ver; list.releases)
         keepTrying(
         {
             writef("Creating %s ... ", ver);
-            createGithubRelease(con, repo, ver, getTagMessage(ver.toString));
+
+            auto relnotes = myrelease.type == Type.Patch ?
+                formatPatchGithubRelease(ver, issues) :
+                ver.toString.getTagMessage();
+
+            createGithubRelease(con, repo, ver, relnotes);
         });
 
     import release.github;
@@ -209,7 +218,8 @@ void main ( string[] params )
     }
 
     auto recipient = getConfig("neptune.mail-recipient").ifThrown("");
-    auto email = craftMail(con, repo, myrelease.type, recipient,
+
+    auto email = craftMail(con, repo, myrelease.type, recipient, issues,
         list.actions
             .map!(a=>cast(ReleaseAction) a)
             .filter!(a=>a !is null)
@@ -360,7 +370,7 @@ void sendMail ( string email, string recipient )
 *******************************************************************************/
 
 string craftMail ( Range ) ( ref HTTPConnection con, Repository repo,
-    Type rel_type, string recipient, Range releases )
+    Type rel_type, string recipient, Issue[] issues, Range releases )
 {
     import lib.git.helper;
 
@@ -384,7 +394,7 @@ Release notes:`,
 Issues fixed in this release:`];
 
     // Formats release notes for the given version
-    string formatRelNotes ( ReleaseAction ver, Issue[] issues )
+    string formatRelNotes ( ReleaseAction ver, Issue[] rissues )
     {
         enum inherited_str = "\n\nThis release additionally inherits changes from ";
 
@@ -397,7 +407,7 @@ Issues fixed in this release:`];
         {
             import std.string : strip;
 
-            return format("%-(%s\n%)", issues
+            return format("%-(%s\n%)", rissues
                 .filter!(a=>a.json["milestone"]["title"] ==
                          ver.tag_version.toString)
                 .map!(a=>format("* %s\n  %s",
@@ -455,25 +465,6 @@ Issues fixed in this release:`];
             (rel_type == Type.Major ? -1 : 0) + ver.major,
             ver.patch == 0 ? -1 : ver.minor)
                 .toString;
-    }
-
-    Issue[] issues;
-
-    // Fetch issues only for patch releases
-    if (rel_type == Type.Patch)
-    {
-        import release.shellHelper;
-        import vibe.data.json;
-        import std.typecons;
-
-        keepTrying({
-        issues = con
-            .listIssues(format("%s/%s",
-                               repo.json["owner"]["login"].get!string(),
-                               repo.name), IssueState.Closed)
-            .filter!(a=>a.json["milestone"].type == Json.Type.object)
-            .array;
-        }, Nullable!File(), Nullable!File());
     }
 
     auto name = getConfig("user.name");
@@ -1091,4 +1082,67 @@ void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo, string 
         stderr.writefln("Warning: Corresponding milestone still has %s open issues!"
                  .color(fg.red, bg.init, mode.bold), mstone.open_issues);
     }
+}
+
+
+/*******************************************************************************
+
+    Fetches the list of issues
+
+    Params:
+        owner = owner of the repo
+        repo = name of the repo
+
+    Returns:
+        issues that have a milestone
+
+*******************************************************************************/
+
+Issue[] getIssues ( ref HTTPConnection con, string owner, string repo )
+{
+    import release.shellHelper;
+    import vibe.data.json;
+    import std.format;
+    import std.algorithm;
+    import std.range;
+
+    Issue[] issues;
+
+    keepTrying({
+        issues = con
+            .listIssues(format("%s/%s", owner, repo), IssueState.Closed)
+            .filter!(a=>a.json["milestone"].type == Json.Type.object)
+            .array;
+    });
+
+    return issues;
+}
+
+
+/*******************************************************************************
+
+    Formats patch release notes for a github release
+
+    Params:
+        ver = version to release for
+        milestone_link = link to the milestone
+        issues = list of issues for the repo
+
+    Returns:
+        formatted patch release notes
+
+*******************************************************************************/
+
+string formatPatchGithubRelease ( Version ver, Issue[] issues )
+{
+    import vibe.data.json;
+    import std.format;
+    import std.algorithm;
+    import std.string;
+
+    return format("%-(%s\n%)",
+        issues
+            .filter!(a=>
+                a.json["milestone"]["title"].get!string == ver)
+            .map!(a=>format("* %s #%s", strip(a.title()), a.number())));
 }

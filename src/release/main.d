@@ -300,7 +300,7 @@ string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
     auto mstone_list = listMilestones(con, repo).find!(a=>a.title == ver);
 
     if (!mstone_list.empty)
-        return mstone_list.front.url ~ "\n\n";
+        return mstone_list.front.url ~ "?closed=1\n\n";
 
     return "";
 }

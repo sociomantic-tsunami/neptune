@@ -21,6 +21,12 @@ class Prerelease : TestCase
 {
     import semver.Version;
 
+    struct VersionSha
+    {
+        Version ver;
+        string sha;
+    }
+
     /// C'tor, required so that the auto parameter __FILE_FULL_PATH__ is set
     this ( ) { super(8002); }
 
@@ -41,14 +47,18 @@ class Prerelease : TestCase
         this.prepareGitRepo();
         this.prepareRelNotes("v1.x.x");
 
-        this.testReleaseCandidate(0, 1);
+        auto sha = git.cmd("git rev-parse v1.x.x");
+
+        this.testReleaseCandidate(VersionSha(Version(1, 0, 0, "rc.1"), sha));
 
         // simulate some changes fo rc 2
-        toFile("bla", "somefile.txt");
+        toFile("bla", git ~ "/somefile.txt");
         git.cmd("git add somefile.txt");
         git.cmd(["git", "commit", "-m", "Add some file"]);
 
-        this.testReleaseCandidate(0, 2);
+        sha = git.cmd("git rev-parse v1.x.x");
+
+        this.testReleaseCandidate(VersionSha(Version(1, 0, 0, "rc.2"), sha));
 
         this.testRelease(0);
     }
@@ -64,11 +74,11 @@ class Prerelease : TestCase
 
         // Create a v1.0.0 dummy
         git.cmd("git checkout -B v1.x.x");
-        toFile("bla", "somefile.txt");
+        toFile("bla", git ~ "/somefile.txt");
         git.cmd("git add somefile.txt");
         git.cmd(["git", "commit", "-m", "Add some file"]);
-        git.cmd(`git tag -a v1.0.0 -m v1.0.0`);
-        git.cmd(`git tag -a v1.1.0-norc -m v1.1.0-norc`);
+        git.cmd(["git", "tag", "-a", "v1.0.0", "-m", "v1.0.0"]);
+        git.cmd(["git", "tag", "-a", "v1.0.0-norc", "-m", "v1.0.0-norc"]);
 
         auto sha = git.cmd("git rev-parse v1.0.0");
 
@@ -81,14 +91,18 @@ class Prerelease : TestCase
         // Prepare for release v1.1.0
         this.prepareRelNotes("v1.x.x");
 
-        this.testReleaseCandidate(1, 1);
+        sha = git.cmd("git rev-parse HEAD");
+
+        this.testReleaseCandidate(VersionSha(Version(1, 1, 0, "rc.1"), sha));
 
         // simulate some changes fo rc 2
-        toFile("bla", "somefile2.txt");
+        toFile("bla", git ~ "/somefile2.txt");
         git.cmd("git add somefile2.txt");
         git.cmd(["git", "commit", "-m", "Add some file2"]);
 
-        this.testReleaseCandidate(1, 2);
+        sha = git.cmd("git rev-parse HEAD");
+
+        this.testReleaseCandidate(VersionSha(Version(1, 1, 0, "rc.2"), sha));
 
         this.testRelease(1);
     }
@@ -135,20 +149,16 @@ class Prerelease : TestCase
 
         import std.format;
         import semver.Version;
-        this.testReleaseCandidate(1, 1, 1, 2);
-
-        this.fake_github.tags ~= RestAPI.Ref("v1.1.0-rc.1", sha1);
-        this.fake_github.tags ~= RestAPI.Ref("v2.1.0-rc.1", sha2);
+        this.testReleaseCandidate(VersionSha(Version(1, 1, 0, "rc.1"), sha1),
+                                  VersionSha(Version(2, 1, 0, "rc.1"), sha2));
 
         // simulate some changes fo rc 2
-        toFile("bla", "somefile2.txt");
+        toFile("bla", git ~ "/somefile2.txt");
         git.cmd("git add somefile2.txt");
         git.cmd(["git", "commit", "-m", "Add some file2"]);
 
-        this.testReleaseCandidate(1, 2, 1, 2);
-
-        this.fake_github.tags ~= RestAPI.Ref("v1.1.0-rc.2", sha1);
-        this.fake_github.tags ~= RestAPI.Ref("v2.1.0-rc.2", sha2);
+        this.testReleaseCandidate(VersionSha(Version(1, 1, 0, "rc.2"), sha1),
+                                  VersionSha(Version(2, 1, 0, "rc.2"), sha2));
 
         this.testRelease(1, 1, 2);
     }
@@ -198,18 +208,16 @@ class Prerelease : TestCase
         Test rc releases with the given minor and rc version (always major v. 1)
 
         Params:
-            minor = minor version to test
-            rc = release candidate version to test
-            majors = major releases to test
+            vers = Versions and their sha value to test
 
     ***************************************************************************/
 
-    protected void testReleaseCandidate ( int minor, int rc, int[] majors... )
+    protected void testReleaseCandidate ( VersionSha[] vers... )
     {
         import std.format;
+        import std.range;
+        import std.algorithm;
 
-        if (majors.length == 0)
-            majors ~= 1;
 
         auto neptune = this.startNeptuneRelease("--pre-release");
 
@@ -225,32 +233,40 @@ class Prerelease : TestCase
                      stderr, stdout);
         }
 
-        import semver.Version : RCPrefix;
-
         this.checkTerminationStatus();
-
-        string relnote_file_major_2 =
-            format("%s/relnotes.rc.%s.md", this.data, rc);
 
         import std.stdio;
 
-        foreach (major; majors)
+        foreach (i, ver; vers)
         {
-            this.checkRelNotes(
-                Version(major, minor, 0, format("%s%s", RCPrefix, rc)),
-                major > 1 ? relnote_file_major_2 : "");
+            string relnote_file;
+
+            if (ver.ver.major > 1)
+            {
+                relnote_file = format("%s/relnotes.%s.md",
+                    this.data, ver.ver.prerelease);
+            }
+
+            this.checkRelNotes(ver.ver, relnote_file);
         }
 
         this.checkReleaseMail(stdout,
-            format("mail-v%(%s,%).%s.0-%s%s.txt", majors, minor, RCPrefix, rc));
+            format("mail-v%(%s,%).%s.0-%s.txt",
+                vers.map!(a=>a.ver.major),
+                vers.front.ver.minor, // all vers should have the same minor
+                vers.front.ver.prerelease)); // and the same prerelease
 
-        assert(!this.git.branchExists(format("v1.%s.x", minor)),
+        assert(!this.git.branchExists(format("v1.%s.x", vers.front.ver.minor)),
                "Tracking branch shouldn't exist!");
-        assert(!this.git.branchExists(format("v1.%s.x-%s%s", minor, RCPrefix, rc)),
-               "Tracking branch shouldn't exist!");
+        assert(!this.git.branchExists(
+            format("v1.%s.x-%s",
+                vers.front.ver.minor,
+                vers.front.ver.prerelease)),
+            "Tracking branch shouldn't exist!");
 
-        this.fake_github.tags ~=
-            RestAPI.Ref(format("v1.%s.0-%s%s", minor, RCPrefix, rc));
+        foreach (ver; vers)
+            if (ver.sha.length > 0)
+                this.fake_github.tags ~= RestAPI.Ref(ver.ver.toString, ver.sha);
     }
 }
 

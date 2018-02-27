@@ -1,4 +1,4 @@
-https://github.com/sociomantic/sandbox/milestone/21
+https://github.com/sociomantic/sandbox/milestone/21?closed=1
 
 Inherited changes from v1.1.0-rc.1
 ==================================

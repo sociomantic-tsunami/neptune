@@ -28,6 +28,7 @@ class PatchRelease : TestCase
     override protected void run ( )
     {
         import std.stdio: toFile;
+        import semver.Version;
 
         // Create a v1.0.0 dummy
         git.cmd("git checkout -B v1.x.x");
@@ -110,6 +111,8 @@ class PatchRelease : TestCase
         }
 
         this.checkTerminationStatus();
+        this.checkRelNotes(Version(1, 0, 1), this.data ~ "/relnotes.md");
+        this.checkTagNotes(Version(1, 0, 1), this.data ~ "/tagnotes.md");
         this.checkReleaseMail(stdout);
 
         assert(this.fake_github.milestones[0].state == "closed");

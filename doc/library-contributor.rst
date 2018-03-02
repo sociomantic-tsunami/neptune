@@ -13,6 +13,10 @@ Neptune-versioned libraries should read
 Release Notes
 -------------
 
+The ``neptune-release`` tool automatically collates release notes when making a
+release. To make this possible, contributors must follow the following
+guidelines.
+
 Major and Minor Releases
 ........................
 

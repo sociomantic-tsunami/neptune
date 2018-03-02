@@ -72,7 +72,9 @@ class ReleaseAction : Action
 
         // Patch versions don't get release notes (yet)
         if (tag_version.patch > 0)
-            tag_msg = tag_version.toString;
+            // Messages must end with a new-line to avoid conflicting with GPG
+            // signatures
+            tag_msg = tag_version.toString ~ "\n";
         else
         {
             tag_msg = buildReleaseNotes(prev_tag, prev_relnotes);

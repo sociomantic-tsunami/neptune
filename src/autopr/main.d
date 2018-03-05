@@ -595,10 +595,10 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
             continue;
         }
 
-        // Find what version is currently in the repo
-        auto cur_ver = (*lib).find!(a=>a.sha == sha);
-
         import std.range;
+
+        // Find what version is currently in the repo
+        auto cur_ver = (*lib).retro.find!(a=>a.sha == sha);
 
         if (cur_ver.empty)
         {
@@ -646,7 +646,8 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
         // Find out what version we want to update to
         auto latest = (*lib).retro.find!matchRequestLevel;
 
-        if (latest.empty || latest.front.ver <= cur_ver.front.ver)
+        if (latest.empty || latest.front.ver <= cur_ver.front.ver ||
+            latest.front.sha == cur_ver.front.sha)
             continue;
 
 

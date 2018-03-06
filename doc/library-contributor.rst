@@ -33,8 +33,8 @@ guidelines.
 Major and Minor Releases
 ........................
 
-When making a commit to a Neptune-versioned library, API-affected changes should
-be noted in a file in the ``relnotes`` folder, as follows. When the
+When making a commit to a Neptune-versioned library, API-affecting changes
+should be noted in a file in the ``relnotes`` folder, as follows. When the
 corresponding branch is released, the files in that folder will be collated to
 form the notes for the release.
 

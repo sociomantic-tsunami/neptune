@@ -20,6 +20,7 @@ import autopr.github;
 import autopr.LibInfo;
 import autopr.ForkInfo;
 import autopr.MetaInfo;
+import autopr.options;
 
 import semver.Version;
 
@@ -34,7 +35,7 @@ import std.format;
 enum OrgaString = `
     %s: organization(login: "%s") {
     login
-    repositories(first: 100%s) {
+    repositories(first: %s%s) {
       pageInfo {
           hasNextPage
           endCursor
@@ -86,7 +87,7 @@ struct OrgaFormat
         import std.format;
 
         // We can't use '-' in aliases in graphQL so we replace them with '_'
-        return format(OrgaString, this.aliased(), orga, cursor);
+        return format(OrgaString, this.aliased(), orga, options.num_entries, cursor);
     }
 
     /// Returns graphql-alias friendly version of the orga name
@@ -115,22 +116,21 @@ void main ( string[] args )
     import std.exception;
     import std.stdio;
 
-    if (args.length < 3)
-    {
-        writefln("Usage: ./%s token org1 [org2...]\n\n", args[0]);
-        throw new Exception("Unexpected amount of parameters");
-    }
+    parseOpts(args);
+
+    if (options.quit)
+        return;
 
     import octod.core;
 
     // Prepare github credentials/connection
     Configuration cfg;
     cfg.dryRun = false;
-    cfg.oauthToken = args[1];
+    cfg.oauthToken = options.key;
 
     auto con = HTTPConnection.connect(cfg);
 
-    auto orgas = args[2..$];
+    auto orgas = options.orgas;
 
     // Fetch Meta & Fork info
     MetaInfo meta_info;

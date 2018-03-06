@@ -10,6 +10,19 @@ Neptune-versioned libraries should read
 
 .. contents::
 
+Submitting Pull Requests
+------------------------
+
+When making a PR to a Neptune-versioned library, the choice of which branch to
+submit a PR against is important. A branch should be chosen as follows:
+
+* If your change is a bug fix, the PR should be submitted against the oldest
+  supported minor branch.
+* If your change is a new feature, refactoring, or deprecation, the PR should be
+  submitted against the oldest supported major branch.
+* If your change is a breaking change to the API, the PR should be submitted
+  against the next unreleased major branch.
+
 Release Notes
 -------------
 

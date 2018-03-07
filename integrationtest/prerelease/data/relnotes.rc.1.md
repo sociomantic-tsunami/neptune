@@ -1,5 +1,5 @@
-Inherited changes from v1.1.0-rc.1
-==================================
+Changes in v1.0.0-rc.1
+======================
 
 Migration Instructions
 ----------------------

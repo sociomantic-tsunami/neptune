@@ -304,7 +304,8 @@ class TestCase
         assert(!content[1].empty);
 
         auto test_mail = content[0];
-        auto correct_mail = readText(data ~ "/" ~ file).linesFrom(2);
+        auto path = data ~ "/" ~ file;
+        auto correct_mail = readText(path).linesFrom(2);
         if (test_mail != correct_mail)
         {
             import std.stdio;
@@ -314,6 +315,7 @@ class TestCase
             writeln("--------------------- good -------------------------");
             write(correct_mail);
             writeln("--------------------- end --------------------------");
+            writefln("Read from: %s", path);
             assert(false);
         }
     }

@@ -60,28 +60,27 @@ class ReleaseAction : Action
         import std.process;
         import lib.git.helper;
 
-        string prev_relnotes;
-
-        auto prev_tag = this.prev_release !is null ?
-            this.prev_release.tag_version.toString : "";
-
-        if (prev_tag.length > 0)
-            prev_relnotes = getTagMessage(prev_tag);
-
         string tag_msg;
 
         // Patch versions don't get release notes (yet)
         if (tag_version.patch > 0)
             // Messages must end with a new-line to avoid conflicting with GPG
             // signatures
-            tag_msg = tag_version.toString ~ "\n";
+            tag_msg = tag_version.toString ~ "\n\n";
         else
         {
-            tag_msg = buildReleaseNotes(prev_tag, prev_relnotes);
+            auto prev_tag = this.prev_release !is null ?
+                this.prev_release.tag_version.toString : "";
+
+            string prev_relnotes;
+            if (prev_tag.length > 0)
+                prev_relnotes = getTagMessage(prev_tag);
 
             // For further processing later on
-            this.rel_notes_without_inherited =
-                buildReleaseNotes(prev_tag, "");
+            if (prev_relnotes.length > 0)
+                this.rel_notes_without_inherited = prev_relnotes;
+
+            tag_msg = buildReleaseNotes(tag_version, prev_tag) ~ prev_relnotes;
         }
 
         assert(tag_msg.length > 0, "No release notes found?!");
@@ -148,18 +147,18 @@ private auto match ( R ) ( R range, string match_str )
 
 /*******************************************************************************
 
-    Creates release notes, including inherited notes.
+    Creates release notes.
 
     Params:
+        tag_version = the current version being tagged
         previous_version = the previous release which this one inherited from
-        previous_notes = the previous releases' notes
 
     Returns:
         this release' notes
 
 *******************************************************************************/
 
-string buildReleaseNotes ( string previous_version, string previous_notes  )
+string buildReleaseNotes ( Version tag_version, string previous_version )
 {
     import lib.git.helper;
 
@@ -169,7 +168,8 @@ string buildReleaseNotes ( string previous_version, string previous_notes  )
     import std.range;
     import std.array : join;
 
-    import std.stdio;
+    string title = "Changes in " ~ tag_version.toString;
+    title = format("%s\n%s\n\n", title, repeat('=', title.length));
 
     immutable MigrationHeader = "Migration Instructions\n----------------------\n\n";
     immutable DeprecationsHeader = "Deprecations\n------------\n\n";
@@ -195,26 +195,21 @@ string buildReleaseNotes ( string previous_version, string previous_notes  )
     auto deprecations = getNotes("deprecation.md");
     auto features = getNotes("feature.md");
 
+    string notes;
+
     if (!migrations.empty)
-        migrations = MigrationHeader ~ migrations;
+        notes ~= MigrationHeader ~ migrations;
 
     if (!deprecations.empty)
-        deprecations = DeprecationsHeader ~ deprecations;
+        notes ~= DeprecationsHeader ~ deprecations;
 
     if (!features.empty)
-        features = FeaturesHeader ~ features;
+        notes ~= FeaturesHeader ~ features;
 
-    if (previous_notes.length > 0 && previous_version.length > 0)
-    {
-        auto previous_header = "Inherited changes from " ~ previous_version;
+    if (notes.length > 0)
+        return title ~ notes;
 
-        previous_notes = format("%s\n%s\n\n%s",
-                                previous_header,
-                                repeat('=', previous_header.length),
-                                previous_notes);
-    }
-
-    return (migrations ~ deprecations ~ features ~ previous_notes).dup;
+    return notes;
 }
 
 /*******************************************************************************

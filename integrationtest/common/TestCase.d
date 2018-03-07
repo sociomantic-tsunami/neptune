@@ -251,7 +251,18 @@ class TestCase
 
             auto test_relnotes = strip(gh_rel.front.content);
 
-            assert(correct_relnotes == test_relnotes);
+            if (correct_relnotes != test_relnotes)
+            {
+                import std.stdio;
+                writeln("Generated release notes are incorrect");
+                writeln("--------------------- bad --------------------------");
+                write(test_relnotes);
+                writeln("--------------------- good -------------------------");
+                write(correct_relnotes);
+                writeln("--------------------- end --------------------------");
+                writefln("Read from: %s", path);
+                assert(false);
+            }
             assert(gh_rel.front.prerelease == (ver.prerelease.length > 0));
         }
 

@@ -96,24 +96,12 @@ class PatchRelease : TestCase
         git.cmd("git checkout -B v1.0.x");
 
 
-        auto neptune = this.startNeptuneRelease();
-
-        // Capture stdout/stderr
-        string stdout = getAsyncStream(neptune.stdout);
-        string stderr = getAsyncStream(neptune.stderr);
-
-        scope(failure)
-        {
-            import std.stdio;
-
-            writefln("Failure! Neptune output was:\n------\n%s\n-----\n%s",
-                stderr, stdout);
-        }
+        auto neptune_out = this.startNeptuneRelease();
 
         this.checkTerminationStatus();
         this.checkRelNotes(Version(1, 0, 1), this.data ~ "/relnotes.md");
         this.checkTagNotes(Version(1, 0, 1), this.data ~ "/tagnotes.md");
-        this.checkReleaseMail(stdout);
+        this.checkReleaseMail(neptune_out.stdout);
 
         assert(this.fake_github.milestones[0].state == "closed");
     }

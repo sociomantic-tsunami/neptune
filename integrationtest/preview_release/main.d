@@ -39,24 +39,12 @@ class InitialRelease : TestCase
                0, // open issues
                0); // closed issues
 
-        auto neptune = this.startNeptuneRelease();
-
-        // Capture stdout/stderr
-        string stdout = getAsyncStream(neptune.stdout);
-        string stderr = getAsyncStream(neptune.stderr);
-
-        scope(failure)
-        {
-            import std.stdio;
-
-            writefln("Failure! Neptune output was:\n------\n%s\n-----\n%s",
-                stderr, stdout);
-        }
+        auto neptune_out = this.startNeptuneRelease();
 
         this.checkTerminationStatus();
         this.checkRelNotes(Version(0, 1, 0));
         this.checkTagNotes(Version(0, 1, 0));
-        this.checkReleaseMail(stdout);
+        this.checkReleaseMail(neptune_out.stdout);
 
         assert(this.git.branchExists("v0.1.x"), "Tracking branch is missing!");
     }

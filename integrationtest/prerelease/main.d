@@ -191,25 +191,14 @@ class Prerelease : TestCase
                0, // open issues
                0); // closed issues
 
-        auto neptune = this.startNeptuneRelease();
-
-        // Capture stdout/stderr
-        string stdout = getAsyncStream(neptune.stdout);
-        string stderr = getAsyncStream(neptune.stderr);
-
-        scope(failure)
-        {
-            import std.stdio;
-
-            writefln("Failure! Neptune output was:\n------\n%s\n-----\n%s",
-                     stderr, stdout);
-        }
+        auto neptune_out = this.startNeptuneRelease();
 
         this.checkTerminationStatus();
         this.checkRelNotes(Version(1, minor, 0));
         this.checkTagNotes(Version(1, minor, 0));
 
-        this.checkReleaseMail(stdout, format("mail-v%(%s,%).%s.0.txt", majors, minor));
+        this.checkReleaseMail(neptune_out.stdout,
+            format("mail-v%(%s,%).%s.0.txt", majors, minor));
 
         assert(this.git.branchExists(format("v1.%s.x", minor)),
                "Tracking branch shouldn't exist!");
@@ -243,19 +232,7 @@ class Prerelease : TestCase
                0, // open issues
                0); // closed issues
 
-        auto neptune = this.startNeptuneRelease("--pre-release");
-
-        // Capture stdout/stderr
-        string stdout = getAsyncStream(neptune.stdout);
-        string stderr = getAsyncStream(neptune.stderr);
-
-        scope(failure)
-        {
-            import std.stdio;
-
-            writefln("Failure! Neptune output was:\n------\n%s\n-----\n%s",
-                     stderr, stdout);
-        }
+        auto neptune_out = this.startNeptuneRelease("--pre-release");
 
         this.checkTerminationStatus();
 
@@ -278,7 +255,7 @@ class Prerelease : TestCase
             this.checkTagNotes(ver.ver, tagnote_file);
         }
 
-        this.checkReleaseMail(stdout,
+        this.checkReleaseMail(neptune_out.stdout,
             format("mail-v%(%s,%).%s.0-%s.txt",
                 vers.map!(a=>a.ver.major),
                 vers.front.ver.minor, // all vers should have the same minor

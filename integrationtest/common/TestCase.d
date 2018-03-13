@@ -28,6 +28,11 @@ class TestCase
     import semver.Version;
     import std.process;
 
+    struct NeptuneReleaseOutput
+    {
+        string stdout, stderr;
+    }
+
     enum GitRepo = "tester/sandbox";
     enum GitPath = "github.com:" ~ GitRepo;
 
@@ -60,6 +65,9 @@ class TestCase
 
     /// Port to use for github server
     protected ushort gh_port;
+
+    /// Stdout / stderr outputs of neptune process
+    protected NeptuneReleaseOutput neptune_release_output;
 
     /***************************************************************************
 
@@ -129,7 +137,22 @@ class TestCase
             exitEventLoop();
 
         scope(failure)
+        {
+            import std.stdio;
+
             this.failed = true;
+
+            toFile(this.neptune_release_output.stdout,
+                this.tmp ~ "/stdout.txt");
+            toFile(this.neptune_release_output.stderr,
+                this.tmp ~ "/stderr.txt");
+
+            writefln("");
+            writefln("Test git folder was %s", this.git);
+            writefln("neptune-release output was logged to %s/{stdout,stderr}.txt",
+                this.tmp);
+            writefln("");
+        }
 
         this.run();
     }
@@ -196,7 +219,7 @@ class TestCase
 
     ***************************************************************************/
 
-    protected auto startNeptuneRelease ( Args... ) ( Args args )
+    protected NeptuneReleaseOutput startNeptuneRelease ( Args... ) ( Args args )
     {
         import vibe.core.core;
         import std.format;
@@ -216,7 +239,13 @@ class TestCase
 
         setTimer(10.seconds, &this.neptuneTimeout);
 
-        return neptune;
+        this.neptune_release_output.stdout =
+            getAsyncStream(neptune.stdout);
+
+        this.neptune_release_output.stderr =
+            getAsyncStream(neptune.stderr);
+
+        return this.neptune_release_output;
     }
 
     /// Timer callback to kill neptune-process

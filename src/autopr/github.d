@@ -569,7 +569,7 @@ auto updatePullrequest ( ref HTTPConnection con, string owner, string repo,
     request["body"] = content;
 
     return con.patch(format("/repos/%s/%s/pulls/%s", owner, repo, number),
-                     request, MediaType.Default);
+                     request, MediaType.JeanGreyPreview);
 }
 
 
@@ -635,7 +635,7 @@ auto getRepoCommits ( ref HTTPConnection con, string owner, string repo )
 
 *******************************************************************************/
 
-void addComment ( ID ) ( ref HTTPConnection con, ID id, string content )
+void addComment ( ref HTTPConnection con, string id, string content )
 {
     import std.format;
 

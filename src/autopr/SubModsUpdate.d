@@ -189,7 +189,7 @@ as described in the [documentation](https://github.com/sociomantic-tsunami/neptu
             auto msg = format("This PR has been updated: \n\n%s",
                 pr_msg_part);
 
-            con.addComment(pr["id"].get!int, msg);
+            con.addComment(pr["node_id"].get!string, msg);
         }
     }
 

@@ -221,7 +221,7 @@ void main ( string[] args )
         auto aliased = OrgaFormat(orga).aliased();
         auto repo_edges = result["data"][aliased]["repositories"]["edges"];
 
-        updates ~= findUpdates(repo_edges, lib_info, meta_info);
+        updates ~= findUpdates(repo_edges, lib_info, meta_info, fork_info);
     }
 
     string[string] pending_forks;
@@ -253,7 +253,7 @@ void main ( string[] args )
             }
 
             // Add to our fork map
-            fork_info.forks[orig] = fork;
+            fork_info.forks[orig] = ForkInfo.Fork(orig, fork);
             pending_forks.remove(orig);
             writefln("Success");
         }
@@ -269,7 +269,7 @@ void main ( string[] args )
         }
 
         update.createOrUpdatePR(con, fork_info.our_login,
-            fork_info.forks[update.repo.toString()]);
+            fork_info.forks[update.repo.toString()].downstream_name);
     }
     catch (Exception exc)
     {
@@ -309,6 +309,7 @@ void fetchMetaAndForkInfo ( ref HTTPConnection con, string[] orgas,
 
     fragment repoData on Repository %s
 
+    %s
     `;
 
     auto orgastr = orgas.map!(a=>OrgaFormat(a)).array;
@@ -320,7 +321,8 @@ void fetchMetaAndForkInfo ( ref HTTPConnection con, string[] orgas,
         auto query = QueryStringMetaAndFork.format(
             orgastr,
             ForkInfo.Query.format(fork_info.cursor),
-            MetaInfo.Query);
+            MetaInfo.Query,
+            ForkInfo.QueryFragment);
 
         Json qresult;
 
@@ -344,7 +346,7 @@ void fetchMetaAndForkInfo ( ref HTTPConnection con, string[] orgas,
             break;
     }
 
-    writefln("Discovered forks: %s", fork_info.forks);
+    writefln("Discovered forks: %s", fork_info.forks.byValue.map!(a=>a.downstream_name));
 }
 
 /***************************************************************************
@@ -395,13 +397,15 @@ bool getMetaInfo ( Json result, OrgaFormat[] orgas, ref MetaInfo meta_info )
         repo_edges = all the repo edges to process
         lib_info   = library information object
         meta_info  = meta info object
+        fork_info  = fork info object
 
     Returns:
         array of updates that will need to be done
 
 *******************************************************************************/
 
-auto findUpdates ( Json repo_edges, LibInfo lib_info, MetaInfo meta_info )
+auto findUpdates ( Json repo_edges, LibInfo lib_info, MetaInfo meta_info,
+    ForkInfo fork_info )
 {
     import std.algorithm : find;
     import std.stdio;
@@ -412,7 +416,6 @@ auto findUpdates ( Json repo_edges, LibInfo lib_info, MetaInfo meta_info )
     // Iterate over every repo/edge
     foreach (edge; repo_edges)
     {
-        auto pull_requests = edge.path!"node.pullRequests.edges";
         auto repo = edge["node"]["name"].get!string;
         auto owner = edge["node"]["owner"]["login"].get!string;
 
@@ -445,10 +448,12 @@ auto findUpdates ( Json repo_edges, LibInfo lib_info, MetaInfo meta_info )
             writefln("%s: No neptune data found, using defaults", owner_name);
         }
 
+        auto fork = owner_name in fork_info.forks;
+
         processSubmodules(edge, lib_info, global, mods,
-                          updates, *meta, RCFlag.No);
+                          updates, *meta, fork, RCFlag.No);
         processSubmodules(edge, lib_info, global, mods,
-                          updates, *meta, RCFlag.Yes);
+                          updates, *meta, fork, RCFlag.Yes);
     }
 
     return updates;
@@ -465,21 +470,21 @@ auto findUpdates ( Json repo_edges, LibInfo lib_info, MetaInfo meta_info )
         mods   = the submodule specific update request levels
         updates = in/out param, will be populated with any updates we detect
         meta_info = meta information object
+        fork      = fork info object
         rc_flag = flag for release candidates (Yes, No, All)
 
 *******************************************************************************/
 
 void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
-    RequestLevel[string] mods,
-    ref SubModsUpdate[] updates, MetaInfo.MetaInfo meta_info, RCFlag rc_flag )
+    RequestLevel[string] mods, ref SubModsUpdate[] updates,
+    MetaInfo.MetaInfo meta_info, ForkInfo.Fork* fork, RCFlag rc_flag )
 {
     import std.stdio : writefln;
-    import std.algorithm : find;
+    import std.algorithm : find, canFind;
     import std.range : empty, front;
     import std.string;
     import std.typecons;
 
-    auto pull_requests = edge.path!"node.pullRequests.edges";
     auto repo = edge["node"]["name"].get!string;
 
 
@@ -506,28 +511,18 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
     else
         update = result.front;
 
-    bool matchPrefix ( in Json a )
+    if (fork !is null &&
+        fork.pull_requests.canFind!(a=>a.refname == PRRefNames[rc_flag]))
     {
-        return a["node"]["title"]
-            .get!string.startsWith(PRTitles[rc_flag]);
-    }
+        auto pr_exists = fork.pull_requests
+            .find!(a=>a.refname == PRRefNames[rc_flag]).front;
 
-    // Find out if a PR already exists
-    auto pr_exists = pull_requests.get!(Json[]).find!matchPrefix;
-
-    // If it exists already, remember pr number
-    if (!pr_exists.empty)
-    {
-        update.pr_number = pr_exists.front["node"]["number"].get!int;
-
-        auto pr_commits = pr_exists.front["node"]["commits"]["edges"].get!(Json[]);
+        update.pr_number = pr_exists.number;
 
         // Compare all commits and see if the PR is already up-to-date
-        foreach (commit; pr_commits) try
+        foreach (msg; pr_exists.commits) try
         {
             import std.algorithm : countUntil;
-
-            auto msg = commit["node"]["commit"]["messageHeadline"].get!string;
 
             // Headline looks like "Advance %s from %s to %s"
 

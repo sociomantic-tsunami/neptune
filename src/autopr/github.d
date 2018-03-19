@@ -28,7 +28,7 @@ enum Type
 }
 
 
-/// Query to fetch PRs & releases
+/// Query to fetch releases
 enum RepositoryQueryString = `
 {
   name
@@ -53,24 +53,6 @@ enum RepositoryQueryString = `
         }
       }
     }
-  }
-  pullRequests(last:100, states:[OPEN]) {
-      edges {
-          node {
-              number
-              headRefName
-              title
-              commits(first:100) {
-                  edges {
-                    node {
-                        commit {
-                            messageHeadline
-                        }
-                    }
-                  }
-              }
-          }
-      }
   }
 }
 `;

@@ -49,10 +49,46 @@ struct LibInfo
     }
 
     /// map of releases per library
-    public Release[][string] libs;
+    /// value [lib][orga]
+    public Release[][string][string] libs;
 
     /// fetcher instance to fetch more pages of releases
     private FetchMore fetcher;
+
+
+    /***************************************************************************
+
+        Returns the list of releases for the given library name, that include
+        the given SHA in the list.
+
+        This makes sure you get the right organisation of a given library
+
+        Params:
+            name = name of the library
+            sha  = sha of the commit matching a version
+
+        Returns:
+            list of releases
+
+    ***************************************************************************/
+
+    public Release[] getReleasesForSha ( string name, string sha )
+    {
+        import std.algorithm : canFind;
+
+        foreach (orga; this.libs)
+        {
+            auto lib = name in orga;
+
+            if (lib is null)
+                continue;
+
+            if ((*lib).canFind!(a=>a.sha == sha))
+                return *lib;
+        }
+
+        return null;
+    }
 
     /***************************************************************************
 
@@ -98,7 +134,7 @@ struct LibInfo
         auto edges = json["data"][orga_alias]
             .path!"repositories.edges";
 
-        writefln("REPOS: %s", edges.length);
+        writefln("%s REPOS: %s", orga, edges.length);
 
         foreach (edge; edges)
         {
@@ -158,7 +194,7 @@ struct LibInfo
                             .path!"node.publishedAt".get!string[0..$-1])
                         .date);
 
-                this.libs[lib_name] ~= rel;
+                this.libs[orga][lib_name] ~= rel;
             }
             catch (Exception exc)
             {
@@ -169,7 +205,10 @@ struct LibInfo
 
             import std.algorithm;
 
-            auto lib = lib_name in this.libs;
+            if ((orga in this.libs) is null)
+                continue;
+
+            auto lib = lib_name in this.libs[orga];
 
             if (lib is null)
             {

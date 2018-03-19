@@ -33,7 +33,7 @@ enum RepositoryQueryString = `
 {
   name
   owner { login }
-  releases(%s) {
+  releases(orderBy:{field: CREATED_AT, direction: ASC}%s) {
     pageInfo {
       hasPreviousPage
       startCursor
@@ -98,7 +98,7 @@ struct FetchMore
             return format(`repo_%s: repository(name: "%s", owner:"%s") %s`,
                 this.repo, this.repo, this.orga,
                 RepositoryQueryString
-                    .format(`last:100, before:"%s"`.format(this.cursor)));
+                    .format(`,last:100, before:"%s"`.format(this.cursor)));
         }
     }
 

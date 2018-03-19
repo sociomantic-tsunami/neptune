@@ -575,8 +575,6 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
             writefln("Skipping existing update: %s", exc.msg);
         }
     }
-    else
-        writefln("%s> No PR found!", repoid);
 
     // Iterate over all submodules
     foreach (name, sha; meta_info.submodules)

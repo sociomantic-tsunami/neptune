@@ -15,9 +15,9 @@ module autopr.SubModsUpdate;
 
 /// Format to use for update PR titles, matches the index with RCFlag values
 public enum PRTitles = [
-    "[neptune] Update submodules",
+    "[neptune] [Rc+NoRc] Update submodules",
     "[neptune] [Rc] Update submodules",
-    "[neptune] [NoRc] Update submodules"];
+    "[neptune] Update submodules"]; // non-rc, our default
 
 /// refs to use for update PRs, matches the index with RCFlag values
 public enum PRRefNames = [

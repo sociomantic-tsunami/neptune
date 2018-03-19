@@ -156,7 +156,7 @@ void main ( string[] args )
         {
             query = QueryStringReleasesPRs.format(
                 orga_structs,
-                RepositoryQueryString.format("last:100"));
+                RepositoryQueryString.format(",last:100"));
         }
         else
         {
@@ -164,7 +164,7 @@ void main ( string[] args )
                 orga_structs,
                 meta_info.meta_info
                     .byValue.map!(a=>a.neptune_id).filter!(a=>a.length > 0),
-                RepositoryQueryString.format("last:100"));
+                RepositoryQueryString.format(",last:100"));
         }
 
         more_pages = false;
@@ -582,9 +582,9 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
     foreach (name, sha; meta_info.submodules)
     {
         // Check if is a library
-        auto lib = name in lib_info.libs;
+        auto lib = lib_info.getReleasesForSha(name, sha);
 
-        if (lib is null)
+        if (lib.length == 0)
         {
             // Ignore submodules we don't know about
             continue;
@@ -593,7 +593,7 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
         import std.range;
 
         // Find what version is currently in the repo
-        auto cur_ver = (*lib).retro.find!(a=>a.sha == sha);
+        auto cur_ver = lib.retro.find!(a=>a.sha == sha);
 
         if (cur_ver.empty)
         {
@@ -639,7 +639,7 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
         }
 
         // Find out what version we want to update to
-        auto latest = (*lib).retro.find!matchRequestLevel;
+        auto latest = lib.retro.find!matchRequestLevel;
 
         if (latest.empty || latest.front.ver <= cur_ver.front.ver ||
             latest.front.sha == cur_ver.front.sha)

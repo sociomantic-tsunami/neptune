@@ -212,11 +212,22 @@ as described in the [documentation](https://github.com/sociomantic-tsunami/neptu
         writefln("%s> Created updated tree for %s (%s)",
             this.repo, update.repo.name, tree_sha);
 
-        auto commit_msg = format("Advance %s from %s to %s\n\n%s %s(%s)...%s(%s)",
+        auto relnotes = format(
+            "https://github.com/%s/%s/releases/tag/%s",
+            update.repo.owner, update.repo.name, update.target.ver);
+
+        auto commits = format(
+            "https://github.com/%s/%s/compare/%s...%s",
+            update.repo.owner, update.repo.name, update.cur.ver, update.target.ver);
+
+        auto commit_msg = format(
+           "Advance %s from %s to %s\n\n%s %s(%s)...%s(%s)\n\n" ~
+           "Release notes: %s\nChanged commits: %s",
            update.repo.name, update.cur.ver, update.target.ver,
            update.repo.name,
            update.cur.ver,    update.cur.sha[0..7],
-           update.target.ver, update.target.sha[0..7]);
+           update.target.ver, update.target.sha[0..7],
+           relnotes, commits);
 
         auto commit = con.createCommit(fork_owner,
             fork_name, commit_sha, tree_sha, commit_msg);
@@ -226,11 +237,10 @@ as described in the [documentation](https://github.com/sociomantic-tsunami/neptu
         writefln("%s> Created commit for %s (%s)",
             this.repo, update.repo.name, commit_sha);
 
-        pr_msg_part ~= format("* **%s** from version **%s** to version **%s** "~
-            "([Release notes](https://github.com/%s/%s/releases/tag/%s), "~
-             "[Changed commits](https://github.com/%s/%s/compare/%s...%s))\n",
+        pr_msg_part ~= format(
+            "* **%s** from version **%s** to version **%s** "~
+            "([Release notes](%s), [Changed commits](%s))\n",
             update.repo.name, update.cur.ver, update.target.ver,
-            update.repo.owner, update.repo.name, update.target.ver,
-            update.repo.owner, update.repo.name, update.cur.ver, update.target.ver);
+            relnotes, commits);
     }
 }

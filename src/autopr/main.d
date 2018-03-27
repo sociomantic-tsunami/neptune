@@ -613,9 +613,6 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
         {
             RequestLevel level;
 
-            if (!rel.supported)
-                return false;
-
             if (d2_only != rel.ver.metadata.canFind("d2"))
                 return false;
 

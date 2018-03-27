@@ -78,6 +78,9 @@ struct SubModsUpdate
 
         /// New submodule sha/version
         SubModVer target;
+
+        /// Breaking versions included in the update
+        SubModVer[] breaking;
     }
 
     /// Repository that receives the update PR
@@ -132,7 +135,8 @@ struct SubModsUpdate
             return;
 
         foreach (update; this.updates)
-            this.addUpdateCommit(con, fork_owner, fork_name, update, tree_sha, commit_sha, pr_msg_part);
+            this.addUpdateCommit(con, fork_owner, fork_name, update,
+                tree_sha, commit_sha, pr_msg_part);
 
         import vibe.data.json;
 
@@ -220,6 +224,17 @@ as described in the [documentation](https://github.com/sociomantic-tsunami/neptu
             "https://github.com/%s/%s/compare/%s...%s",
             update.repo.owner, update.repo.name, update.cur.ver, update.target.ver);
 
+        string formatBreaking ( SubModVer v )
+        {
+            return format("[%s](https://github.com/%s/%s/releases/tag/%s)",
+                v.ver, update.repo.owner, update.repo.name, v.ver);
+        }
+
+        import std.algorithm : map;
+
+        auto breaking = format("%-(%s, %)",
+            update.breaking.map!(a=>formatBreaking(a)));
+
         auto commit_msg = format(
            "Advance %s from %s to %s\n\n%s %s(%s)...%s(%s)\n\n" ~
            "Release notes: %s\nChanged commits: %s",
@@ -239,8 +254,9 @@ as described in the [documentation](https://github.com/sociomantic-tsunami/neptu
 
         pr_msg_part ~= format(
             "* **%s** from version **%s** to version **%s** "~
-            "([Release notes](%s), [Changed commits](%s))\n",
+            "([Release notes](%s), [Changed commits](%s))%s\n",
             update.repo.name, update.cur.ver, update.target.ver,
-            relnotes, commits);
+            relnotes, commits,
+            update.breaking.length > 0 ? ("\n  * Breaking Updates: " ~ breaking) : "");
     }
 }

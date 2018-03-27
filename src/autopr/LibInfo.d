@@ -136,7 +136,7 @@ struct LibInfo
         auto edges = json["data"][orga_alias]
             .path!"repositories.edges";
 
-        writefln("%s REPOS: %s", orga, edges.length);
+        writefln("\n%s REPOS: %s\n=================\n", orga, edges.length);
 
         foreach (edge; edges)
         {

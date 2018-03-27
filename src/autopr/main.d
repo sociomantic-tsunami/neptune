@@ -600,6 +600,15 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
             continue;
         }
 
+        bool d2_only = false;
+
+        if (!meta_info.neptune_yaml.isNull() &&
+            meta_info.neptune_yaml.containsKey("d2ready") &&
+            meta_info.neptune_yaml["d2ready"] == "only")
+        {
+            d2_only = true;
+        }
+
         bool matchRequestLevel ( LibInfo.Release rel )
         {
             RequestLevel level;
@@ -607,7 +616,10 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
             if (!rel.supported)
                 return false;
 
-             auto mod = name in mods;
+            if (d2_only != rel.ver.metadata.canFind("d2"))
+                return false;
+
+            auto mod = name in mods;
 
             if (mod is null)
                 level = global;

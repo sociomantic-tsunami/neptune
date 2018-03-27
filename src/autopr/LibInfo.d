@@ -26,6 +26,8 @@ struct LibInfo
 
     import std.datetime;
 
+    enum D2Only { No, Yes }
+
     /// One release of a library
     struct Release
     {
@@ -228,7 +230,9 @@ struct LibInfo
             }
 
             bool need_more = this.markSupported(more_data,
-                maintained_minor_versions, maintained_major_months, *lib);
+                maintained_minor_versions, maintained_major_months, *lib, D2Only.No);
+            need_more = need_more || this.markSupported(more_data,
+                maintained_minor_versions, maintained_major_months, *lib, D2Only.Yes);
 
             bool has_more =
                 edge.path!"node.releases.pageInfo.hasPreviousPage".get!bool;
@@ -263,6 +267,8 @@ struct LibInfo
                                       supported after no longer being the latest
                                       major version
             releases = list of releases
+            d2only   = if yes, only consider d2 updates,
+                       if no, only consider non-d2
 
         Returns:
             true if more data is required, else false
@@ -270,22 +276,29 @@ struct LibInfo
     ***************************************************************************/
 
     bool markSupported ( bool complete, int maintained_minor_versions,
-        int maintained_major_months, Release[] releases )
+        int maintained_major_months, Release[] releases, D2Only d2_only )
     {
         import std.range;
         import std.algorithm;
         import std.datetime;
 
-        auto onlyRCorFull ( Release rel )
+        auto d2filter ( Release rel )
+        {
+            return d2_only == rel.ver.metadata.canFind("d2");
+        }
+
+        // Relevant releases are d2 and rc releases, other metadata/prereleases
+        // are ignored as we don't know how to handle it
+        auto filterRelevant ( Release rel )
         {
             with (rel.ver)
                 return (prerelease.startsWith("rc") ||
                     prerelease.empty) &&
-                    metadata.empty;
+                    (metadata.empty || d2filter(rel));
         }
 
         // Skip early if no releases to mark for us exist
-        if (!releases.canFind!onlyRCorFull)
+        if (!releases.canFind!filterRelevant)
             return false;
 
         // Find oldest release. If it is newer than maintained_major_months we
@@ -295,12 +308,12 @@ struct LibInfo
         // Sort according to publish time
         auto rel_sorted = sort!((a,b)=>a.published < b.published)(releases);
 
-        auto majors = rel_sorted
+        auto majors = releases
             .filter!(a=>a.ver.minor == 0 &&
                 a.ver.patch == 0 &&
-                onlyRCorFull(a));
+                filterRelevant(a));
 
-        auto oldest_support_end = rel_sorted.front.published;
+        auto oldest_support_end = releases.front.published;
         oldest_support_end.add!"months"(maintained_major_months);
         import std.stdio;
 
@@ -323,7 +336,7 @@ struct LibInfo
 
         // Add the oldest rel. we have and treat it as major, in case the
         // versions don't actually start with a major release
-        auto majors_and_oldest = chain(rel_sorted.takeOne, majors);
+        auto majors_and_oldest = chain(releases.filter!d2filter.takeOne, majors);
 
         // Find out end support date for each major version
         foreach (ref maj; majors_and_oldest)
@@ -347,7 +360,7 @@ struct LibInfo
         sort(releases);
 
         // Make sure the latest release is _always_ supported
-        auto latest = releases.retro.filter!onlyRCorFull;
+        auto latest = releases.retro.filter!filterRelevant;
 
         latest.front.supported = true;
 
@@ -356,7 +369,9 @@ struct LibInfo
          * it finds the latest patch release and marks that as supported and
          * sets its support_end time. */
         foreach (ref major;
-            chain(majors_and_oldest, latest.takeOne).filter!(a=>a.supported))
+            chain(majors_and_oldest, latest.takeOne)
+                .filter!(a=>a.supported)
+                .filter!d2filter)
         {
             // the major itself isn't actually supported (except when it is, see
             // comment below)
@@ -369,7 +384,7 @@ struct LibInfo
                 .filter!(a=>
                     a.ver.major == major.ver.major &&
                     a.ver.patch == 0)
-                .filter!onlyRCorFull
+                .filter!filterRelevant
                 .take(maintained_minor_versions);
 
             foreach (minor; minors)
@@ -379,7 +394,7 @@ struct LibInfo
                     .filter!(b=>
                         minor.ver.major == b.ver.major &&
                         minor.ver.minor == b.ver.minor)
-                    .filter!onlyRCorFull
+                    .filter!filterRelevant
                     .takeOne();
 
                 foreach (ref supported; supported_rels)

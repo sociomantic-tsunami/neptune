@@ -656,12 +656,18 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
         import vibe.data.json;
         import std.typecons : Nullable;
 
-        import std.algorithm : canFind;
+        import std.algorithm : canFind, filter, map;
 
         auto submodule = SubModsUpdate.NameWithOwner(name, latest.front.owner);
 
         if (update.updates.canFind!(a=>a.repo == submodule))
             continue;
+
+        auto breaking = lib.find!(a=>a.sha == sha)
+            .filter!matchRequestLevel
+            .filter!(a=>a.ver.metadata.canFind("breaking"))
+            .map!(a=>SubModsUpdate.SubModVer(a.sha, a.ver))
+            .array;
 
         update.updates ~= SubModsUpdate.SubModUpdate(
             // Submod Name/Owner
@@ -669,7 +675,9 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
             // Current Submod sha/version
             SubModsUpdate.SubModVer(sha, cur_ver.front.ver),
             // new submod sha/version
-            SubModsUpdate.SubModVer(latest.front.sha, latest.front.ver));
+            SubModsUpdate.SubModVer(latest.front.sha, latest.front.ver),
+            // List of breaking updates
+            breaking);
     }
 
     if (update.updates.length == 0)

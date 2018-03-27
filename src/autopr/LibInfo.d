@@ -181,6 +181,8 @@ struct LibInfo
 
             auto rel_edges = edge.path!"node.releases.edges";
 
+            import std.algorithm;
+
             foreach (rel_edge; rel_edges) try
             {
                 auto tag = rel_edge["node"]["tag"];
@@ -194,6 +196,17 @@ struct LibInfo
                             .path!"node.publishedAt".get!string[0..$-1])
                         .date);
 
+                // Skip releases we already added
+                auto orga_libs = orga in libs;
+                if (orga_libs !is null)
+                {
+                    auto rels = lib_name in *orga_libs;
+
+                    if (rels !is null)
+                        if ((*rels).canFind(rel))
+                            continue;
+                }
+
                 this.libs[orga][lib_name] ~= rel;
             }
             catch (Exception exc)
@@ -202,8 +215,6 @@ struct LibInfo
                 writefln("Skipping unparsable version %s",
                     rel_edge);
             }
-
-            import std.algorithm;
 
             if ((orga in this.libs) is null)
                 continue;

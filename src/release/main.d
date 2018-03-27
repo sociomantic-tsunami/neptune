@@ -107,7 +107,7 @@ void main ( string[] params )
     auto myrelease = autodetectVersions(tags_with_prereleases);
     myrelease.metadata = opts.metadata;
 
-    sanityCheckMilestone(con, repo, myrelease.toStringNoMetadata());
+    sanityCheckMilestone(con, repo, myrelease);
 
     ActionList list;
 
@@ -1054,11 +1054,12 @@ string getUpstream ( )
     Params:
         con = connection to use
         repo = repo to operate on
-        name = name of the milestone
+        ver = version to find milestone for
 
 *******************************************************************************/
 
-void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo, string name )
+void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo,
+    Version ver )
 {
     import release.github;
     import std.algorithm;
@@ -1067,11 +1068,17 @@ void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo, string 
 
     import colorize;
 
-    auto mstone_list = listMilestones(con, repo).find!(a=>a.title == name);
+    Version ver_norc = ver;
+
+    ver_norc.prerelease = "";
+
+    auto mstone_list = listMilestones(con, repo)
+        .find!(a=>a.title == ver_norc.toStringNoMetadata());
 
     if (mstone_list.empty)
     {
-        stderr.writefln("Warning: No corresponding milestone found for %s".color(fg.red), name);
+        stderr.writefln("Warning: No corresponding milestone found for %s"
+            .color(fg.red), ver_norc);
         return;
     }
 

@@ -57,8 +57,9 @@ alias SubmoduleVersion = Algebraic!(Version, SHANotFound);
  **/
 Repository fetchRepositoryMetadata ( HTTPConnection client, string full_name )
 {
-    import std.algorithm.iteration : map, filter;
-    import std.array : assocArray;
+    import std.algorithm.iteration : map, filter, uniq;
+    import std.algorithm.sorting : sort;
+    import std.array : assocArray, array;
     import std.typecons : tuple;
     import std.exception : ifThrown;
     import dyaml.node;
@@ -90,10 +91,19 @@ Repository fetchRepositoryMetadata ( HTTPConnection client, string full_name )
 
     if (result.library)
     {
-        result.tags = repo
+        auto released_versions = repo
             .releasedTags()
             .map!(tag => tuple(tag.sha, Version.parse(tag.name).ifThrown(Version.init)))
             .filter!(pair => pair[1] != Version.init)
+            .array();
+
+        // Sort so that higher versions come first
+        released_versions.sort!((a, b) => a[1] > b[1]);
+
+        // Use only first version that matches specific SHA, ensures
+        // that latest tagged name of a SHA is used
+        result.tags = released_versions
+            .uniq!((a, b) => a[0] == b[0])
             .assocArray();
     }
 

@@ -986,6 +986,8 @@ Version autodetectVersions ( Version[] tags )
 
     Version rel_ver;
 
+    sanityCheck(matching_major, matching_minor, current);
+
     bool detected =
         needPatchRelease(matching_major, matching_minor, current, rel_ver) ||
         needMinorRelease(matching_major, matching_minor, current, rel_ver) ||
@@ -1000,6 +1002,37 @@ Version autodetectVersions ( Version[] tags )
     writefln("Detected release %s", rel_ver.toString.color(mode.bold));
 
     return rel_ver;
+}
+
+
+/*******************************************************************************
+
+    Checks if the current state is valid. Throws if not.
+
+    Params:
+        A = result type of a search for a matching major version
+        B = result type of a search for a matching minor version
+        matching_major = result of a search for a matching major version
+        matching_minor = result of a search for a matching minor version
+        current = currently checked out branch
+
+*******************************************************************************/
+
+void sanityCheck ( A, B ) ( A matching_major, B matching_minor,
+    SemVerBranch current )
+{
+    import std.exception : enforce;
+
+    if (current.type == current.type.Minor)
+    {
+        enforce(!matching_major.empty,
+            "No existing major version found for the current minor branch " ~
+            current.toString);
+
+        enforce(!matching_minor.empty,
+            "No existing minor version found for the current minor branch " ~
+            current.toString);
+    }
 }
 
 

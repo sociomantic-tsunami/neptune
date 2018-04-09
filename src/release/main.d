@@ -807,6 +807,8 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
     // prerelease
     if (major_version.prerelease.length == 0)
     {
+        list ~= clearReleaseNotes();
+
         if (next_major_rslt.empty)
         {
             list.actions ~= new LocalAction(["git", "branch", next_major.toString],
@@ -817,8 +819,6 @@ ActionList prepareMajorRelease ( ref HTTPConnection con, ref Repository repo,
         list.actions ~= new LocalAction(["git", "checkout", next_major.toString],
                                         format("Checkout next major branch %s",
                                                next_major));
-
-        list ~= clearReleaseNotes();
 
         list.affected_refs ~= next_major.toString;
     }

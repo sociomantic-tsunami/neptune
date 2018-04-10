@@ -96,7 +96,17 @@ Meaning
 Tools
   - neptune-autopr
 Default
-  ``default`` is set for repositories marked as library to: ``patch``, otherwise to ``minor``
+  If the repository is a library (``library: true``)
+  the default is ``patch``. Otherwise it will be ``minor``.
+
+  The motivation for this is that libraries need to ensure that they remain
+  compatible with older dependency versions. If a dependency is updated to a new
+  minor release this is not breaking in itself, but it makes it possible to
+  accidentally introduce changes dependent on new features, without this being
+  caught by CI. This _would_ be breaking change, that would impact on any
+  downstream project still using an earlier version of the dependency.
+  Restricting library submodule updates to only patch releases should prevent
+  this.
 Example
   .. code:: yml
 

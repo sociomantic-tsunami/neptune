@@ -412,7 +412,7 @@ Issues fixed in this release:`];
                          ver.tag_version.toString)
                 .map!(a=>format("* %s\n  %s",
                     strip(a.title()),
-                    a.json["url"].get!string)));
+                    a.json["html_url"].get!string)));
         }
 
         /* This complex format call basically creates a string like this:

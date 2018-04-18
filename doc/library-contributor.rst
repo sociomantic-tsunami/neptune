@@ -81,8 +81,13 @@ The following procedure should be followed:
 Patch Releases
 ..............
 
-Descriptions of bug fixes are not added to the ``relnotes`` folder. Instead, the
-titles of bug fix pull requests are used to generate the release notes for a
+If fixed problem can be clearly described in one short sentence, descriptions of
+bug fixes do not need to be added to the ``relnotes`` folder. Instead, the
+titles of bug fix pull requests will be used to generate the release notes for a
 patch release. It is thus important to choose a clear and descriptive name for
 PRs containing bug fixes.
 
+At the same time if fixed bug is non-trivial it is encouraged to write detailed
+release notes similar to ones in minor releases. Such notes should include
+explanation of fixed bug and how could it possibly affect applications. Bugfix
+release notes use ``<name>.bug.md`` file name format.

@@ -133,9 +133,11 @@ How to Make a Release
 4. The release notes should contain a link to the milestone which corresponds
    to the release, plus one of the following:
 
-   * For patch releases, links to the issues fixed in the release (or the PRs
-     which fixed the issues), along with a one-line description of what was
-     fixed (e.g. the PR or issue title).
+   * For patch releases, links to the issues fixed in the release (or the
+     PRs which fixed the issues), along with the full release notes text
+     including detailed explanations about the importance of the fixes and
+     their potential consequences. If a patch release does not have
+     pre-written release notes, the PR or issue title may be included.
    * For minor and major releases, the full release notes text for the
      release, including descriptions of migration instructions, deprecations,
      new features, etc.

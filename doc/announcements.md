@@ -35,8 +35,12 @@ and `<BRANCH>` the name of the minor release branch(es) the patch is applied to)
 
   >Issues fixed in this release:
 
-2. A bullet list of issues fixed, including descriptions of the bug and what
-   code was affected by it, links to the corresponding PRs or issues in github.
+2. The collated release notes of the release:
+
+   - Detailed release notes for issues that have detailed description
+   - A bullet list of issues fixed with links to the corresponding PRs or issues
+     in github.
+
 3. A link to the github release for the new patch release.
 
 ### Minor Releases

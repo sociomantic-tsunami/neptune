@@ -134,7 +134,7 @@ class PatchMerger
     const(Version[]) versions;
 
     /// Metadata to be used for all releases
-    const(string) metadata;
+    const(string[]) metadata;
 
     /***************************************************************************
 
@@ -147,7 +147,7 @@ class PatchMerger
 
     ***************************************************************************/
 
-    this ( in SemVerBranch[] branches, in Version[] versions, in string metadata )
+    this ( in SemVerBranch[] branches, in Version[] versions, in string[] metadata )
     {
         this.branches = branches;
         this.versions = versions;
@@ -253,7 +253,7 @@ class PatchMerger
 
         // Find next version to be released
         auto next_ver = this.findNewPatchRelease(ver_branch);
-        next_ver.metadata = this.metadata;
+        next_ver.metadata = this.metadata.dup;
 
         // Release it
         this.actions ~= makeRelease(next_ver, ver_branch.toString, prev);
@@ -335,9 +335,10 @@ class PatchMerger
         import std.algorithm;
         import std.range;
 
-        Version prev_ver = ver;
         assert(ver.patch > 0);
-        prev_ver.patch--;
+
+        const prev_ver = Version(ver.major, ver.minor, ver.patch-1,
+            ver.prerelease, ver.metadata.dup);
 
         // Find oldest minor branch in major version that is an ancestor to
         // the last made patch release before <ver>
@@ -397,10 +398,13 @@ class PatchMerger
         // A minor branch MUST have a release
         enforce(!latest_patch.empty, "No release found for minor branch");
 
-        Version next_ver = latest_patch.front;
-        next_ver.patch++;
+        with (latest_patch.front)
+        {
+            auto next_ver = Version(major, minor, patch+1, prerelease,
+                                    metadata.dup);
 
-        return next_ver;
+            return next_ver;
+        }
     }
 }
 

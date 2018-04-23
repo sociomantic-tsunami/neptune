@@ -52,7 +52,7 @@ void main ( string[] params )
     import vibe.core.log;
 
     import std.stdio;
-    import std.algorithm : map, sort, uniq, filter;
+    import std.algorithm : map, sort, uniq, filter, splitter;
     import std.range : array;
     import std.exception : ifThrown;
     import colorize;
@@ -105,7 +105,7 @@ void main ( string[] params )
     cmd("git remote update");
 
     auto myrelease = autodetectVersions(tags_with_prereleases);
-    myrelease.metadata = opts.metadata;
+    myrelease.metadata = opts.metadata.splitter("+").array;
 
     sanityCheckMilestone(con, repo, myrelease);
 

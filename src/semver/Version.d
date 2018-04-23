@@ -34,13 +34,13 @@ struct Version
     string prerelease;
 
     /// optional metadata string
-    string metadata;
+    string[] metadata;
 
     /**
         Constructor to require setting all fields explicitly
      **/
     this (int major, int minor, int patch, string prerelease = "",
-        string metadata = "")
+        string[] metadata = [])
     {
         this.major = major;
         this.minor = minor;
@@ -57,12 +57,15 @@ struct Version
     {
         import std.format;
 
+        import std.array : join;
+        import std.range : array, chain;
+
         if (!this.valid())
             return "<invalid>";
 
         return format(
             "%s%s", this.toStringNoMetadata(),
-            this.metadata.length ? "+" ~ this.metadata : ""
+            chain([""], this.metadata).join("+")
         );
     }
 
@@ -101,6 +104,8 @@ struct Version
         import std.exception : enforce;
         import std.conv;
         import std.regex;
+        import std.algorithm : splitter;
+        import std.range : array;
 
         static verRegex = regex(r"^v?(\d+)\.(\d+)\.(\d+)(-[^+]+)?(\+.+)?$", "g");
 
@@ -114,7 +119,7 @@ struct Version
         if (hit[4].length)
             result.prerelease = hit[4][1 .. $];
         if (hit[5].length)
-            result.metadata   = hit[5][1 .. $];
+            result.metadata   = hit[5][1 .. $].splitter("+").array;
         return result;
     }
 
@@ -132,13 +137,13 @@ struct Version
         assert(ver.patch == 2);
         assert(ver.toString() == "v0.1.2");
 
-        ver = Version.parse("v1.1.1-alpha+breaking");
+        ver = Version.parse("v1.1.1-alpha+breaking+d2");
         assert(ver.major == 1);
         assert(ver.minor == 1);
         assert(ver.patch == 1);
         assert(ver.prerelease == "alpha", ver.prerelease);
-        assert(ver.metadata == "breaking");
-        assert(ver.toString() == "v1.1.1-alpha+breaking");
+        assert(ver.metadata == ["breaking", "d2"]);
+        assert(ver.toString() == "v1.1.1-alpha+breaking+d2");
         assert(ver.toStringNoMetadata() == "v1.1.1-alpha");
 
         import std.exception : assertThrown;

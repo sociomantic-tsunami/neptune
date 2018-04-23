@@ -65,7 +65,7 @@ void generateHTMLReport ( const Repository[] projects, string path )
                 return "<td></td>";
 
             return visit!(
-                (Version v)   => format("<td>%s</td>", v.toString()),
+                (const(Version) v)   => format("<td>%s</td>", v.toString()),
                 (SHANotFound v) => format("<td class='bad_sha'>%s</td>", v.sha[0..8])
             )(*ver);
         }

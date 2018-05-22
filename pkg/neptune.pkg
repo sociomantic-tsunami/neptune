@@ -1,6 +1,6 @@
 bins = ['neptune-overview', 'neptune-release']
 
-OPTS = dict(
+OPTS.update(
     name = VAR.fullname,
     description = '''\
 Neptune helper binaries
@@ -16,4 +16,4 @@ Release is used to do neptune-semver conforming releases in an automated manner.
     provides = 'neptune',
 )
 
-ARGS = FUN.mapfiles(VAR.bindir, '/usr/bin', bins)
+ARGS.extend(FUN.mapfiles(VAR.bindir, '/usr/bin', bins))

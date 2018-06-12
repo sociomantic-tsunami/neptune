@@ -18,6 +18,8 @@ Meaning
 Tools
   - neptune-overview
   - neptune-autopr
+Default
+  false
 Example
   .. code:: yml
 
@@ -37,6 +39,8 @@ Meaning
   - ``only``: only D2 is supported
 Tools:
   - neptune-overview
+Default
+  false
 Example
   .. code:: yml
 
@@ -67,6 +71,8 @@ Type
 Meaning
   Amount of months a major version is supported, starting from the time the next
   major version is released
+Default
+  6
 
 minor-versions
 ~~~~~~~~~~~~~~
@@ -75,6 +81,8 @@ Type
   Integer
 Meaning
   Amount of minor versions that are supported, starting from the latest one
+Default
+  2
   
 automatic-update-prs
 --------------------
@@ -87,6 +95,8 @@ Meaning
   Possible values are ``none``, ``patch``, ``minor``, ``major``
 Tools:
   - neptune-autopr
+Default
+  ``default`` is set for repositories marked as library to: ``patch``, otherwise to ``minor``
 Example
   .. code:: yml
 

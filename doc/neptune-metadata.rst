@@ -37,7 +37,7 @@ Meaning
   - ``true``: synonym for ``convertable``
   - ``convertable``: repository can automatically be converted to D2
   - ``only``: only D2 is supported
-Tools:
+Tools
   - neptune-overview
 Default
   false
@@ -53,7 +53,7 @@ Type
   Mapping
 Meaning
   Sets the support window and period users can expect for this repository
-Tools:
+Tools
   - neptune-overview
   - neptune-autopr
 Example
@@ -93,7 +93,7 @@ Meaning
   Defines which types of auto-pull-requests the repository desires.
   Values can be specified for ``default`` and ``override``.
   Possible values are ``none``, ``patch``, ``minor``, ``major``
-Tools:
+Tools
   - neptune-autopr
 Default
   ``default`` is set for repositories marked as library to: ``patch``, otherwise to ``minor``

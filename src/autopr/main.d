@@ -137,11 +137,15 @@ void main ( string[] args )
     ForkInfo fork_info;
 
     fetchMetaAndForkInfo(con, orgas, meta_info, fork_info);
-    import std.range : array;
+    import std.range : array, chunks, popFront;
     auto orga_structs = orgas.map!(a=>OrgaFormat(a)).array;
 
     Json result = Json.emptyObject;
-    bool more_pages;
+    bool more_pages = true;
+
+    auto node_chunks = meta_info.meta_info
+        .byValue.map!(a=>a.neptune_id).filter!(a=>a.length > 0)
+        .chunks(options.num_entries);
 
     // Fetch releases, pull requests and neptune file contents
     do
@@ -150,9 +154,8 @@ void main ( string[] args )
 
         string query;
 
-        // The first page queries the neptune node ids
-        // all further querys don't need to do that again
-        if (more_pages)
+        // Use query structure without node-id part if no chunks to query
+        if (node_chunks.empty)
         {
             query = QueryStringReleasesPRs.format(
                 orga_structs,
@@ -161,10 +164,11 @@ void main ( string[] args )
         else
         {
             query = QueryStringReleasesPRsAndNeptune.format(
-                orga_structs,
-                meta_info.meta_info
-                    .byValue.map!(a=>a.neptune_id).filter!(a=>a.length > 0),
+                more_pages ? orga_structs : [],
+                node_chunks.front,
                 RepositoryQueryString.format(",last:100"));
+
+            node_chunks.popFront();
         }
 
         more_pages = false;
@@ -205,7 +209,7 @@ void main ( string[] args )
         // Merge the new data in the existing result
         mergeJson(qresult, result);
     }
-    while (more_pages);
+    while (more_pages || !node_chunks.empty);
 
     // Extract & process the neptune file content
     meta_info.extractNeptuneYaml(result["data"]["nodes"]);

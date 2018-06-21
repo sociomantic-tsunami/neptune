@@ -166,8 +166,12 @@ void main ( string[] params )
 
     import lib.git.helper;
     import std.format;
+    import std.range : chunks;
 
-    cmd(["git", "push", gc.getRemote(getUpstream())] ~ array(unique_refs));
+    // Push references in chunks of 3, as GitHub will not trigger
+    // push hooks otherwise:
+    foreach (chunk; unique_refs.chunks(3))
+        cmd(["git", "push", gc.getRemote(getUpstream())] ~ array(chunk));
 
     writefln("Some tags on github should be released: %s",
              list.releases);

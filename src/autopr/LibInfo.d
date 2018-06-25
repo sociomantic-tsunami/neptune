@@ -17,7 +17,7 @@ struct LibInfo
 {
     import autopr.github;
     import autopr.helper;
-    import autopr.MetaInfo;
+    import internal.github.MetaInfo;
 
     import semver.Version;
 

@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module autopr.MetaInfo;
+module internal.github.MetaInfo;
 
 import dyaml.node;
 
@@ -18,7 +18,7 @@ import std.typecons : Nullable;
 
 
 /// Structure to extract & remember meta information about all repositories
-struct MetaInfo
+class MetaInfo
 {
     import vibe.data.json;
 
@@ -55,7 +55,7 @@ struct MetaInfo
     /// Hashmap of owner/repo -> metainfo
     MetaInfo[string] meta_info;
 
-    /// Return the query to extract our info
+    /// Query to extract our info
     enum Query = `
 {
   name
@@ -85,6 +85,16 @@ struct MetaInfo
       }
     }
   }
+}
+`;
+
+    /// Query to fetch the individual neptune files in one go
+    enum NodeQuery = `
+nodes(ids:%s) {
+    id
+    ... on Blob {
+      text
+    }
 }
 `;
 

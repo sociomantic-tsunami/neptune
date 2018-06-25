@@ -19,7 +19,7 @@ import autopr.SubModsUpdate;
 import autopr.github;
 import autopr.LibInfo;
 import autopr.ForkInfo;
-import autopr.MetaInfo;
+import internal.github.MetaInfo;
 import autopr.options;
 
 import semver.Version;
@@ -133,7 +133,7 @@ void main ( string[] args )
     auto orgas = options.orgas;
 
     // Fetch Meta & Fork info
-    MetaInfo meta_info;
+    MetaInfo meta_info = new MetaInfo;
     ForkInfo fork_info;
 
     fetchMetaAndForkInfo(con, orgas, meta_info, fork_info);

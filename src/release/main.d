@@ -1186,7 +1186,5 @@ string formatPatchGithubRelease ( Version ver, Issue[] issues )
 
     return format("%-(%s\n%)",
         issues
-            .filter!(a=>
-                a.json["milestone"]["title"].get!string == ver)
             .map!(a=>format("* %s #%s", strip(a.title()), a.number())));
 }

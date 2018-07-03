@@ -29,9 +29,9 @@ patch release and what they should do (where `<LIB>` is the name of your library
 and `<BRANCH>` the name of the minor release branch(es) the patch is applied to):
 
   >If your application is using a previous `<LIB>` `<BRANCH>` release, it should be
-  updated to use this new patch release as soon as possible. As this is a ﻿⁠
-  *patch release﻿⁠⁠*, it contains only bugfixes; it is guaranteed not to contain
-  new features or API changes and will not require you to change your code.
+  updated to use this new patch release as soon as possible. As this is a *patch
+  release*, it contains only bugfixes; it is guaranteed not to contain new
+  features or API changes and will not require you to change your code.
 
   >Issues fixed in this release:
 
@@ -50,8 +50,8 @@ minor release and what they should do (where `<LIB>` is the name of your library
 and `<BRANCH>` the name of the major branch(es) the minor release is based on):
 
   >If your application is using a previous `<LIB>` `<BRANCH>` release, it is
-  recommended to update it to use this new minor release. As this is a ﻿⁠
-  *minor release﻿⁠⁠*, it may contain new features, deprecations, or minor internal
+  recommended to update it to use this new minor release. As this is a *minor
+  release*, it may contain new features, deprecations, or minor internal
   refactorings; it is guaranteed to not contain API changes and will not require
   you to change your code.
 
@@ -88,7 +88,7 @@ anything).
 
 >If your application is using a previous triton v1.33.x, v1.34.x, v2.2.x, or
 v2.3.x release, it should be updated to use this new patch release as soon as
-possible. As this is a ﻿⁠*patch release﻿⁠⁠*, it will contain only bugfixes; it is
+possible. As this is a *patch release*, it will contain only bugfixes; it is
 guaranteed not to contain new features or API changes and will not require you
 to change your code.
 
@@ -110,8 +110,8 @@ to change your code.
 >**[MinorRelease] nereid v1.25.0, v2.2.0**
 
 >If your application is using a previous nereid v1.x.x or v2.x.x release, it is
-recommended to update it to use this new minor release. As this is a
-﻿⁠⁠*minor release﻿⁠⁠*, it may contain new features, deprecations, or minor internal
+recommended to update it to use this new minor release. As this is a *minor
+release*, it may contain new features, deprecations, or minor internal
 refactorings; it is guaranteed to not contain API changes and will not require
 you to change your code.
 

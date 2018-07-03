@@ -1,10 +1,16 @@
 First line is skipped
 To: dummy@notexisting.example
-Subject: [PatchRelease] sandbox v1.0.1
+Subject: [PatchRelease] sandbox v1.0.1, v2.0.1
 
-If your application is using a previous sandbox v1.0.x release, it should be updated to use this new patch release as soon as possible. As this is a patch release, it contains only bugfixes; it is guaranteed not to contain new features or API changes and will not require you to change your code.
+If your application is using a previous sandbox v1.0.x, v2.0.x release, it should be updated to use this new patch release as soon as possible. As this is a patch release, it contains only bugfixes; it is guaranteed not to contain new features or API changes and will not require you to change your code.
 
 Issues fixed in this release:
+
+v2.0.1
+======
+
+This release additionally inherits changes from v1.0.1
+
 
 v1.0.1
 ======
@@ -16,5 +22,6 @@ v1.0.1
 * Obvious bug
   https://github.com/tester/sandbox/issues/57
 
+http://github.com/tester/sandbox/releases/tag/v2.0.1
 http://github.com/tester/sandbox/releases/tag/v1.0.1
 

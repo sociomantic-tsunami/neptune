@@ -279,7 +279,7 @@ class TestCase
             import std.stdio;
 
             writefln("Release Notes mismatch."~
-                "Expected:\n#############%s\n############\n%s",
+                "Expected:\n#############\n%s\n############\n%s",
                 correct_relnotes, test_relnotes);
             assert(false);
         }

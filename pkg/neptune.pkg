@@ -10,7 +10,7 @@ Overview is used to generate an overview of all projects.
 
 Release is used to do neptune-semver conforming releases in an automated manner.
 ''',
-    url = 'https://github.com/sociomantic/neptune',
+    url = 'https://github.com/sociomantic-tsunami/neptune',
     vendor = 'Sociomantic Labs GmbH',
     maintainer = 'Sociomantic Labs GmbH <tsunami@sociomantic.com>',
     provides = 'neptune',

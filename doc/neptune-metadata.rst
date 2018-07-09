@@ -39,6 +39,7 @@ Meaning
   - ``only``: only D2 is supported
 Tools
   - neptune-overview
+  - neptune-autopr
 Default
   false
 Example

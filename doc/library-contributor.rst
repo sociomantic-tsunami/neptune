@@ -17,7 +17,8 @@ When making a PR to a Neptune-versioned library, the choice of which branch to
 submit a PR against is important. A branch should be chosen as follows:
 
 * If your change is a bug fix, the PR should be submitted against the oldest
-  supported minor branch.
+  supported minor branch. The name of the PR will be listed in the release notes
+  of the release (see Patch Releases, below).
 * If your change is a new feature, refactoring, or deprecation, the PR should be
   submitted against the oldest supported major branch.
 * If your change is a breaking change to the API, the PR should be submitted
@@ -27,16 +28,10 @@ Release Notes
 -------------
 
 The ``neptune-release`` tool automatically collates release notes when making a
-release. To make this possible, contributors must follow the following
-guidelines.
-
-Major and Minor Releases
-........................
-
-When making a commit to a Neptune-versioned library, API-affecting changes
-should be noted in a file in the ``relnotes`` folder, as follows. When the
-corresponding branch is released, the files in that folder will be collated to
-form the notes for the release.
+release. To make this possible, contributors must write release notes in a
+specific format (described below), and place them in the ``relnotes`` folder.
+When the corresponding branch is released, the files in that folder will be
+collated to form the notes for the release.
 
 The following procedure should be followed:
 
@@ -46,6 +41,8 @@ The following procedure should be followed:
    * Breaking changes to user-available features (i.e. to the library's API).
    * New user-available features.
    * Deprecations of user-available features.
+   * Bug fixes that warrant a note to users of the library. (Also see Patch
+     Releases, below.)
 
 2. For each change noted in step 1, write a description of the change. The
    descriptions should be written so as to be understandable to users of the
@@ -66,7 +63,7 @@ The following procedure should be followed:
 
    * ``<name>`` can be whatever you want, but should indicate the change made.
    * ``<change-type>`` should be one of: ``migration``, ``feature``,
-     ``deprecation``.
+     ``deprecation``, ``bug``.
    * e.g. ``add-suspendable-throttler.feature.md``,
      ``change-epoll-selector.migration.md``.
 
@@ -81,13 +78,8 @@ The following procedure should be followed:
 Patch Releases
 ..............
 
-If fixed problem can be clearly described in one short sentence, descriptions of
-bug fixes do not need to be added to the ``relnotes`` folder. Instead, the
-titles of bug fix pull requests will be used to generate the release notes for a
-patch release. It is thus important to choose a clear and descriptive name for
-PRs containing bug fixes.
+For patch releases, a list of all fixed issues will additionally be appended to
+the release notes. The title of the bug fix pull request is used for this, so it
+is important to choose a clear and descriptive name for PRs containing bug
+fixes.
 
-At the same time if fixed bug is non-trivial it is encouraged to write detailed
-release notes similar to ones in minor releases. Such notes should include
-explanation of fixed bug and how could it possibly affect applications. Bugfix
-release notes use ``<name>.bug.md`` file name format.

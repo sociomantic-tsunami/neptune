@@ -33,29 +33,24 @@ jobs:
           script:
               - set -e # Do not continue on failure
               - beaver dlang install
-              - beaver dlang make test
+              - beaver dlang make -rj1 all dub-test
         - &package-matrix
           stage: Build and upload packages
           if: tag IS present
           script:
               - set -e # Do not continue on failure
               - beaver dlang install
-              - beaver dlang make all
-              - beaver dlang make pkg
+              - beaver dlang make -rj1 all pkg
               - beaver bintray upload -d sociomantic-tsunami/tools/neptune
-                build/last/pkg/*.deb
+                build/dub/pkg/*.deb
 
     include:
         # Test matrix
         - <<: *test-matrix
-          env: DMD=2.074.* F=production
+          env: DMD=2.080.*
         - <<: *test-matrix
-          env: DMD=2.074.* F=devel
-        - <<: *test-matrix
-          env: DMD=2.076.* F=production
-        - <<: *test-matrix
-          env: DMD=2.076.* F=devel
+          env: DMD=2.081.*
 
         # Package matrix
         - <<: *package-matrix
-          env: DMD=2.076.* F=production
+          env: DMD=2.081.*

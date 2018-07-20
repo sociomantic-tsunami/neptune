@@ -1,0 +1,16 @@
+name        "internal"
+description "Internal utilities used by neptune tools"
+authors     "dunnhumby Germany GmbH"
+copyright   "Copyright © 2017, dunnhumby Germany GmbH"
+license     "BSL-1.0"
+
+sourcePaths "."
+importPaths ".."
+targetPath  "../../build/dub/bin"
+targetType  "library"
+
+dependency "colorize"    version="~>1.0.5"
+dependency "dyaml"       version="~>0.7"
+dependency "vibe-d:data" version="~>0.8"
+
+dependency "octod"  path="../octod"

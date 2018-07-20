@@ -1,0 +1,7 @@
+name "first_release"
+
+targetPath     "../../build/dub/tmp"
+sourcePaths    "."
+importPaths    ".."
+
+dependency "common" path="../common"

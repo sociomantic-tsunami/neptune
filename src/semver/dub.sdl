@@ -1,0 +1,10 @@
+name        "semver"
+description "Implementaton for SemVer holding struct"
+authors     "dunnhumby Germany GmbH"
+copyright   "Copyright © 2017, dunnhumby Germany GmbH"
+license     "BSL-1.0"
+
+sourcePaths "."
+importPaths ".."
+targetPath  "../../build/dub/bin"
+targetType  "library"

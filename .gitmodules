@@ -1,24 +1,6 @@
 [submodule "makd"]
 	path = submodules/makd
 	url = https://github.com/sociomantic-tsunami/makd.git
-[submodule "vibed"]
-	path = submodules/vibed
-	url = https://github.com/rejectedsoftware/vibe.d.git
-[submodule "libevent"]
-	path = submodules/libevent
-	url = https://github.com/D-Programming-Deimos/libevent.git
-[submodule "openssl"]
-	path = submodules/openssl
-	url = https://github.com/D-Programming-Deimos/openssl.git
-[submodule "d-yaml"]
-	path = submodules/d-yaml
-	url = https://github.com/dlang-community/D-YAML.git
-[submodule "tinyendian"]
-	path = submodules/tinyendian
-	url = https://github.com/kiith-sa/tinyendian
 [submodule "beaver"]
 	path = submodules/beaver
 	url = https://github.com/sociomantic-tsunami/beaver.git
-[submodule "d-colorize"]
-	path = submodules/d-colorize
-	url = https://github.com/yamadapc/d-colorize.git

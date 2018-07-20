@@ -1,0 +1,35 @@
+name        "tests"
+authors     "dunnhumby Germany GmbH"
+copyright   "Copyright © 2017, dunnhumby Germany GmbH"
+license     "BSL-1.0"
+
+targetPath  "build/dub/tmp"
+
+dependency  "internal"   path="../src/internal"
+dependency  "semver"     path="../src/semver"
+
+dependency  "vibe-d:web" version="~>0.8"
+
+configuration "first_release" {
+    sourcePaths "first_release" "common"
+    importPaths ".."
+    targetType  "executable"
+}
+
+configuration "patch_release" {
+    sourcePaths "patch_release" "common"
+    importPaths ".."
+    targetType  "executable"
+}
+
+configuration "prerelease" {
+    sourcePaths "prerelease" "common"
+    importPaths ".."
+    targetType  "executable"
+}
+
+configuration "preview_release" {
+    sourcePaths "preview_release" "common"
+    importPaths ".."
+    targetType  "executable"
+}

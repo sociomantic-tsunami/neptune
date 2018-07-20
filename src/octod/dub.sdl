@@ -1,0 +1,17 @@
+name        "octod"
+description "Helpers for accessing GitHub API"
+authors     "dunnhumby Germany GmbH"
+copyright   "Copyright © 2017, dunnhumby Germany GmbH"
+license     "BSL-1.0"
+
+sourcePaths "."
+importPaths ".."
+targetPath  "../../build/dub/bin"
+targetType  "library"
+
+dependency "vibe-d:http" version="~>0.8"
+dependency "vibe-d:tls"  version="~>0.8"
+dependency "vibe-d:data"  version="~>0.8"
+
+// Uncomment next line to build on more recent distros:
+// subConfiguration "vibe-d:tls" "openssl-1.1"

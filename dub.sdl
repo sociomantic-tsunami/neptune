@@ -1,0 +1,13 @@
+name        "neptune"
+description "Library versioning & maintenance tools"
+authors     "dunnhumby Germany GmbH"
+copyright   "Copyright © 2017, dunnhumby Germany GmbH"
+license     "BSL-1.0"
+
+targetType "none"
+
+subPackage "src/overview"
+subPackage "src/release"
+subPackage "src/autopr"
+
+subPackage "tests"

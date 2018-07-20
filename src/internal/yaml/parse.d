@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module lib.yaml.parse;
+module internal.yaml.parse;
 
 /**
     YAML parsing helper for usage in pipeline

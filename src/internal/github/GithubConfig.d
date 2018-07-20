@@ -10,10 +10,10 @@
 
 *******************************************************************************/
 
-module lib.github.GithubConfig;
+module internal.github.GithubConfig;
 
 // Fixing import detection
-static import lib.github.oauth;
+static import internal.github.oauth;
 
 import octod.core;
 import octod.api.repos;
@@ -34,7 +34,7 @@ struct GithubConfig
 
     public Configuration getConf ( )
     {
-        import lib.git.helper;
+        import internal.git.helper;
         import std.exception;
 
         Configuration cfg;
@@ -76,8 +76,8 @@ struct GithubConfig
 
     private Configuration githubSetup ( bool assume_yes )
     {
-        import lib.shell.helper;
-        import lib.git.helper;
+        import internal.shell.helper;
+        import internal.git.helper;
 
         import std.stdio;
         import std.string;
@@ -107,7 +107,7 @@ struct GithubConfig
 
         static string askUserAndCreate ( string app_name )
         {
-            import lib.github.oauth;
+            import internal.github.oauth;
 
             auto username = readString("Please enter your username: ");
             auto password = readPassword("Please provide your password: ");
@@ -132,7 +132,7 @@ struct GithubConfig
 
     string getRemote ( string upstream )
     {
-        import lib.git.helper : getRemote;
+        import internal.git.helper : getRemote;
 
         return getRemote(this.app_name, upstream);
     }

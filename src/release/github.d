@@ -12,7 +12,7 @@
 
 module release.github;
 
-import lib.github.GithubConfig;
+import internal.github.GithubConfig;
 import octod.api.repos;
 import octod.core;
 

@@ -1,0 +1,5 @@
+#!/bin/sh
+set -xeu
+
+apt-get update
+apt-get install -y libevent-dev libssl-dev dub

@@ -156,7 +156,7 @@ struct MetaInfo
 
     public void extractNeptuneYaml ( Json nodes )
     {
-        import lib.yaml.parse;
+        import internal.yaml.parse;
         import std.format;
 
         foreach (name, ref entry; this.meta_info)

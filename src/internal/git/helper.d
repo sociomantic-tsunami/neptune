@@ -10,9 +10,9 @@
 
 *******************************************************************************/
 
-module lib.git.helper;
+module internal.git.helper;
 
-import lib.shell.helper;
+import internal.shell.helper;
 
 /***************************************************************************
 
@@ -69,7 +69,7 @@ string getLastCommitOf ( string file )
 
 string getCurrentBranch ( )
 {
-    import lib.shell.helper;
+    import internal.shell.helper;
     import std.string;
 
     auto branch = cmd("git symbolic-ref --short HEAD");

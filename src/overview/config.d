@@ -35,7 +35,7 @@ Configuration readConfigFile (string path)
     import dyaml.node;
     import vibe.core.log : logWarn;
 
-    auto yml = Loader(path).load();
+    auto yml = Loader.fromFile(path).load();
 
     OctodConfiguration octod;
     octod.dryRun = false;

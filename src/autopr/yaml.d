@@ -12,7 +12,7 @@
 
 module autopr.yaml;
 
-import lib.yaml.parse;
+import internal.yaml.parse;
 import dyaml.node;
 
 /// Types of update requests possible

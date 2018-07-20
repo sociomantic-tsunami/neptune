@@ -11,56 +11,51 @@ services:
 git:
     submodules: false
 
-# Do a shallow submodule fetch
-before_install: git submodule update --init
-
+# Global environment variables
 env:
     global:
         - DIST=xenial
-        - ARTIFACTS_DIR=build/travis-artifacts
+        # Default beaver image names. May be overriden in specific stages
+        - BEAVER_DOCKER_IMG=builder
+        - BEAVER_DOCKER_CONTEXT=docker/builder
         # Make sure beaver is in the PATH
         - PATH="$(git config -f .gitmodules submodule.beaver.path)/bin:$PATH"
-    matrix:
-        - DMD=2.074.0-0 DIST=xenial F=devel
-        - DMD=2.074.0-0 DIST=xenial F=production
-        - DMD=2.076.1-0 DIST=xenial F=devel
-        - DMD=2.076.1-0 DIST=xenial F=production
 
-# (Ab)use Travis cache to pass artifacts between stages.
-# As long as the environment variables of different stages match, travis will
-# pull the same "cache", so we can use this to actually pass artifacts between
-# stages.
-cache:
-    directories:
-        - $ARTIFACTS_DIR
+# Do a shallow submodule fetch
+before_install: git submodule update --init
 
-install: beaver dlang install
-
-# DMD can be very memory hungry, and beaver uses make
-# -j2 by default, which means 2 DMD will run in parallel, which
-# can exhaust Travis VM memory. Because of this we override
-# this with -j1 to make sure only one DMD is ran at a time.
-script: beaver dlang make -rj1 all test
-
+# Basic config is inherited from the global scope
 jobs:
     templates:
         - &test-matrix
           stage: Test
+          after_success: beaver dlang codecov
           script:
-              - beaver dlang make
-              - beaver dlang make pkg
-              # If this is a tag, save the packages in the cache directory so
-              # it's accessible in the Upload Package stage
-              - if test -n "$TRAVIS_TAG"; then
-                    cp -v build/last/pkg/*.deb "$ARTIFACTS_DIR/";
-                fi
-    include:
-        - <<: *test-matrix
-          env: DMD=2.076.* DIST=xenial F=production
-
-        - stage: Upload Package
+              - set -e # Do not continue on failure
+              - beaver dlang install
+              - beaver dlang make test
+        - &package-matrix
+          stage: Build and upload packages
           if: tag IS present
-          env: DMD=2.076.* DIST=xenial F=production
           script:
+              - set -e # Do not continue on failure
+              - beaver dlang install
+              - beaver dlang make all
+              - beaver dlang make pkg
               - beaver bintray upload -d sociomantic-tsunami/tools/neptune
-                "$ARTIFACTS_DIR"/*.deb
+                build/last/pkg/*.deb
+
+    include:
+        # Test matrix
+        - <<: *test-matrix
+          env: DMD=2.074.* F=production
+        - <<: *test-matrix
+          env: DMD=2.074.* F=devel
+        - <<: *test-matrix
+          env: DMD=2.076.* F=production
+        - <<: *test-matrix
+          env: DMD=2.076.* F=devel
+
+        # Package matrix
+        - <<: *package-matrix
+          env: DMD=2.076.* F=production

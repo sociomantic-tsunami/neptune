@@ -185,13 +185,15 @@ void main ( string[] params )
     auto issues = myrelease.type != Type.Patch ? [] :
         getIssues(con, repo.json["owner"]["login"].get!string(), repo.name());
 
-    foreach (ver; list.releases)
+    foreach (i, ver; list.releases)
         keepTrying(
         {
             writef("Creating %s ... ", ver);
 
+            // Create list of issues based on the oldest release we're doing and
+            // any further up until the current one
             auto relnotes = myrelease.type == Type.Patch ?
-                formatPatchGithubRelease(ver, issues) :
+                formatPatchGithubRelease(list.releases[0..i+1], issues) :
                 ver.toString.getTagMessage();
 
             createGithubRelease(con, repo, ver, relnotes);
@@ -1168,8 +1170,7 @@ Issue[] getIssues ( ref HTTPConnection con, string owner, string repo )
     Formats patch release notes for a github release
 
     Params:
-        ver = version to release for
-        milestone_link = link to the milestone
+        vers = versions to get issues for
         issues = list of issues for the repo
 
     Returns:
@@ -1177,7 +1178,7 @@ Issue[] getIssues ( ref HTTPConnection con, string owner, string repo )
 
 *******************************************************************************/
 
-string formatPatchGithubRelease ( Version ver, Issue[] issues )
+string formatPatchGithubRelease ( Version[] vers, Issue[] issues )
 {
     import vibe.data.json;
     import std.format;
@@ -1186,5 +1187,8 @@ string formatPatchGithubRelease ( Version ver, Issue[] issues )
 
     return format("%-(%s\n%)",
         issues
+            .filter!(a=>
+                vers.map!(a=>a.toString())
+                    .canFind(a.json["milestone"]["title"].get!string))
             .map!(a=>format("* %s #%s", strip(a.title()), a.number())));
 }

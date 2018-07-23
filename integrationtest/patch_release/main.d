@@ -75,6 +75,15 @@ class PatchRelease : TestCase
                0, // open issues
                3); // closed issues
 
+            milestones ~= Milestone(
+               11, // id
+               21, // number
+               "v0.0.1", // title
+               "https://github.com/sociomantic/sandbox/milestone/21", // html url
+               "closed", // state
+               1, // open issues
+               1); // closed issues
+
             issues = [
                 Issue(
                     "Terrible bug", // title
@@ -99,13 +108,13 @@ class PatchRelease : TestCase
                     58, // number
                     "open", // state
                     "https://github.com/tester/sandbox/issues/58",
-                    Nullable!Milestone()),
+                    nullable(milestones.back)),
                 Issue(
                     "Completely unrelated bug", // title
                     59, // number
                     "closed", // state
                     "https://github.com/tester/sandbox/issues/59",
-                    Nullable!Milestone())
+                    nullable(milestones.back)),
                     ];
         }
 

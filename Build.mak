@@ -1,3 +1,11 @@
+# Configuration
+
+ifeq ($(DIST),bionic)
+	SSLFIX := --override-config vibe-d:tls/openssl-1.1
+else
+	SSLFIX :=
+endif
+
 # Binaries and packaging
 
 tools := overview release autopr
@@ -7,14 +15,14 @@ all += $(tool_binaries)
 $O/pkg-neptune.stamp: $(tool_binaries)
 
 $B/neptune-%:
-	dub build -q :$*
+	dub build -q :$* $(SSLFIX)
 
 # Wrapper for dub test to be used from CI
 
 dub-unittest: $(patsubst %,$O/test-%.stamp,$(tools))
 
 $O/test-%.stamp:
-	dub test -q :$*
+	dub test -q :$* $(SSLFIX)
 
 # Wrapper for higher level tests to be used from CI
 
@@ -23,7 +31,7 @@ tests = first_release prerelease patch_release preview_release
 dub-inttest: all $(patsubst %,$O/inttest-%.stamp,$(tests))
 
 $O/inttest-%.stamp:
-	dub run -q :tests -c $* -- --tmp=$O --bin=$B
+	dub run -q :tests -c $* $(SSLFIX) -- --tmp=$O --bin=$B
 
 # Test entry point used by CI
 

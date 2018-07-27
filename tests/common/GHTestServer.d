@@ -18,6 +18,8 @@ import vibe.web.rest;
 /// Json API offered by the GH test server
 interface IRestAPI
 {
+    @safe:
+
     @path("repos/:owner/:name")
     Json getRepos ( string _owner, string _name );
 
@@ -47,6 +49,8 @@ interface IRestAPI
 /// Implementation of the JSON API
 class RestAPI : IRestAPI
 {
+    @trusted: // fuck you, @safe lovers
+
     /// Structure collecting data about a release
     struct Release
     {

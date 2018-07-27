@@ -76,7 +76,7 @@ struct Repository
         auto owner = this.json["owner"]["login"].get!string();
         auto name = this.name();
         auto url = format("/repos/%s/%s/commits/%s", owner, name, refname);
-        auto json = this.connection.get(url, MediaType("", "sha"));
+        auto json = this.connection.get(url, MediaType.create("", "sha"));
         return json.get!string();
     }
 

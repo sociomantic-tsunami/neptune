@@ -50,7 +50,8 @@ class ExitCodeException : Exception
 
 string linesFrom ( string text, size_t n )
 {
-    import std.string: splitLines, join, Yes;
+    import std.string: splitLines, join;
+    import std.typecons: Yes;
     return text
         .splitLines(Yes.keepTerminator)[n-1..$]
         .join;

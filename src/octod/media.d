@@ -66,32 +66,16 @@ struct MediaType
     }
 
     /**
-        Constructor for constructing most common media type
+        Pseudo-constructor for constructing most common media type
         directly (as opposed to string parsing)
 
         Params:
             format = format of response data (for example "json")
             param = any custom parameters (for example "raw")
      **/
-    this ( string format, string param = "" )
+    static MediaType create ( string format, string param = "" )
     {
-        this.param = param;
-        this.format = format;
-    }
-
-    /**
-        Constructor for arbitrary setting of all fields, private usage
-        only
-
-        Params:
-            format = format of response data (for example "json")
-            param = any custom parameters (for example "raw")
-     **/
-    private this ( bool github_marker, string ver, string param, string format )
-    {
-        this(format, param);
-        this.github_marker = github_marker;
-        this.ver = ver;
+        return MediaType(true, ProtocolVersion.V3, param, format);
     }
 
     /**

@@ -8,7 +8,7 @@ endif
 
 # Binaries and packaging
 
-tools := overview release autopr
+tools := overview release autopr dfm
 
 tool_binaries := $(patsubst %,$B/neptune-%,$(tools))
 all += $(tool_binaries)

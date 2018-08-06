@@ -1,0 +1,14 @@
+name         "dfm"
+description  "Data flow mapper for neptune based projects"
+authors      "dunnhumby Germany GmbH"
+copyright    "Copyright © 2017, dunnhumby Germany GmbH"
+license      "BSL-1.0"
+
+targetPath     "../../build/dub/bin"
+targetName     "neptune-dfm"
+sourcePaths    "."
+importPaths    ".."
+
+dependency "internal" path="../internal"
+dependency "octod"    path="../octod"
+dependency "semver"   path="../semver"

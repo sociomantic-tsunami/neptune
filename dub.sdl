@@ -9,5 +9,6 @@ targetType "none"
 subPackage "src/overview"
 subPackage "src/release"
 subPackage "src/autopr"
+subPackage "src/data_flow_mapper"
 
 subPackage "tests"

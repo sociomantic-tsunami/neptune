@@ -12,7 +12,7 @@
 
 module autopr.main;
 
-import autopr.helper;
+import internal.json;
 import autopr.yaml;
 import autopr.SubModsUpdate;
 
@@ -20,6 +20,7 @@ import autopr.github;
 import autopr.LibInfo;
 import autopr.ForkInfo;
 import internal.github.MetaInfo;
+import internal.github.graphql;
 import autopr.options;
 
 import semver.Version;

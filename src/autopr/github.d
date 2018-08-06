@@ -12,6 +12,8 @@
 
 module autopr.github;
 
+import internal.json;
+
 import octod.api.repos;
 import octod.core;
 
@@ -148,6 +150,8 @@ struct FetchMore
 
     bool fetch ( ref HTTPConnection con, ref Json json, string[] orgas )
     {
+        import internal.github.graphql;
+
         import std.format;
         import std.stdio;
         import std.algorithm;
@@ -204,110 +208,6 @@ struct FetchMore
 
         return true;
     }
-}
-
-
-/*******************************************************************************
-
-    Merge two identically structured json objects
-
-    Params:
-        from = json object to merge
-        to   = json object to merge into
-        overwrite_existing = if true, prefers the new value when there are
-                             conflicts
-
-*******************************************************************************/
-
-void mergeJson ( Json from, ref Json to, bool overwrite_existing = true )
-{
-    import std.range;
-    import std.algorithm;
-    import std.typecons;
-
-    foreach (from_el; from.byKeyValue())
-    {
-        if (from_el.key !in to)
-            // Insert
-            to[from_el.key] = from_el.value.clone;
-        else
-        {
-            // Append
-            if (to[from_el.key].type == Json.Type.array)
-                to[from_el.key] ~= from_el.value.clone;
-            // Recursive merge
-            else if (to[from_el.key].type == Json.Type.object)
-                mergeJson(from_el.value, to[from_el.key], overwrite_existing);
-            // Overwrite
-            else if (overwrite_existing)
-                to[from_el.key] = from_el.value.clone;
-        }
-    }
-}
-
-unittest
-{
-    auto a = Json.emptyObject;
-    auto b = Json.emptyObject;
-
-    a["num1"] = 1;
-    a["array"] = Json.emptyArray;
-    a["array"] ~= Json(1);
-    a["object"] = Json.emptyObject;
-    a["object"]["num2"] = 2;
-    a["object"]["num1"] = 2; // Will overwrite
-    a["object"]["array"] = Json.emptyArray;
-    a["object"]["array"] ~= Json(10);
-
-    b["num2"] = 2;
-    b["num3"] = 3;
-    b["array"] = Json.emptyArray;
-    b["array"] ~= Json(2);
-    b["object"] = Json.emptyObject;
-    b["object"]["num1"] = 1; // will be overwriten
-    b["object"]["array"] = Json.emptyArray;
-    b["object"]["array"] ~= Json(2);
-
-    mergeJson(a, b);
-
-    assert(b["array"].length == 2);
-    assert(b["array"][0] == 2);
-    assert(b["array"][1] == 1);
-    assert("num1" in b);
-    assert(b["num2"].get!int == 2);
-    assert("num2" in b, "Num 2 is missing");
-    assert("num3" in b);
-    assert(b["object"]["num1"] == 2);
-    assert(b["object"]["num2"] == 2);
-    assert(b["object"]["array"].length == 2);
-    assert(b["object"]["array"][0] == 2);
-    assert(b["object"]["array"][1] == 10);
-}
-
-
-/*******************************************************************************
-
-    Perform a graph QL query
-
-    Params:
-        connection = connection to use
-        query      = query
-
-    Returns:
-        query result
-
-*******************************************************************************/
-
-auto graphQL ( ref HTTPConnection con, string query )
-{
-    import vibe.data.json;
-    import octod.media;
-
-    Json data = Json.emptyObject;
-
-    data["query"] = query;
-
-    return con.post("/graphql", data, MediaType.Default);
 }
 
 
@@ -619,6 +519,7 @@ auto getRepoCommits ( ref HTTPConnection con, string owner, string repo )
 
 void addComment ( ref HTTPConnection con, string id, string content )
 {
+    import internal.github.graphql;
     import std.format;
 
     auto query = format(`mutation {

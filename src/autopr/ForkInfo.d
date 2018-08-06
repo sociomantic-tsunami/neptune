@@ -16,7 +16,7 @@ module autopr.ForkInfo;
 struct ForkInfo
 {
     import autopr.SubModsUpdate;
-    import autopr.helper : path;
+    import internal.json;
     import octod.core;
     import vibe.data.json;
 

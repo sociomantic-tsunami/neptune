@@ -12,6 +12,8 @@
 
 module internal.github.MetaInfo;
 
+import internal.yaml.parse;
+
 import dyaml.node;
 
 import std.typecons : Nullable;
@@ -110,7 +112,7 @@ nodes(ids:%s) {
 
     public void processEntry ( Json json )
     {
-        import autopr.helper;
+        import internal.json;
         import std.format : format;
 
         MetaInfo info;

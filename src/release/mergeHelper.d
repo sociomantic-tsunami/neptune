@@ -85,7 +85,8 @@ void letUserResolveConflicts ( string msg )
     import std.stdio;
 
     writefln(msg);
-    writefln("Exit the shell when you are done.(CTRL+D or 'exit')");
+    writefln("Resolve the conflicts and finish the merge process.\n" ~
+        "Exit the shell when you are done.(CTRL+D or 'exit')");
 
     auto shell_cmd = environment["SHELL"].ifThrown("bash");
 

@@ -170,7 +170,7 @@ updates the following submodules:
 
 %s
 You can modify this behavior using your `.neptune.yml` file
-as described in the [documentation](https://github.com/sociomantic-tsunami/neptune/blob/master/doc/neptune-metadata.rst#automatic-update-prs).",
+as described in the [documentation](https://github.com/sociomantic-tsunami/neptune/blob/v0.x.x/doc/neptune-metadata.rst#automatic-update-prs).",
         pr_msg_part);
 
         if (this.pr_number.isNull)

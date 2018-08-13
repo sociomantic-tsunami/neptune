@@ -604,14 +604,7 @@ void processSubmodules ( Json edge, LibInfo lib_info, RequestLevel global,
             continue;
         }
 
-        bool d2_only = false;
-
-        if (!meta_info.neptune_yaml.isNull() &&
-            meta_info.neptune_yaml.containsKey("d2ready") &&
-            meta_info.neptune_yaml["d2ready"] == "only")
-        {
-            d2_only = true;
-        }
+        bool d2_only = cur_ver.front.ver.metadata.canFind("d2");
 
         bool matchRequestLevel ( LibInfo.Release rel )
         {

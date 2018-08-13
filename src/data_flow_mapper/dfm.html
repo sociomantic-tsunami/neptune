@@ -1,0 +1,76 @@
+<body>
+<div id="menu" style="background-color: lightgrey; position:fixed; z-index:4">
+</div>
+<object style="position:absolute; left: 0px; z-index: 1" id="graph" data="graph.svg" type="image/svg+xml" />
+<script>
+
+var nodes = [];
+var menu = document.getElementById("menu");
+
+function setupCallbacks()
+{
+    console.log("setting up callbacks");
+
+    var graph = document.getElementById("graph").getSVGDocument();
+
+    var graph_nodes =
+        graph.children[0].children[0].getElementsByTagName("title");
+
+    menu.innerHTML = "<ul>";
+
+    for (var i = 0; i < graph_nodes.length; i++)
+    {
+        var title = graph_nodes[i].innerHTML;
+
+        if (title.trim().length == 0)
+            continue;
+
+        if (title == "G")
+            continue;
+
+        var arrow = "-&gt;";
+        var pos = title.indexOf(arrow);
+
+        if (pos > -1)
+        {
+            nodes.push({ from: title.substring(0, pos),
+                    to: title.substring(pos+arrow.length) });
+            nodes.push({ to: title.substring(0, pos),
+                    from: title.substring(pos+arrow.length) });
+        }
+        else
+        {
+            menu.innerHTML = menu.innerHTML + "<li>" + title + "</li>\n" ;
+            graph_nodes[i].parentElement.addEventListener("mouseover", showConnections);
+        }
+
+    }
+
+    menu.innerHTML = menu.innerHTML + "</ul>";
+}
+
+function showConnections ( )
+{
+    var title = this.children[0].innerHTML;
+
+    menu.innerHTML = title + " connections: <br /><br /><ul";
+
+    for (var i = 0; i < nodes.length; i++)
+    {
+        if (nodes[i].from != title)
+        {
+            continue;
+        }
+
+        console.log(nodes[i].to); 
+        menu.innerHTML += "<li>" + nodes[i].to + "</li>";
+    }
+
+    menu.innerHTML += "</ul>";
+}
+
+// Delayed setup so that the file has time to load
+setTimeout("setupCallbacks()", 200);
+
+</script>
+</body>

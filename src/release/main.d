@@ -904,7 +904,7 @@ SemVerBranch[] getBranches ( ref HTTPConnection con, ref Repository repo,
     auto ignored_branches = repo.branches()
         .filter!(name => !isSemVerBranch(name))
         .map!(a => a.name);
-    writefln("List of ingored non-semver branches: %s", ignored_branches);
+    writefln("List of ignored non-semver branches: %s", ignored_branches);
 
     return branches;
 }

@@ -335,6 +335,55 @@ struct HTTPConnection
     }
 
     /**
+        Sends PUT request to API server
+
+        Params:
+            url = GitHub API method URL (relative)
+            json = request body to send
+            accept = optional, request media type
+
+        Returns:
+            Json body of the response.
+     **/
+    Json put ( string url, Json json, MediaType accept )
+    {
+        assert (this.connection !is null);
+
+        logTrace("PUT %s", url);
+
+        if (this.config.dryRun)
+            return Json.emptyObject;
+
+        auto response = this.connection.request(
+            (scope request) {
+                request.requestURL = url;
+                request.method = HTTPMethod.PUT;
+                this.prepareRequest(request, accept.toString());
+                request.writeJsonBody(json);
+            }
+        );
+
+        scope(exit)
+            response.dropBody();
+
+        if (auto location = this.handleResponseStatus(response))
+        {
+            return this.patch(location, json);
+        }
+
+        return response.readJson();
+    }
+
+    /**
+        ditto
+     **/
+    Json put ( string url, Json json, string accept = "")
+    {
+        return this.put(url, json, accept.length
+            ? MediaType.parse(accept) : MediaType.Default);
+    }
+
+    /**
         Sends PATCH request to API server
 
         Params:

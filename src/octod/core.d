@@ -20,6 +20,13 @@ import vibe.core.log;
 
 import octod.media;
 
+/// GitLab Base URL Path
+immutable GitLabPath = "/api/v4";
+/// GitLab Base URL
+immutable GitLabURL = "https://api.gitlab.com";
+/// GitHub Base URL
+immutable GitHubURL = "https://api.github.com";
+
 /**
     Configuration required to interact with GitHub API
  **/
@@ -122,10 +129,11 @@ struct HTTPConnection
     {
         import std.string : startsWith;
 
-        if (config.oauthToken.length > 0)
+        if (config.oauthToken.length > 0 &&
+            !config.oauthToken.startsWith("bearer ") &&
+            config.isGithub())
         {
-            if (!config.oauthToken.startsWith("bearer "))
-                config.oauthToken = "bearer " ~ config.oauthToken;
+            config.oauthToken = "bearer " ~ config.oauthToken;
         }
 
         this.config = config;
@@ -143,7 +151,7 @@ struct HTTPConnection
 
         import std.regex;
 
-        logTrace("Connecting to GitHub API server ...");
+        logTrace("Connecting to %s API server ...", this.config.baseURL);
 
         static rgxURL = regex(r"^(\w*)://([^/:]+)(:[^/]+)?$");
         auto match = this.config.baseURL.matchFirst(rgxURL);
@@ -200,6 +208,11 @@ struct HTTPConnection
     Json get ( string url, MediaType accept )
     {
         assert (this.connection !is null);
+
+        if (!this.config.isGithub())
+        {
+            url = GitLabPath ~ url;
+        }
 
         logTrace("GET %s", url);
 
@@ -300,6 +313,11 @@ struct HTTPConnection
     {
         assert (this.connection !is null);
 
+        if (!this.config.isGithub())
+        {
+            url = GitLabPath ~ url;
+        }
+
         logTrace("POST %s", url);
 
         if (this.config.dryRun)
@@ -348,6 +366,11 @@ struct HTTPConnection
     Json put ( string url, Json json, MediaType accept )
     {
         assert (this.connection !is null);
+
+        if (!this.config.isGithub())
+        {
+            url = GitLabPath ~ url;
+        }
 
         logTrace("PUT %s", url);
 
@@ -448,7 +471,12 @@ struct HTTPConnection
         if (this.config.username.length > 0)
             request.addBasicAuth(this.config.username, this.config.password);
         else if (this.config.oauthToken.length > 0)
-            request.headers["Authorization"] = this.config.oauthToken;
+        {
+            if (this.config.isGithub())
+                request.headers["Authorization"] = this.config.oauthToken;
+            else
+                request.headers["Private-Token"] = this.config.oauthToken;
+        }
 
         if (accept.length)
             request.headers["Accept"] = accept;
@@ -481,7 +509,7 @@ struct HTTPConnection
         enforce!HTTPAPIException(
             status >= 200 && status < 300,
             format("Expected status code 2xx, got %s\n\n%s\n",
-                response.statusCode, response.readJson())
+                response.statusCode, response.toString())
         );
 
         return null;

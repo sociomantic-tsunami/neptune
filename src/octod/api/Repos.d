@@ -428,6 +428,8 @@ private Repository newRepo ( ref HTTPConnection con, Json json, string repo )
 
     if (con.isGithub())
         return new GithubRepo(&con, json);
+    else
+        return new GitlabRepo(&con, repo);
 
     assert(false);
 }

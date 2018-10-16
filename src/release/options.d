@@ -19,6 +19,7 @@ public Options options;
 struct Options
 {
     import vibe.core.log;
+    import internal.RemoteConfig : Platform;
 
     /// Level of desired logging
     LogLevel logging;
@@ -28,7 +29,9 @@ struct Options
 
     bool help_triggered;
 
-    string github_url = "https://api.github.com";
+    string base_url = "";
+
+    Platform provider = Platform.detect;
 
     bool assume_yes = false;
 
@@ -81,8 +84,11 @@ Options parseOpts ( string[] opts )
             ~ "release will also be released (default: true)",
         &options.release_subsequent,
         // -------------
-        "base-url", "Github API base URL",
-        &options.github_url,
+        "base-url", "Github or Gitlab API base URL",
+        &options.base_url,
+        // -------------
+        "provider", "Which provider to use; one of [github, gitlab, detect]",
+        &options.provider,
         // -------------
         "assume-yes", "Assumes yes for all questions",
         &options.assume_yes,
@@ -112,4 +118,48 @@ Options parseOpts ( string[] opts )
     }
 
     return options;
+}
+
+
+/*******************************************************************************
+
+    Note: This doesn't strictly belong here, but it can't live in the main.d
+    module because that one isn't unittested. Feel free to move if a better
+    place comes to mind.
+
+    Simple and stupid domain extractor. Looks for the string between @ and : and
+    returns it. Throws an exception if either symbol wasn't found
+
+    Params:
+        url = url to find
+
+    Returns:
+        domain part of the url
+
+*******************************************************************************/
+
+public string extractDomain ( string url )
+{
+    import std.algorithm;
+    import std.range : empty;
+    import std.exception;
+
+    auto begin = url.findSplitAfter("@");
+
+    enforce(begin, "Failed to extract domain from remote url " ~ url);
+
+    auto end = begin[1].findSplitBefore(":");
+
+    enforce(end, "Failed to extract domain from remote url " ~ url);
+
+    return end[0];
+}
+
+/// Tests the domain extraction function
+unittest
+{
+    assert(extractDomain("git@gitlab.com:sociomantic-test/neptune-release-test.git")
+        == "gitlab.com");
+    assert(extractDomain("git@custom.gitlab.instance.de:sociomantic-test/neptune-release-test.git")
+        == "custom.gitlab.instance.de");
 }

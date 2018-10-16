@@ -225,11 +225,13 @@ class TestCase
         import std.format;
         import core.time;
 
-        auto neptune = pipeProcess([format("%s/neptune-release", this.bin),
+        auto neptune = pipeProcess([
+                               format("%s/neptune-release", this.bin),
                                args,
                                "--assume-yes=true",
                                "--no-send-mail",
                                "--verbose",
+                               "--provider=github",
                                format("--base-url=http://127.0.0.1:%s",
                                    this.gh_port)],
                                Redirect.all, ["HOME" : this.git],

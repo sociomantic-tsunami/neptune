@@ -19,8 +19,7 @@ import release.releaseHelper;
 import release.mergeHelper;
 import semver.Version;
 
-import octod.api.repos;
-import octod.api.releases;
+import octod.api.Repos;
 import octod.api.issues;
 import octod.core;
 
@@ -183,7 +182,7 @@ void main ( string[] params )
     }
 
     auto issues = myrelease.type != Type.Patch ? [] :
-        getIssues(con, repo.json["owner"]["login"].get!string(), repo.name());
+        getIssues(con, repo.login(), repo.name());
 
     foreach (i, ver; list.releases)
         keepTrying(
@@ -199,10 +198,9 @@ void main ( string[] params )
             createGithubRelease(con, repo, ver, relnotes);
         });
 
-    import release.github;
     import std.algorithm : filter, canFind;
 
-    auto open_milestones = listMilestones(con, repo)
+    auto open_milestones = repo.listMilestones(con)
         .filter!(a=>list.releases.canFind(a.title));
 
     if (!open_milestones.empty)
@@ -218,7 +216,8 @@ void main ( string[] params )
                     writef("Closing %s ("~"%s open issues".color(fg.red)~") ... ",
                         milestone.title.color(mode.bold), milestone.open_issues);
 
-                    updateMilestoneState(con, repo, milestone.number, State.closed);
+                    repo.updateMilestoneState(con, milestone,
+                        Repository.Milestone.State.closed);
                 });
         }
     }
@@ -275,7 +274,7 @@ void createGithubRelease ( HTTPConnection con, Repository repo, Version ver,
     auto prerelease = ver.prerelease.length > 0 ?
         Yes.prerelease : No.prerelease;
 
-    con.createRelease(repo, ver_str, ver_str, mstone_link ~ notes, prerelease);
+    repo.createRelease(con, ver_str, ver_str, mstone_link ~ notes, prerelease);
 }
 
 
@@ -295,7 +294,6 @@ void createGithubRelease ( HTTPConnection con, Repository repo, Version ver,
 
 string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
 {
-    import release.github;
     import internal.git.helper;
 
     import std.algorithm;
@@ -303,7 +301,7 @@ string getMilestoneLink ( HTTPConnection con, Repository repo, string ver )
     import std.range;
     import std.exception : enforce;
 
-    auto mstone_list = listMilestones(con, repo).find!(a=>a.title == ver);
+    auto mstone_list = repo.listMilestones(con).find!(a=>a.title == ver);
 
     if (!mstone_list.empty)
         return mstone_list.front.url ~ "?closed=1\n\n";
@@ -452,8 +450,7 @@ Issues fixed in this release:`];
     string formatRelLink ( string ver )
     {
         return format("http://github.com/%s/%s/releases/tag/%s",
-            repo.json["owner"]["login"].get!string,
-            repo.name(), ver);
+            repo.login(), repo.name(), ver);
     }
 
     /// Get branch for version
@@ -946,8 +943,6 @@ Version autodetectVersions ( Version[] tags )
 
     import colorize;
 
-    import octod.api.repos;
-
     import std.stdio;
     import std.range;
     import std.algorithm;
@@ -1100,7 +1095,6 @@ string getUpstream ( )
 void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo,
     Version ver )
 {
-    import release.github;
     import std.algorithm;
     import std.stdio;
     import std.range;
@@ -1111,7 +1105,7 @@ void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo,
 
     ver_norc.prerelease = "";
 
-    auto mstone_list = listMilestones(con, repo)
+    auto mstone_list = repo.listMilestones(con)
         .find!(a=>a.title == ver_norc.toStringNoMetadata());
 
     if (mstone_list.empty)

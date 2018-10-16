@@ -17,7 +17,7 @@
 module overview.main;
 
 import octod.core;
-import octod.api.repos;
+import octod.api.Repos;
 import overview.repository;
 import overview.config;
 

@@ -16,7 +16,7 @@ module overview.repository;
 import internal.yaml.parse;
 
 import octod.core;
-import octod.api.repos;
+import octod.api.Repos;
 
 import overview.submodules;
 import semver.Version;

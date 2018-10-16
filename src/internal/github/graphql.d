@@ -12,7 +12,7 @@
 
 module internal.github.graphql;
 
-import octod.api.repos;
+import octod.api.Repos;
 import octod.core;
 
 import vibe.data.json;

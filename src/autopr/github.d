@@ -14,7 +14,7 @@ module autopr.github;
 
 import internal.json;
 
-import octod.api.repos;
+import octod.api.Repos;
 import octod.core;
 
 import vibe.data.json;

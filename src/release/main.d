@@ -12,29 +12,30 @@
 
 module release.main;
 
-import internal.github.GithubConfig;
+import internal.RemoteConfig;
 import release.actions;
 import release.versionHelper;
 import release.releaseHelper;
 import release.mergeHelper;
+import release.options;
+
 import semver.Version;
 
 import octod.api.Repos;
 import octod.api.issues;
 import octod.core;
 
-import internal.github.GithubConfig;
-
 import std.variant;
 
 /// This apps configuration app name
 enum AppName = "neptune";
 
-/// Invalid version marker used with GithubReleaseVersion
+/// Invalid version marker used with ReleaseVersion
 struct InvalidVersion {}
 
 /// Wrap a version and an invalid-version marker
-alias GithubReleaseVersion = Algebraic!(Version, InvalidVersion);
+alias ReleaseVersion = Algebraic!(Version, InvalidVersion);
+
 
 /*******************************************************************************
 
@@ -46,47 +47,34 @@ version(UnitTest) {} else
 void main ( string[] params )
 {
     import release.shellHelper;
-    import release.options;
 
     import vibe.core.log;
 
     import std.stdio;
-    import std.algorithm : map, sort, uniq, filter, splitter;
+    import std.algorithm : map, sort, uniq, filter, splitter, canFind;
     import std.range : array;
     import std.exception : ifThrown;
     import colorize;
 
-    string upstream;
     auto opts = parseOpts(params);
 
     if (opts.help_triggered)
         return;
 
     setLogLevel(opts.logging);
+    import internal.git.helper : getRemote;
 
-    auto gc = GithubConfig(AppName);
+    setBaseURL(opts);
 
-    gc.checkOAuthSetup(options.assume_yes);
+    auto gc = RemoteConfig(AppName, opts.base_url, opts.assume_yes,
+        opts.provider);
 
-    try
-    {
-        import internal.git.helper;
-        upstream = gc.getRemote(getUpstream());
-    }
-    catch (Exception exc)
-    {
-        stderr.writefln("Warning: %s".color(fg.red), exc.msg);
-    }
-
-    auto conf = gc.getConf();
-    conf.baseURL = opts.github_url;
-
-    auto con = HTTPConnection.connect(conf);
+    auto con = HTTPConnection.connect(gc.config);
     auto repo = con.repository(getUpstream());
 
     auto tags = repo
         .releasedTags()
-        .map!(a=>GithubReleaseVersion(Version.parse(a.name)).ifThrown(GithubReleaseVersion(InvalidVersion.init)))
+        .map!(a=>ReleaseVersion(Version.parse(a.name)).ifThrown(ReleaseVersion(InvalidVersion.init)))
         .filter!(a=>a.peek!Version)
         .map!(a=>a.get!Version);
 
@@ -113,8 +101,10 @@ void main ( string[] params )
     with (Type) final switch (myrelease.type)
     {
         case Patch:
+            auto remote_name = getRemote(AppName, getUpstream());
+
             list = preparePatchRelease(con, repo, tags_no_prerelease, myrelease,
-                                       upstream);
+                                       remote_name);
             break;
         case Minor:
             list = prepareMinorRelease(con, repo,
@@ -249,6 +239,36 @@ void main ( string[] params )
     writefln("All done.".color(fg.green));
 }
 
+/*******************************************************************************
+
+    Checks if the base url was given in the options, if not extracts it from the
+    upstream url
+
+    Params:
+        opts = options passed to the program
+
+*******************************************************************************/
+
+void setBaseURL ( ref Options opts )
+{
+    import internal.git.helper : getRemote;
+    import release.shellHelper;
+    import provider.core;
+    import std.algorithm : canFind;
+
+    if (opts.base_url.length > 0)
+        return;
+
+    auto upstream_repo = getUpstream();
+    auto remote_name = getRemote(AppName, upstream_repo);
+    auto remote_url = cmd("git remote get-url " ~ remote_name);
+    auto domain = extractDomain(remote_url);
+
+    if (domain.canFind("github.com"))
+        opts.base_url = GitHubURL;
+    else
+        opts.base_url = "https://" ~ domain;
+}
 
 /*******************************************************************************
 

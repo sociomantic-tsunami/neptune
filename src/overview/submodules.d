@@ -12,7 +12,7 @@
 
 module overview.submodules;
 
-import octod.api.repos;
+import octod.api.Repos;
 
 /**
     Represents information about a single submodule

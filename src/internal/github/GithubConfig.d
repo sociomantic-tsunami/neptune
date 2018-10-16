@@ -16,7 +16,7 @@ module internal.github.GithubConfig;
 static import internal.github.oauth;
 
 import octod.core;
-import octod.api.repos;
+import octod.api.Repos;
 
 /// Helper methods to access github and local github configuration
 struct GithubConfig

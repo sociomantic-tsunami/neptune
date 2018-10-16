@@ -35,6 +35,14 @@ struct Configuration
     string oauthToken;
     /// By default client works in live mode
     bool dryRun = false;
+
+    /// Returns true if this is a github configuration
+    public bool isGithub ( ) const
+    {
+        import std.algorithm;
+
+        return this.baseURL.canFind("github");
+    }
 }
 
 /**
@@ -69,6 +77,18 @@ struct HTTPConnection
         Connection connection;
 
         Configuration config;
+    }
+
+    /// Returns true if this is a github connection
+    public bool isGithub ( ) const
+    {
+        return this.config.isGithub();
+    }
+
+    /// Returns the base URL
+    public string baseURL ( ) const
+    {
+        return this.config.baseURL;
     }
 
     /**

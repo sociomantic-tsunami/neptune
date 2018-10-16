@@ -64,7 +64,7 @@ mixin template CommonEntityMethods ( )
 {
     @disable this();
 
-    private
+    protected
     {
         HTTPConnection* connection;
 

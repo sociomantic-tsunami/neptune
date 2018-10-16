@@ -968,8 +968,18 @@ Version autodetectVersions ( Version[] tags )
     import std.algorithm;
     import std.exception : enforce;
 
-    auto current = SemVerBranch(getCurrentBranch());
-    writefln("We are on branch %s", current);
+    SemVerBranch current;
+
+    try
+    {
+        current = SemVerBranch(getCurrentBranch());
+        writefln("We are on branch %s", current);
+    }
+    catch (Exception exc)
+    {
+        throw new Exception(format("Error: %s‚ Currently checked out branch" ~
+            "\"%s\" is not SemVer compatible!", exc.msg, getCurrentBranch()));
+    }
 
     if (tags.length == 0)
         stderr.writefln(("Warning: No previous releases found. "~

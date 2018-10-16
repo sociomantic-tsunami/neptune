@@ -51,7 +51,7 @@ void validateRepoString ( string repo )
     import std.regex;
     import std.exception : enforce;
 
-    static rgxRepo = regex(r"^[^/]+/[^/]+$");
+    static rgxRepo = regex(r"^[^@/]+/[^/]+$");
     auto match = repo.matchFirst(rgxRepo);
     enforce!APIException(!match.empty, "Malformed repository string");
 }

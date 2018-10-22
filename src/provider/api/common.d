@@ -9,7 +9,7 @@
 
 *******************************************************************************/
 
-module octod.api.common;
+module provider.api.common;
 
 /**
     Thrown upon any higher level API violations
@@ -37,7 +37,7 @@ class EntityNotFound : APIException
     }
 }
 
-package(octod.api):
+package(provider.api):
 
 /**
     Params:

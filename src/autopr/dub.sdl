@@ -10,5 +10,5 @@ sourcePaths    "."
 importPaths    ".."
 
 dependency "internal" path="../internal"
-dependency "octod"    path="../octod"
+dependency "provider"    path="../provider"
 dependency "semver"   path="../semver"

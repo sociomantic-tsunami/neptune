@@ -13,4 +13,4 @@ dependency "colorize"    version="~>1.0.5"
 dependency "dyaml"       version="~>0.7"
 dependency "vibe-d:data" version="~>0.8"
 
-dependency "octod"  path="../octod"
+dependency "provider"  path="../provider"

@@ -9,7 +9,7 @@
 
 *******************************************************************************/
 
-module octod.media;
+module provider.media;
 
 /**
     Enumerates some of commonly used formats

@@ -17,7 +17,7 @@ struct ForkInfo
 {
     import autopr.SubModsUpdate;
     import internal.json;
-    import octod.core;
+    import provider.core;
     import vibe.data.json;
 
     /// GraphQL query to fetch the fork information

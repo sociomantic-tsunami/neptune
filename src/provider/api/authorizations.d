@@ -9,12 +9,12 @@
 
 *******************************************************************************/
 
-module octod.api.authorizations;
+module provider.api.authorizations;
 
 import std.exception : enforce;
 import vibe.data.json;
-import octod.core;
-import octod.api.common;
+import provider.core;
+import provider.api.common;
 
 /*******************************************************************************
 

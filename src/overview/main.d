@@ -16,8 +16,8 @@
 
 module overview.main;
 
-import octod.core;
-import octod.api.Repos;
+import provider.core;
+import provider.api.Repos;
 import overview.repository;
 import overview.config;
 
@@ -33,7 +33,7 @@ void main ( )
     import std.array;
 
     auto conf = readConfigFile("overview.yml");
-    auto client = HTTPConnection.connect(conf.octod);
+    auto client = HTTPConnection.connect(conf.provider);
 
     logInfo("Fetching repository list");
     auto repos = client.fetchAllProjects(conf.organization, conf.excludedRepos,
@@ -65,7 +65,7 @@ void main ( )
     pre-defined list
 
     Params:
-        client = octod API connection
+        client = provider API connection
         org = organization name to query for primary repo list
         excluded = list of repo names that need to be ignored during listing
         included = list of additional repos to include

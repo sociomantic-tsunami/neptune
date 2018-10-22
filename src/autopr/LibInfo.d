@@ -21,7 +21,7 @@ struct LibInfo
 
     import semver.Version;
 
-    import octod.core;
+    import provider.core;
     import vibe.data.json;
 
     import std.datetime;

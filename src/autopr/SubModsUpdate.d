@@ -36,7 +36,7 @@ public enum RCFlag
 struct SubModsUpdate
 {
     import semver.Version;
-    import octod.core;
+    import provider.core;
     import std.typecons;
 
     /// Possible actions we can do on PRs
@@ -111,7 +111,7 @@ struct SubModsUpdate
         Creates or updates an existing PR for this update
 
         Params:
-            con = octod connection reference to use
+            con = provider connection reference to use
             fork_owner = owner of the fork from which the PR will be created
             fork_name = name the fork repository has
 

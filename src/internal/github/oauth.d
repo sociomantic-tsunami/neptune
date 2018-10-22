@@ -32,7 +32,7 @@ public string createOAuthToken ( string user, string pass,
                                  string[] scopes, string note )
 {
     import vibe.data.json;
-    import octod.core;
+    import provider.core;
 
     Configuration cfg;
 

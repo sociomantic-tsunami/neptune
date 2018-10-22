@@ -14,8 +14,8 @@ module autopr.github;
 
 import internal.json;
 
-import octod.api.Repos;
-import octod.core;
+import provider.api.Repos;
+import provider.core;
 
 import vibe.data.json;
 
@@ -234,8 +234,8 @@ auto createTree ( ref HTTPConnection con, string owner, string repo,
     string base, string path, string sha_or_content, Type file_type )
 {
     import std.format;
-    import octod.core;
-    import octod.media;
+    import provider.core;
+    import provider.media;
 
     Json request = Json.emptyObject;
 
@@ -300,8 +300,8 @@ auto createCommit ( ref HTTPConnection con, string owner, string repo,
     string parent, string tree, string msg )
 {
     import std.format;
-    import octod.core;
-    import octod.media;
+    import provider.core;
+    import provider.media;
 
     Json request = Json.emptyObject;
 
@@ -335,8 +335,8 @@ auto createReference ( ref HTTPConnection con, string owner, string repo,
     string ref_name, string sha )
 {
     import std.format;
-    import octod.core;
-    import octod.media;
+    import provider.core;
+    import provider.media;
 
     Json request = Json.emptyObject;
 
@@ -369,8 +369,8 @@ auto updateReference ( ref HTTPConnection con, string owner, string repo,
     string ref_name, string sha, bool force = true )
 {
     import std.format;
-    import octod.core;
-    import octod.media;
+    import provider.core;
+    import provider.media;
 
     Json request = Json.emptyObject;
 
@@ -405,8 +405,8 @@ auto createPullrequest ( ref HTTPConnection con, string owner, string repo,
     string title, string content, string fork, string branch, string fork_branch )
 {
     import std.format;
-    import octod.core;
-    import octod.media;
+    import provider.core;
+    import provider.media;
 
     Json request = Json.emptyObject;
 
@@ -442,8 +442,8 @@ auto updatePullrequest ( ref HTTPConnection con, string owner, string repo,
     int number, string title, string content )
 {
     import std.format;
-    import octod.core;
-    import octod.media;
+    import provider.core;
+    import provider.media;
 
     Json request = Json.emptyObject;
 
@@ -472,7 +472,7 @@ auto updatePullrequest ( ref HTTPConnection con, string owner, string repo,
 auto forkRepository ( ref HTTPConnection con, string owner, string repo )
 {
     import std.format;
-    import octod.media;
+    import provider.media;
 
     return con.post(format("/repos/%s/%s/forks", owner, repo), Json.emptyObject,
         MediaType.Default);
@@ -497,7 +497,7 @@ auto forkRepository ( ref HTTPConnection con, string owner, string repo )
 auto getRepoCommits ( ref HTTPConnection con, string owner, string repo )
 {
     import std.format;
-    import octod.media;
+    import provider.media;
 
     return con.get(format("/repos/%s/%s/commits", owner, repo), MediaType.Default);
 }

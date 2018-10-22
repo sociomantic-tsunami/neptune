@@ -21,9 +21,9 @@ import release.options;
 
 import semver.Version;
 
-import octod.api.Repos;
-import octod.api.issues;
-import octod.core;
+import provider.api.Repos;
+import provider.api.issues;
+import provider.core;
 
 import std.variant;
 
@@ -398,7 +398,7 @@ string craftMail ( Range ) ( ref HTTPConnection con, Repository repo,
 {
     import internal.git.helper;
 
-    import octod.api.issues;
+    import provider.api.issues;
 
     import std.format;
     import std.range;

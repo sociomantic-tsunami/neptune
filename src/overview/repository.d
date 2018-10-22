@@ -15,8 +15,8 @@ module overview.repository;
 
 import internal.yaml.parse;
 
-import octod.core;
-import octod.api.Repos;
+import provider.core;
+import provider.api.Repos;
 
 import overview.submodules;
 import semver.Version;
@@ -52,7 +52,7 @@ alias SubmoduleVersion = Algebraic!(Version, SHANotFound);
     Ignores dependency field
 
     Params:
-        client = GitHub API connection from octod
+        client = GitHub API connection from provider
         full_name = owner/name of the GitHub repository
  **/
 Repository fetchRepositoryMetadata ( HTTPConnection client, string full_name )
@@ -120,7 +120,7 @@ Repository fetchRepositoryMetadata ( HTTPConnection client, string full_name )
 
     Params:
         project = repository metadata to update
-        client = GitHub API connection from octod
+        client = GitHub API connection from provider
         mapping = pre-created map of submodule git hashes to respective
             version instances
  **/

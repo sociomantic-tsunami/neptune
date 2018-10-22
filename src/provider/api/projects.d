@@ -14,11 +14,11 @@
 
 *******************************************************************************/
 
-module octod.api.projects;
+module provider.api.projects;
 
-import octod.core;
-import octod.media;
-import octod.api.common;
+import provider.core;
+import provider.media;
+import provider.api.common;
 
 import vibe.data.json;
 
@@ -240,7 +240,7 @@ struct Column
      **/
     Card addCard ( string repo, long number )
     {
-        import octod.api.issues : getIssue;
+        import provider.api.issues : getIssue;
 
         auto issue_id = (*this.connection).getIssue(repo, number).id();
         return this.addCard(issue_id);

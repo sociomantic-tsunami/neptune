@@ -9,12 +9,12 @@
 
 *******************************************************************************/
 
-module octod.api.issues;
+module provider.api.issues;
 
 import std.exception : enforce;
 import vibe.data.json;
-import octod.core;
-import octod.api.common;
+import provider.core;
+import provider.api.common;
 
 /// Possible states of an issue
 enum IssueState

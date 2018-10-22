@@ -9,12 +9,12 @@
 
 *******************************************************************************/
 
-module octod.api.Repos;
+module provider.api.Repos;
 
 import vibe.data.json;
-import octod.core;
-import octod.media;
-import octod.api.common;
+import provider.core;
+import provider.media;
+import provider.api.common;
 
 /**
     Aggregate for git reference description
@@ -427,8 +427,8 @@ Repository[] listOrganizationRepos ( ref HTTPConnection connection, string name,
  **/
 private Repository newRepo ( ref HTTPConnection con, Json json, string repo )
 {
-    import octod.api.repos.ReposGitlab;
-    import octod.api.repos.ReposGithub;
+    import provider.api.repos.ReposGitlab;
+    import provider.api.repos.ReposGithub;
 
     with (Configuration.Platform)
     final switch (con.platform())

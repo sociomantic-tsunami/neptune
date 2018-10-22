@@ -1,14 +1,14 @@
 module overview.config;
 
-import octod.core : OctodConfiguration = Configuration;
+import provider.core : ProviderConfiguration = Configuration;
 
 /**
     Overview tool own configuration
  **/
 struct Configuration
 {
-    /// configuration required for octod client
-    OctodConfiguration octod;
+    /// configuration required for provider client
+    ProviderConfiguration provider;
     /// GitHub organization name to query repositories from
     string organization;
     /// List of organization repositories to remove from initial one
@@ -37,12 +37,12 @@ Configuration readConfigFile (string path)
 
     auto yml = Loader.fromFile(path).load();
 
-    OctodConfiguration octod;
-    octod.dryRun = false;
-    octod.oauthToken = yml["oauthtoken"].get!string;
+    ProviderConfiguration provider;
+    provider.dryRun = false;
+    provider.oauthToken = yml["oauthtoken"].get!string;
 
     auto conf = typeof(return)(
-        octod,
+        provider,
         yml["organization"].get!string,
         yml["exclude"].get!(Node[])
             .map!(node => node.get!string).array().ifThrown(null),
@@ -52,7 +52,7 @@ Configuration readConfigFile (string path)
 
     if (conf.organization.length == 0)
         logWarn("Empty organization name, likely misconfiguration");
-    if (conf.octod.oauthToken.length != 40)
+    if (conf.provider.oauthToken.length != 40)
         logWarn("OAuth Token doesn't look valid");
 
     return conf;

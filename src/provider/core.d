@@ -10,7 +10,7 @@
 
 *******************************************************************************/
 
-module octod.core;
+module provider.core;
 
 import std.exception : enforce;
 
@@ -18,7 +18,7 @@ import vibe.http.client;
 import vibe.data.json;
 import vibe.core.log;
 
-import octod.media;
+import provider.media;
 
 /// GitLab Base URL Path
 immutable GitLabPath = "/api/v4";

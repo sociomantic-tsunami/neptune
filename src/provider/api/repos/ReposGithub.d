@@ -10,14 +10,14 @@
 
 *******************************************************************************/
 
-module octod.api.repos.ReposGithub;
+module provider.api.repos.ReposGithub;
 
-import octod.api.Repos;
+import provider.api.Repos;
 
 /// Github specific implementation of Repository
 class GithubRepo : Repository
 {
-    import octod.core;
+    import provider.core;
     import vibe.data.json;
     import std.typecons;
 
@@ -292,7 +292,7 @@ class GithubRepo : Repository
     protected string resolveGitReference ( string refname )
     {
         import std.format;
-        import octod.media;
+        import provider.media;
 
         auto owner = this.json["owner"]["login"].get!string();
         auto name = this.name();

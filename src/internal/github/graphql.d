@@ -12,8 +12,8 @@
 
 module internal.github.graphql;
 
-import octod.api.Repos;
-import octod.core;
+import provider.api.Repos;
+import provider.core;
 
 import vibe.data.json;
 
@@ -33,7 +33,7 @@ import vibe.data.json;
 auto graphQL ( ref HTTPConnection con, string query )
 {
     import vibe.data.json;
-    import octod.media;
+    import provider.media;
 
     Json data = Json.emptyObject;
 

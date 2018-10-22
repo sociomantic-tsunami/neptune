@@ -25,7 +25,7 @@ import autopr.options;
 
 import semver.Version;
 
-import octod.core;
+import provider.core;
 
 import vibe.data.json;
 
@@ -122,7 +122,7 @@ void main ( string[] args )
     if (options.quit)
         return;
 
-    import octod.core;
+    import provider.core;
 
     // Prepare github credentials/connection
     Configuration cfg;

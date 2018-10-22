@@ -10,14 +10,14 @@
 
 *******************************************************************************/
 
-module octod.api.repos.ReposGitlab;
+module provider.api.repos.ReposGitlab;
 
-import octod.api.Repos;
+import provider.api.Repos;
 
 /// Gitlab specific implementation of Repository
 class GitlabRepo : Repository
 {
-    import octod.core;
+    import provider.core;
     import vibe.data.json;
     import std.typecons;
 

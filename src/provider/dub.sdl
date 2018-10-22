@@ -1,4 +1,4 @@
-name        "octod"
+name        "provider"
 description "Helpers for accessing GitHub API"
 authors     "dunnhumby Germany GmbH"
 copyright   "Copyright © 2017, dunnhumby Germany GmbH"

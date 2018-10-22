@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-    Helper methods to access the octod/github API
+    Helper methods to access the provider/github API
 
     Copyright:
         Copyright (c) 2017 sociomantic labs GmbH. All rights reserved.
@@ -15,8 +15,8 @@ module internal.RemoteConfig;
 // Fixing import detection
 static import internal.github.oauth;
 
-import octod.core;
-import octod.api.Repos;
+import provider.core;
+import provider.api.Repos;
 
 /// Platform types
 enum Platform { github, gitlab, detect };
@@ -32,7 +32,7 @@ struct RemoteConfig
 
     /***************************************************************************
 
-        Create instance of RemoteConfig, initializes an octod config as well
+        Create instance of RemoteConfig, initializes an provider config as well
         and will ask the user to set one up if the config data can't be found
 
         Params:

@@ -369,11 +369,15 @@ Repository repository ( ref HTTPConnection connection, string repo )
 
     validateRepoString(repo);
 
-    if (connection.isGithub())
-        return newRepo(connection,
-            connection.get(format("/repos/%s", repo)), repo);
-    else
-        return newRepo(connection, Json(), repo);
+    with (Configuration.Platform)
+    final switch (connection.platform())
+    {
+        case Github:
+            return newRepo(connection,
+                connection.get(format("/repos/%s", repo)), repo);
+        case Gitlab:
+            return newRepo(connection, Json(), repo);
+    }
 }
 
 /**
@@ -426,10 +430,14 @@ private Repository newRepo ( ref HTTPConnection con, Json json, string repo )
     import octod.api.repos.ReposGitlab;
     import octod.api.repos.ReposGithub;
 
-    if (con.isGithub())
-        return new GithubRepo(&con, json);
-    else
-        return new GitlabRepo(&con, repo);
+    with (Configuration.Platform)
+    final switch (con.platform())
+    {
+        case Github:
+            return new GithubRepo(&con, json);
+        case Gitlab:
+            return new GitlabRepo(&con, repo);
+    }
 
     assert(false);
 }

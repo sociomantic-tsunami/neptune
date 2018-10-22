@@ -32,6 +32,9 @@ immutable GitHubURL = "https://api.github.com";
  **/
 struct Configuration
 {
+    /// Platform this configuration is for
+    enum Platform { Github, Gitlab };
+
     /// URL prepended to all API requests
     string baseURL = "https://api.github.com";
     /// If present, will be used as auth username
@@ -42,14 +45,8 @@ struct Configuration
     string oauthToken;
     /// By default client works in live mode
     bool dryRun = false;
-
-    /// Returns true if this is a github configuration
-    public bool isGithub ( ) const
-    {
-        import std.algorithm;
-
-        return this.baseURL.canFind("github");
-    }
+    /// Platform we are on
+    Platform platform;
 }
 
 /**
@@ -87,9 +84,9 @@ struct HTTPConnection
     }
 
     /// Returns true if this is a github connection
-    public bool isGithub ( ) const
+    public auto platform ( ) const
     {
-        return this.config.isGithub();
+        return this.config.platform;
     }
 
     /// Returns the base URL
@@ -131,7 +128,7 @@ struct HTTPConnection
 
         if (config.oauthToken.length > 0 &&
             !config.oauthToken.startsWith("bearer ") &&
-            config.isGithub())
+            config.platform == Configuration.Platform.Github)
         {
             config.oauthToken = "bearer " ~ config.oauthToken;
         }
@@ -209,10 +206,7 @@ struct HTTPConnection
     {
         assert (this.connection !is null);
 
-        if (!this.config.isGithub())
-        {
-            url = GitLabPath ~ url;
-        }
+        this.platformAdjustUrl(url);
 
         logTrace("GET %s", url);
 
@@ -313,10 +307,7 @@ struct HTTPConnection
     {
         assert (this.connection !is null);
 
-        if (!this.config.isGithub())
-        {
-            url = GitLabPath ~ url;
-        }
+        this.platformAdjustUrl(url);
 
         logTrace("POST %s", url);
 
@@ -367,10 +358,7 @@ struct HTTPConnection
     {
         assert (this.connection !is null);
 
-        if (!this.config.isGithub())
-        {
-            url = GitLabPath ~ url;
-        }
+        this.platformAdjustUrl(url);
 
         logTrace("PUT %s", url);
 
@@ -472,10 +460,16 @@ struct HTTPConnection
             request.addBasicAuth(this.config.username, this.config.password);
         else if (this.config.oauthToken.length > 0)
         {
-            if (this.config.isGithub())
-                request.headers["Authorization"] = this.config.oauthToken;
-            else
-                request.headers["Private-Token"] = this.config.oauthToken;
+            with(Configuration.Platform)
+                final switch (this.platform())
+                {
+                    case Gitlab:
+                        request.headers["Private-Token"] = this.config.oauthToken;
+                        break;
+                    case Github:
+                        request.headers["Authorization"] = this.config.oauthToken;
+                        break;
+                }
         }
 
         if (accept.length)
@@ -513,5 +507,19 @@ struct HTTPConnection
         );
 
         return null;
+    }
+
+    /// Adujst the URL for any platform specific requirements
+    private void platformAdjustUrl ( ref string url )
+    {
+        with (Configuration.Platform)
+            final switch (this.platform)
+            {
+                case Github:
+                    break;
+                case Gitlab:
+                    url = GitLabPath ~ url;
+                    break;
+            }
     }
 }

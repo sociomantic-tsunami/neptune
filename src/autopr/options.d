@@ -21,6 +21,9 @@ struct Options
     // Amount of entries to fetch per query
     int num_entries;
 
+    // Delay in seconds between each PR
+    uint delay_seconds;
+
     string[] orgas;
 
     string key;
@@ -57,9 +60,20 @@ Options parseOpts ( string[] opts )
         // -------------
         "num-entries", "Amount of entries to fetch per query (max & default: 100)",
         &options.num_entries,
+        // -------------
+        "delay", "How many seconds to wait between each PR",
+        &options.delay_seconds
     );
 
     options.num_entries = min(100, options.num_entries);
+
+    immutable ReasonableMaxDelay = 3600;
+    if (options.delay_seconds > ReasonableMaxDelay)
+    {
+        import std.stdio;
+        writefln("Warning: A delay of %s seconds seems unreasonable high.",
+            options.delay_seconds);
+    }
 
     bool show_help = help_info.helpWanted;
 

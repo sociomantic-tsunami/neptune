@@ -275,6 +275,13 @@ void main ( string[] args )
 
         update.createOrUpdatePR(con, fork_info.our_login,
             fork_info.forks[update.repo.toString()].downstream_name);
+
+        if (options.delay_seconds > 0)
+        {
+            import core.thread;
+            writefln("Waiting %s seconds ...", options.delay_seconds);
+            Thread.sleep(dur!"seconds"(options.delay_seconds));
+        }
     }
     catch (Exception exc)
     {

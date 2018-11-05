@@ -393,7 +393,7 @@ class PatchMerger
             .retro.find!(a=>a.minor == br.minor &&
                          a.major == br.major &&
                          a.prerelease.length == 0 &&
-                         a.metadata.length == 0);
+                         !a.metadata.canFind("d2"));
 
 
         // A minor branch MUST have a release

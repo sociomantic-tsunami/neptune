@@ -13,7 +13,7 @@
     in the order in which they were appended.
 
     Copyright:
-        Copyright (c) 2017 sociomantic Labs GmbH. All rights reserved.
+        Copyright (c) 2017 dunnhumby Germany GmbH. All rights reserved.
 
     License:
         Boost Software License Version 1.0. See LICENSE.txt for details.

@@ -3,7 +3,7 @@
     Utilities to fetch/parse git submodule information via GitHub API
 
     Copyright:
-        Copyright (c) 2009-2016 sociomantic labs GmbH. All rights reserved.
+        Copyright (c) 2009-2016 dunnhumby Germany GmbH. All rights reserved.
 
     License:
         Boost Software License Version 1.0. See LICENSE.txt for details.

@@ -305,7 +305,7 @@ void main ( string[] args )
 *******************************************************************************/
 
 void fetchMetaAndForkInfo ( ref HTTPConnection con, string[] orgas,
-    out MetaInfo meta_info, out ForkInfo fork_info )
+    ref MetaInfo meta_info, out ForkInfo fork_info )
 {
     import std.algorithm : map;
     import std.range : array;

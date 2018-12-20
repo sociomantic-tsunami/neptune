@@ -84,6 +84,61 @@ class Repository
     }
 
     /**
+        Wraps connection and issue metadata for simple shortcut access
+        to repository related API methods. Arbitrary fields can be accessed
+        via `json` getter.
+     **/
+    struct Issue
+    {
+        /// Possible states of an issue
+        enum State
+        {
+            open,
+            closed,
+            all,
+        }
+
+        const Json json;
+
+        @disable this();
+
+        protected HTTPConnection* connection;
+
+        this ( HTTPConnection* connection, const Json json, long number,
+            string html_url )
+        {
+            this.json = json;
+            this.connection = connection;
+
+            this.number = number;
+            this.html_url = html_url;
+        }
+
+        // Repo specific issue number
+        immutable long number;
+
+        // HTML URL to this issue
+        immutable string html_url;
+        /**
+            Returns:
+                issue title
+         **/
+        string title ( )
+        {
+            return this.json["title"].get!string();
+        }
+
+        /**
+            Returns:
+                internally used unique issue identifier
+         **/
+        long id ( )
+        {
+            return this.json["id"].get!long();
+        }
+    }
+
+    /**
         Returns:
             repository name
      **/
@@ -176,6 +231,14 @@ class Repository
 
     public abstract void updateMilestoneState ( ref HTTPConnection connection,
         Milestone milestone, Repository.Milestone.State state );
+
+    /**
+        Fetches all repo issues description/metadata
+
+        Params:
+            state = only fetch issues with this state
+     **/
+    public abstract Issue[] listIssues ( Issue.State state = Issue.State.open );
 }
 
 /**

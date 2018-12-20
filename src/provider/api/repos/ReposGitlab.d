@@ -256,4 +256,34 @@ class GitlabRepo : Repository
 
         connection.put(url, json);
     }
+
+    /**
+        Fetches all repo issues description/metadata
+
+        Params:
+            state = only fetch issues with this state
+     **/
+    public override Issue[] listIssues ( Issue.State state = Issue.State.open )
+    {
+        import std.format;
+        import std.algorithm.iteration : map;
+        import std.array;
+
+        auto url = format("/projects/%s/issues?state=%s", this.repo,
+            this.convertState(state));
+
+        return this.connection
+            .get(url)
+            .get!(Json[])
+            .map!(element => Issue(this.connection, element,
+                element["iid"].get!long,
+                element["web_url"].get!string))
+            .array();
+    }
+
+    /// Convert issue state name to gitlab convention
+    protected string convertState ( Issue.State state )
+    {
+        return state == state.open ? "opened" : state.to!string;
+    }
 }

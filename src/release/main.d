@@ -162,7 +162,7 @@ void main ( string[] params )
     foreach (chunk; unique_refs.chunks(3))
         cmd(["git", "push", gc.getRemote(getUpstream())] ~ array(chunk));
 
-    writefln("Some tags on github should be released: %s",
+    writefln("Some tags should be released: %s",
              list.releases);
 
     if (!getBoolChoice("Would you like to release those tags now?"))

@@ -131,28 +131,3 @@ Issue getIssue ( ref HTTPConnection connection, string repo, long number )
     return Issue(&connection,
         connection.get(format("/repos/%s/issues/%s", repo, number)));
 }
-
-/**
-    Fetches all repo issues description/metadata
-
-    Params:
-        connection = setup connection to API server
-        repo = repository string of form "owner/repo", for example
-            "sociomantic-tsunami/ocean"
-        state = only fetch issues with this state
- **/
-Issue[] listIssues ( ref HTTPConnection connection, string repo,
-    IssueState state = IssueState.Open )
-{
-    import std.format;
-    import std.algorithm.iteration : map;
-    import std.array;
-
-    validateRepoString(repo);
-
-    return connection
-        .get(format("/repos/%s/issues?state=%s", repo, cast(string) state))
-        .get!(Json[])
-        .map!(element => Issue(&connection, element))
-        .array();
-}

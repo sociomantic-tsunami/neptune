@@ -172,7 +172,7 @@ void main ( string[] params )
     }
 
     auto issues = myrelease.type != Type.Patch ? [] :
-        getIssues(con, repo.login(), repo.name());
+        getIssues(repo);
 
     foreach (i, ver; list.releases)
         keepTrying(
@@ -394,7 +394,7 @@ void sendMail ( string email, string recipient )
 *******************************************************************************/
 
 string craftMail ( Range ) ( ref HTTPConnection con, Repository repo,
-    Type rel_type, string recipient, Issue[] issues, Range releases )
+    Type rel_type, string recipient, Repository.Issue[] issues, Range releases )
 {
     import internal.git.helper;
 
@@ -418,7 +418,7 @@ Release notes:`,
 Issues fixed in this release:`];
 
     // Formats release notes for the given version
-    string formatRelNotes ( ReleaseAction ver, Issue[] rissues )
+    string formatRelNotes ( ReleaseAction ver, Repository.Issue[] rissues )
     {
         enum inherited_str = "\n\nThis release additionally inherits changes from ";
 
@@ -435,8 +435,7 @@ Issues fixed in this release:`];
                 .filter!(a=>a.json["milestone"]["title"] ==
                          ver.tag_version.toString)
                 .map!(a=>format("* %s\n  %s",
-                    strip(a.title()),
-                    a.json["html_url"].get!string)));
+                    strip(a.title()), a.html_url)));
         }
 
         /* This complex format call basically creates a string like this:
@@ -1168,7 +1167,7 @@ void sanityCheckMilestone ( ref HTTPConnection con, ref Repository repo,
 
 *******************************************************************************/
 
-Issue[] getIssues ( ref HTTPConnection con, string owner, string repo )
+auto getIssues ( Repository repo )
 {
     import release.shellHelper;
     import vibe.data.json;
@@ -1176,11 +1175,10 @@ Issue[] getIssues ( ref HTTPConnection con, string owner, string repo )
     import std.algorithm;
     import std.range;
 
-    Issue[] issues;
+    Repository.Issue[] issues;
 
     keepTrying({
-        issues = con
-            .listIssues(format("%s/%s", owner, repo), IssueState.Closed)
+        issues = repo.listIssues(Repository.Issue.State.closed)
             .filter!(a=>a.json["milestone"].type == Json.Type.object)
             .array;
     });
@@ -1202,7 +1200,7 @@ Issue[] getIssues ( ref HTTPConnection con, string owner, string repo )
 
 *******************************************************************************/
 
-string formatPatchGithubRelease ( Version[] vers, Issue[] issues )
+string formatPatchGithubRelease ( Version[] vers, Repository.Issue[] issues )
 {
     import vibe.data.json;
     import std.format;
@@ -1214,5 +1212,5 @@ string formatPatchGithubRelease ( Version[] vers, Issue[] issues )
             .filter!(a=>
                 vers.map!(a=>a.toString())
                     .canFind(a.json["milestone"]["title"].get!string))
-            .map!(a=>format("* %s #%s", strip(a.title()), a.number())));
+            .map!(a=>format("* %s #%s", strip(a.title()), a.number)));
 }

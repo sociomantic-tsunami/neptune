@@ -280,6 +280,29 @@ class GithubRepo : Repository
     }
 
     /**
+        Fetches all repo issues description/metadata
+
+        Params:
+            state = only fetch issues with this state
+     **/
+    public override Issue[] listIssues ( Issue.State state = Issue.State.open )
+    {
+        import std.format;
+        import std.algorithm.iteration : map;
+        import std.array;
+
+        return this.connection
+            .get(format("/repos/%s/%s/issues?state=%s", this.login, this.name,
+                to!string(state)))
+            .get!(Json[])
+            .map!(json =>
+                Issue(this.connection, json,
+                    json["number"].get!long(),
+                    json["html_url"].get!string))
+            .array();
+    }
+
+    /**
         Makes an API request to resolve specified git reference name to
         its SHA hash in this repo.
 

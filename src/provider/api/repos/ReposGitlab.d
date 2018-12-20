@@ -171,7 +171,7 @@ class GitlabRepo : Repository
         import vibe.data.json;
 
         auto url = format("/projects/%s/milestones?state=%s", this.repo,
-            state == state.open ? "active" : state.to!string);
+            this.convertState(state));
 
         auto json = connection.get(url);
 
@@ -252,7 +252,12 @@ class GitlabRepo : Repository
 
         auto json = Json.emptyObject;
 
-        json["state_event"] = state == state.open ? "activate" : "close";
+        auto fixed_state = this.convertState(state);
+
+        if (fixed_state == "closed")
+            fixed_state = "close";
+
+        json["state_event"] = fixed_state;
 
         connection.put(url, json);
     }
@@ -279,6 +284,12 @@ class GitlabRepo : Repository
                 element["iid"].get!long,
                 element["web_url"].get!string))
             .array();
+    }
+
+    /// Convert milestone state name to gitlab convention
+    protected string convertState ( Milestone.State state )
+    {
+        return state == state.open ? "active" : state.to!string;
     }
 
     /// Convert issue state name to gitlab convention

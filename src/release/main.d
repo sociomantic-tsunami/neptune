@@ -468,8 +468,19 @@ Issues fixed in this release:`];
 
     string formatRelLink ( string ver )
     {
-        return format("http://github.com/%s/%s/releases/tag/%s",
-            repo.login(), repo.name(), ver);
+        // TODO: When using a custom gitlab instance, the gitlab link is wrong.
+        // Extract directly from the Tag JSON data?
+        immutable GitLabURL = "https://gitlab.com/%s/%s/tags/%s";
+        immutable GitHubURL = "http://github.com/%s/%s/releases/tag/%s";
+
+        string url;
+
+        if (con.platform == Configuration.Platform.Github)
+            url = GitHubURL;
+        else
+            url = GitLabURL;
+
+        return format(url, repo.login(), repo.name(), ver);
     }
 
     /// Get branch for version

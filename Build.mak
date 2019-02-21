@@ -10,6 +10,12 @@ endif
 
 tools := overview release autopr dfm
 
+# Generate short aliases for the tools targets so one can use `make <tool>`
+define makealias =
+$1: $B/neptune-$1
+endef
+$(foreach tool,${tools},$(eval $(call makealias,$(tool))))
+
 tool_binaries := $(patsubst %,$B/neptune-%,$(tools))
 all += $(tool_binaries)
 $O/pkg-neptune.stamp: $(tool_binaries)

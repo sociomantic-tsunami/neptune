@@ -174,13 +174,13 @@ void main ( string[] args )
 
         more_pages = false;
 
+        scope(failure)
+            writefln("QUERY WAS: \n\n%s", query);
+
         auto qresult = con.graphQL(query);
 
         scope(failure)
-        {
-            writefln("QUERY WAS: \n\n%s", query);
             writefln("RESP WAS: \n\n%s", qresult);
-        }
 
         if ("errors" in qresult)
         {

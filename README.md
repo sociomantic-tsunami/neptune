@@ -13,6 +13,10 @@ Documentation
 
 The following documents are available:
 
+* [Contributing to Neptune-Versioned
+  Libraries](https://github.com/sociomantic-tsunami/neptune/blob/v0.x.x/doc/library-contributor.rst)
+  is a guide to help library contributors to follow the Neptune versioning
+  scheme.
 * [Maintaining Neptune-Versioned
   Libraries](https://github.com/sociomantic-tsunami/neptune/blob/v0.x.x/doc/library-maintainer.rst)
   is a guideline to help library developers maintain a library following the

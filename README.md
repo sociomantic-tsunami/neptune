@@ -32,6 +32,9 @@ The following documents are available:
   Applications](https://github.com/sociomantic-tsunami/neptune/blob/v0.x.x/doc/application-maintainer.rst)
   is a guideline for application developers (and ultimately users too) to help
   them maintain applications using the Neptune versioning scheme.
+* [Neptune Metadata File](https://github.com/sociomantic-tsunami/neptune/blob/v0.x.x/doc/neptune-metadata.rst)
+  documents how different tools can use metadata attached to projects via a
+  `.neptune.yml` file.
 
 Tools
 =====

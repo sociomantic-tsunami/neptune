@@ -39,7 +39,13 @@ The following documents are available:
 Tools
 =====
 
-The repository includes:
+The repository includes different tools that help developers and maintainers to
+follow the neptune versioning scheme as effortless as possible. Most tools can
+be configured on a per-project basis by adding a [`.neptune.yml`
+file](https://github.com/sociomantic-tsunami/neptune/blob/v0.x.x/doc/neptune-metadata.rst)
+to the root of the project.
+
+The current tools provided by neptune are:
 
 [Overview](https://github.com/sociomantic-tsunami/neptune/tree/v0.x.x/src/overview)
 --------

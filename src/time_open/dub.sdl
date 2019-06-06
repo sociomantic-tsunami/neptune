@@ -1,0 +1,10 @@
+name         "time_open"
+description  ""
+authors      "dunnhumby Germany GmbH"
+copyright    "Copyright © 2019, dunnhumby Germany GmbH"
+license      "BSL-1.0"
+
+targetPath     "../../build/dub/bin"
+targetName     "time_open"
+sourcePaths    "."
+importPaths    ".."

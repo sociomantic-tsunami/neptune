@@ -290,6 +290,7 @@ class GithubRepo : Repository
         import std.format;
         import std.algorithm.iteration : map;
         import std.array;
+        import std.conv : to;
 
         return this.connection
             .get(format("/repos/%s/%s/issues?state=%s", this.login, this.name,

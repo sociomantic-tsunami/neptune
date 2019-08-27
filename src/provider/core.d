@@ -191,6 +191,15 @@ struct HTTPConnection
     }
 
     /**
+        Disconnects from the GitHub API server
+     **/
+    void disconnect ( )
+    {
+        assert(this.connection !is null);
+        this.connection.disconnect();
+    }
+
+    /**
         Sends GET request to API server
 
         Params:

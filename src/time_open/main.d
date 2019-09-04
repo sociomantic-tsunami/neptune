@@ -28,7 +28,13 @@ module time_open.main;
 
 *******************************************************************************/
 
-version(unittest) {} else
+version(unittest)
+{
+    void main ( string[] args )
+    {
+    }
+}
+else
 int main ( string[] args )
 {
     // parse configuration from arguments

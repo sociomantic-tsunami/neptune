@@ -10,7 +10,7 @@ targetPath  "../../build/dub/bin"
 targetType  "library"
 
 dependency "colorize"    version="~>1.0.5"
-dependency "dyaml"       version="~>0.7"
+dependency "dyaml"       version="==0.7.1"
 dependency "vibe-d:data" version="~>0.8"
 
 dependency "provider"  path="../provider"

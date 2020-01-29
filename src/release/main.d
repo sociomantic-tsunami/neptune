@@ -987,6 +987,7 @@ Version autodetectVersions ( Version[] tags )
     }
     catch (Exception exc)
     {
+        import std.format : format;
         throw new Exception(format("Error: %s‚ Currently checked out branch" ~
             "\"%s\" is not SemVer compatible!", exc.msg, getCurrentBranch()));
     }

@@ -8,7 +8,7 @@ endif
 
 # Binaries and packaging
 
-tools := overview release autopr dfm
+tools := overview release autopr dfm time_open
 
 # Generate short aliases for the tools targets so one can use `make <tool>`
 define makealias =

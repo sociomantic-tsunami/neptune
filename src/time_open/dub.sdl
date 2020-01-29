@@ -1,0 +1,13 @@
+name         "time_open"
+description  "Neptune time for open pull requests tool"
+authors      "dunnhumby Germany GmbH"
+copyright    "Copyright © 2019, dunnhumby Germany GmbH"
+license      "BSL-1.0"
+
+targetPath     "../../build/dub/bin"
+targetName     "time_open"
+sourcePaths    "."
+importPaths    ".."
+
+dependency "internal" path="../internal"
+dependency "provider" path="../provider"

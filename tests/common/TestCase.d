@@ -142,6 +142,13 @@ class TestCase
 
             this.failed = true;
 
+            writeln("stdout:\n---------------------------------------");
+            writeln(this.neptune_release_output.stdout);
+            writeln("---------------------------------------");
+            writeln("stderr:\n---------------------------------------");
+            writeln(this.neptune_release_output.stderr);
+            writeln("---------------------------------------");
+
             toFile(this.neptune_release_output.stdout,
                 this.tmp ~ "/stdout.txt");
             toFile(this.neptune_release_output.stderr,

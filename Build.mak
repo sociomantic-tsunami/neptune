@@ -37,7 +37,7 @@ tests = first_release prerelease patch_release preview_release
 dub-inttest: all $(patsubst %,$O/inttest-%.stamp,$(tests))
 
 $O/inttest-%.stamp:
-	dub run -q :tests -c $* $(SSLFIX) -- --tmp=$O --bin=$B
+	dub run -q :tests -c $* $(SSLFIX) -- --vverbose --debug --tmp=$O --bin=$B
 
 # Test entry point used by CI
 

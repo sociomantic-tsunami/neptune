@@ -1,0 +1,40 @@
+# Github action to run neptune-autopr on a weekly basis.
+name: Neptune Auto PR
+
+# Triggers the workflow on Fridays at 3:00-ish.
+on:
+  schedule:
+    - cron: 0 3 * * 5
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    # Setting up environment with a D compiler
+    - name: Setup dlang environment
+      uses: dlang-community/setup-dlang@v1
+      with:
+        compiler: dmd-2.084.1
+
+    # Checks-out the neptune repository under $GITHUB_WORKSPACE
+    - name: Checkout sociomantic-tsunami/neptune
+      uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    # Build and run neptune-autopr
+    - name: Build
+      run: make autopr
+
+    - name: Generate
+      env:
+        # Number of entries to fetch each time.
+        # If the job fails, try decreasing this value.
+        FETCH_ENTRIES: 10
+        # Space-separated list of GitHub Organizations.
+        GITHUB_ORGS: sociomatic-tsunami
+        OAUTHTOKEN: ${{ secrets.NEPTUNE_AUTOPR }}
+      run: |
+        ./build/last/bin/neptune-autopr ${OAUTHTOKEN} ${GITHUB_ORGS} \
+            --num-entries=${FETCH_ENTRIES}

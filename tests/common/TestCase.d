@@ -264,7 +264,7 @@ class TestCase
         writeln("FAILED:\n---------------------------------------");
         writeln("Timed out");
         writeln("\n---------------------------------------");
-        this.failed = true;
+        this.killed = true;
     }
 
     /// Validates the release notes in github

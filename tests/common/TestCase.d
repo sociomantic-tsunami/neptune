@@ -245,7 +245,7 @@ class TestCase
 
         this.neptune_pid = neptune.pid;
 
-        setTimer(10.seconds, &this.neptuneTimeout);
+        setTimer(30.seconds, &this.neptuneTimeout);
 
         this.neptune_release_output.stdout =
             getAsyncStream(neptune.stdout);

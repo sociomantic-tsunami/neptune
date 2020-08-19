@@ -152,6 +152,7 @@ class TestCase
                 this.tmp);
             writefln("");
             writeln("FAILED:\n---------------------------------------");
+            writeln("Exception thrown");
             writeln(e);
             writeln("\n---------------------------------------");
         }
@@ -259,6 +260,10 @@ class TestCase
     protected void neptuneTimeout ( )
     {
         kill(this.neptune_pid);
+        import std.stdio;
+        writeln("FAILED:\n---------------------------------------");
+        writeln("Timed out");
+        writeln("\n---------------------------------------");
         this.failed = true;
     }
 

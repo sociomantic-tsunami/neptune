@@ -208,7 +208,7 @@ class TestCase
         Any desired additional parameters can simply be passed as strings to
         this function.
 
-        If the instance is running for more than 10 seconds, it will be
+        If the instance is running for more than 30 seconds, it will be
         force-killed and this.killed will be set to true.
 
         Params:
@@ -239,7 +239,7 @@ class TestCase
 
         this.neptune_pid = neptune.pid;
 
-        setTimer(10.seconds, &this.neptuneTimeout);
+        setTimer(30.seconds, &this.neptuneTimeout);
 
         this.neptune_release_output.stdout =
             getAsyncStream(neptune.stdout);

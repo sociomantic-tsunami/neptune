@@ -7,10 +7,10 @@ importPaths ".."
 
 dependency "neptune:internal" path="../.."
 
-dependency "vibe-d:http" version="~>0.8"
-dependency "vibe-d:tls"  version="~>0.8"
-dependency "vibe-d:data" version="~>0.8"
-dependency "vibe-d:web"  version="~>0.8"
+dependency "vibe-d:http" version="~>0.8.0"
+dependency "vibe-d:tls"  version="~>0.8.0"
+dependency "vibe-d:data" version="~>0.8.0"
+dependency "vibe-d:web"  version="~>0.8.0"
 
 // Uncomment next line to build on more recent distros:
 // subConfiguration "vibe-d:tls" "openssl-1.1"

@@ -8,7 +8,7 @@ targetPath  "build/dub/tmp"
 dependency  "internal"   path="../src/internal"
 dependency  "semver"     path="../src/semver"
 
-dependency  "vibe-d:web" version="~>0.8"
+dependency  "vibe-d:web" version="~>0.8.0"
 
 configuration "first_release" {
     sourcePaths "first_release" "common"

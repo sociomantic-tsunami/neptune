@@ -289,12 +289,14 @@ class GitlabRepo : Repository
     /// Convert milestone state name to gitlab convention
     protected string convertState ( Milestone.State state )
     {
+        import std.conv;
         return state == state.open ? "active" : state.to!string;
     }
 
     /// Convert issue state name to gitlab convention
     protected string convertState ( Issue.State state )
     {
+        import std.conv;
         return state == state.open ? "opened" : state.to!string;
     }
 }

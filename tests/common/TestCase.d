@@ -133,21 +133,13 @@ class TestCase
     {
         import vibe.core.core;
 
-        scope(exit)
-            exitEventLoop();
-
-        scope(failure)
+        try
+            this.run();
+        catch (Throwable e)
         {
             import std.stdio;
 
             this.failed = true;
-
-            writeln("stdout:\n---------------------------------------");
-            writeln(this.neptune_release_output.stdout);
-            writeln("---------------------------------------");
-            writeln("stderr:\n---------------------------------------");
-            writeln(this.neptune_release_output.stderr);
-            writeln("---------------------------------------");
 
             toFile(this.neptune_release_output.stdout,
                 this.tmp ~ "/stdout.txt");
@@ -159,9 +151,12 @@ class TestCase
             writefln("neptune-release output was logged to %s/{stdout,stderr}.txt",
                 this.tmp);
             writefln("");
+            writeln("FAILED:\n---------------------------------------");
+            writeln(e);
+            writeln("\n---------------------------------------");
         }
-
-        this.run();
+        finally
+            exitEventLoop();
     }
 
     /// child-class implemented test run function
@@ -231,16 +226,19 @@ class TestCase
         import vibe.core.core;
         import std.format;
         import core.time;
+        import std.stdio;
 
-        auto neptune = pipeProcess([
-                               format("%s/neptune-release", this.bin),
-                               args,
-                               "--assume-yes=true",
-                               "--no-send-mail",
-                               "--verbose",
-                               "--provider=github",
-                               format("--base-url=http://127.0.0.1:%s",
-                                   this.gh_port)],
+        string[] commands = [
+            format("%s/neptune-release", this.bin),
+            args,
+            "--assume-yes=true",
+            "--no-send-mail",
+            "--verbose",
+            "--provider=github",
+            format("--base-url=http://127.0.0.1:%s", this.gh_port)
+        ];
+        writeln("Running: ", commands);
+        auto neptune = pipeProcess(commands,
                                Redirect.all, ["HOME" : this.git],
                                Config.none, this.git);
 
@@ -362,6 +360,19 @@ class TestCase
     protected void checkTerminationStatus ( )
     {
         auto w = this.neptune_pid.tryWait();
+
+        import std.stdio;
+        writeln("\nstdout:\n---------------------------------------");
+        writeln(this.neptune_release_output.stdout);
+        writeln("\n---------------------------------------");
+        writeln("\nstderr:\n---------------------------------------");
+        writeln(this.neptune_release_output.stderr);
+        writeln("\n---------------------------------------");
+        writeln("\nstatus:\n---------------------------------------");
+        writeln(w.terminated);
+        writeln(w.status);
+        writeln("\n---------------------------------------");
+
 
         // Check for correct termination status
         assert(w.terminated);

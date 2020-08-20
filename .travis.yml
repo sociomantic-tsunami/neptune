@@ -49,14 +49,18 @@ jobs:
         - <<: *test-matrix
           env: DMD=2.080.*
         - <<: *test-matrix
-          env: DMD=2.081.*
+          env: DMD=2.085.*
+        - <<: *test-matrix
+          env: DMD=2.091.*
         - <<: *test-matrix
           env: DIST=bionic DMD=2.080.*
         - <<: *test-matrix
-          env: DIST=bionic DMD=2.081.*
+          env: DIST=bionic DMD=2.085.*
+        - <<: *test-matrix
+          env: DIST=bionic DMD=2.091.*
 
         # Package matrix
         - <<: *package-matrix
-          env: DMD=2.081.*
+          env: DMD=2.091.*
         - <<: *package-matrix
-          env: DIST=bionic DMD=2.081.*
+          env: DIST=bionic DMD=2.091.*

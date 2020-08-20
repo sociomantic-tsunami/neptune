@@ -977,6 +977,7 @@ Version autodetectVersions ( Version[] tags )
     import std.range;
     import std.algorithm;
     import std.exception : enforce;
+    import std.format : format;
 
     SemVerBranch current;
 

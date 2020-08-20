@@ -450,7 +450,7 @@ auto findUpdates ( Json repo_edges, LibInfo lib_info, MetaInfo meta_info,
             import autopr.yaml;
 
             auto res =
-                getAutoPRSettings(meta.neptune_yaml);
+                getAutoPRSettings(meta.neptune_yaml.get);
 
             global = res.global;
             mods   = res.mods;

@@ -163,7 +163,7 @@ struct LibInfo
 
                 import autopr.yaml;
 
-                auto rslt = getSupportGuarantees(meta.neptune_yaml);
+                auto rslt = getSupportGuarantees(meta.neptune_yaml.get);
 
                 // Skip non-library projects
                 if (!rslt.library)
@@ -351,8 +351,8 @@ struct LibInfo
             with (next.front)
             {
                 maj.support_end = published;
-                maj.support_end.add!"months"(maintained_major_months);
-                maj.supported = maj.support_end >= cast(Date) Clock.currTime();
+                maj.support_end.get.add!"months"(maintained_major_months);
+                maj.supported = maj.support_end.get >= cast(Date) Clock.currTime();
             }
         }
 

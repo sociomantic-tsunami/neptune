@@ -189,9 +189,9 @@ void main ( string[] args )
         if (!mi.neptune_yaml.isNull)
         {
             writefln("Parsing %s yml", repo);
-            parseFromYML(mi.neptune_yaml, channels, connections, apps);
+            parseFromYML(mi.neptune_yaml.get, channels, connections, apps);
         }
-        //writefln("%s: \n%s\n----", repo, mi.neptune_yaml);
+        //writefln("%s: \n%s\n----", repo, mi.neptune_yaml.get);
     }
 
     enum FileName = "dataflow.gv";

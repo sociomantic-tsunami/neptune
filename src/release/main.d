@@ -893,7 +893,7 @@ SemVerBranch[] getBranches ( ref HTTPConnection con, ref Repository repo,
     bool thisVersion ( SemVerBranch v )
     {
         return v.major == ver.major &&
-               !v.minor.isNull && v.minor == ver.minor;
+               !v.minor.isNull && v.minor.get == ver.minor;
     }
 
     bool newerVersion ( SemVerBranch v )
@@ -1014,7 +1014,7 @@ Version autodetectVersions ( Version[] tags )
     {
         if (current.minor.isNull ||
             a.major != current.major ||
-            a.minor != current.minor)
+            a.minor != current.minor.get)
             return false;
 
         if (!options.pre_release && a.prerelease.length > 0)

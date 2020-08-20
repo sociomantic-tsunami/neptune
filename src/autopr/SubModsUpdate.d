@@ -185,10 +185,10 @@ as described in the [documentation](https://github.com/sociomantic-tsunami/neptu
         else
         {
             writefln("%s> Adding comment to PR %s (%s)",
-                this.repo, this.pr_number, this.release_candidates);
+                this.repo, this.pr_number.get, this.release_candidates);
 
             auto pr = con.updatePullrequest(this.repo.owner, this.repo.name,
-                this.pr_number, PRTitles[this.release_candidates], content);
+                this.pr_number.get, PRTitles[this.release_candidates], content);
 
             auto msg = format("This PR has been updated: \n\n%s",
                 pr_msg_part);

@@ -334,7 +334,7 @@ void keepTrying ( void delegate ( ) dg, int max_attempts, Duration wait_time,
     auto tryWritefln ( Args... ) ( Nullable!File stream, Args args )
     {
         if (!stream.isNull)
-            stream.writefln(args);
+            stream.get.writefln(args);
     }
 
     foreach (_; 0..max_attempts) try

@@ -105,7 +105,7 @@ struct SemVerBranch
     {
         static int nullAs0 ( Nullable!int num )
         {
-            return num.isNull ? 0 : num;
+            return num.isNull ? 0 : num.get;
         }
 
         if (this.major != v.major)
@@ -140,7 +140,7 @@ struct SemVerBranch
         if (this.minor.isNull)
             return 1;
 
-        return this.minor - v.minor;
+        return this.minor.get - v.minor;
     }
 
 
@@ -170,7 +170,7 @@ struct SemVerBranch
 
         return format("v%s.%s.x",
                       this.major,
-                      this.minor.isNull ? "x" : this.minor.to!string);
+                      this.minor.isNull ? "x" : this.minor.get.to!string);
     }
 
 
@@ -290,7 +290,7 @@ public bool needPatchRelease ( A, B ) ( A matching_major, B matching_minor,
     if (matching_minor.empty)
         return false;
 
-    new_version = Version(current.major, current.minor,
+    new_version = Version(current.major, current.minor.get,
                           matching_minor.front.patch+1);
 
     return true;

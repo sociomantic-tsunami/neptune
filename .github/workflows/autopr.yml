@@ -33,7 +33,7 @@ jobs:
         # If the job fails, try decreasing this value.
         FETCH_ENTRIES: 10
         # Space-separated list of GitHub Organizations.
-        GITHUB_ORGS: sociomatic-tsunami
+        GITHUB_ORGS: sociomantic-tsunami
         OAUTHTOKEN: ${{ secrets.NEPTUNE_AUTOPR }}
       run: |
         ./build/last/bin/neptune-autopr ${OAUTHTOKEN} ${GITHUB_ORGS} \
